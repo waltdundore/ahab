@@ -1,0 +1,26 @@
+- name: Print all available facts
+  ansible.builtin.debug:
+    var: ansible_distribution
+
+- name: Remove software
+  ansible.builtin.dnf:
+    name: 
+      - elisa
+      - transmission
+    state: absent
+    autoremove: yes
+
+- name: Install software
+  ansible.builtin.dnf:
+    name: 
+      - chromium
+      - eza
+      - gimp
+      - okular
+      - qbittorrent
+      - terminator
+      - thunderbird
+      - vlc
+      - wireshark
+    state: latest
+    update_cache: true

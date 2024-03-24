@@ -1,0 +1,29 @@
+    #Install Vagrant
+    - name: Add Hashicorp repo
+      ansible.builtin.yum_repository:
+        name: hashicorp
+        description: Hashicorp repo
+        file: hashicorp
+        baseurl: https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable
+        gpgcheck: yes
+        gpgkey: https://rpm.releases.hashicorp.com/gpg
+    - name: Install vagrant
+      ansible.builtin.dnf:
+        name: 'vagrant'
+        state: present
+    #Install Vagrant Plugins
+    - name: add vagrant-libvirt plugin
+      ansible.builtin.command: vagrant plugin install vagrant-libvirt
+
+    - name: Copy a new sudoers file into place, after passing validation with visudo
+      ansible.builtin.template:
+        src: 10_vagrant.j2
+        dest: /etc/sudoers.d/10_vagrant
+        validate: /usr/sbin/visudo -cf %s
+    
+    - name: Add the user 'wdundore' with a bash shell, appending the group 'libvirt' and 'vagrant' to the user's groups
+      ansible.builtin.user:
+        name: wdundore
+        shell: /bin/bash
+        groups: vagrant
+        append: yes

@@ -1,0 +1,42 @@
+#@todo - set up nfs to work with vagrant - nfs3vs4 tcp vs udp
+#Set up NFS
+ 
+    - name: Install NFS server packages
+      dnf:
+        name:
+          - nfs-utils
+        state: present
+
+    - name: Create the NFS export directory
+      file:
+        path: /var/nfs/vagrant  
+        state: directory
+        mode: 0755
+
+    - name: Configure the NFS export
+      lineinfile:
+        path: /etc/exports
+        line: "/var/nfs/vagrant *(rw,sync,no_subtree_check,fsid=0,proto=tcp,vers=3)" 
+        create: yes
+
+    - name: Copy a new nfs file into place
+      ansible.builtin.template:
+        src: nfs.conf.j2
+        dest: /etc/nfs.conf
+
+
+    - name: Enable and start the NFS services
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+        - nfs-server
+        - rpcbind
+        - mountd
+
+
+    - name: Stop service httpd, if started
+      ansible.builtin.service:
+        name: firewalld
+        state: stopped

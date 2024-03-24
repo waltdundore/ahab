@@ -1,0 +1,8 @@
+#Ansible variables file
+darkmode: false
+development: false
+homedir: "/home/{{ item.name }}"
+my_ssh_key_file: "/home/wdundore/.ssh/id_rsa.pub"
+dotfiles_repo: git@github.com:waltdundore/dotfiles.git
+dotfiles_destination: /home/wdundore/git/testdotfiles
+required_users: ['wdundore']

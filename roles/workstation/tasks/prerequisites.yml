@@ -1,0 +1,74 @@
+  # Rpmfusion repos   
+  - name: Install rpmfusion free
+    ansible.builtin.dnf:
+      name: 'https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-9.noarch.rpm'
+      disable_gpg_check: true
+      state: present
+  - name: Install rpmfusion nonfree
+    ansible.builtin.dnf:
+      name: 'https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-9.noarch.rpm'
+      disable_gpg_check: true
+      state: present
+  - name: Upgrade all packages
+    ansible.builtin.dnf:
+      name: "*"
+      state: latest
+
+  # libvirt stuff  
+  - name: Install the 'virtualization hypervisor' package group
+    ansible.builtin.dnf:
+      name: '@virtualization hypervisor'
+      state: present
+  - name: Install the 'virtualization tools' package group
+    ansible.builtin.dnf:
+      name: '@virtualization tools'
+      state: present
+  - name: groupupdate core
+    ansible.builtin.dnf:
+      name: '@core'
+      state: latest
+
+  - name: Install NFS server packages
+    ansible.builtin.dnf:
+      name: virt-manager
+      state: present
+
+  
+#Multimedia for workstations
+  - name: Install multimedia packages
+    ansible.builtin.dnf:
+      name: '@multimedia'
+      state: present
+  - name: Update multimedia to latest
+    ansible.builtin.dnf:
+      name: '@multimedia'
+      state: latest
+
+#Development tools
+  - name: Install Development Tools
+    ansible.builtin.dnf:
+      name: '@Development Tools'
+      state: present
+  - name: Install libvirt-devel (needed for vagrant-libvirt plugin)
+    ansible.builtin.dnf:
+      name: libvirt-devel
+      state: present
+
+  - name: Ensure group "libvirt" exists
+    ansible.builtin.group:
+      name: libvirt
+      state: present
+
+#Add user to groups
+  - name: Add the user 'wdundore' with a bash shell, appending the group 'libvirt' and 'vagrant' to the user's groups
+    ansible.builtin.user:
+      name: wdundore
+      shell: /bin/bash
+      groups: libvirt
+      append: yes
+
+# Install KDE
+#  - name: Install Development Tools
+#    ansible.builtin.dnf:
+#      name: '@KDE Plasma Workspaces'
+#      state: present

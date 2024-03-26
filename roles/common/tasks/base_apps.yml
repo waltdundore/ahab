@@ -20,7 +20,6 @@
       - rsync
       - screen
       - sshuttle
-      - thunderbird
       - tmux
       - wget
     state: latest

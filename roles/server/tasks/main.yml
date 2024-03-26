@@ -1,0 +1,16 @@
+- name: Import prerequisite tasks
+  ansible.builtin.import_tasks: prerequisites.yml
+  
+- name: Install NFS
+  ansible.builtin.import_tasks: nfs.yml
+
+#- name: Install nfs
+#  ansible.builtin.import_tasks: nfs.yml
+
+# Temporarily disabled for time
+#- name: Import vpn setup
+#  ansible.builtin.import_tasks: vpn.yml
+
+- name: test vault
+  ansible.builtin.import_tasks: dotfiles/vault.yml
+

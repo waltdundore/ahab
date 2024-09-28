@@ -1,8 +1,11 @@
-- name: Install chrony
-  ansible.builtin.import_tasks: chrony.yml
+---
+# Main tasks for the common role
+
+- name: Import chrony tasks
+  import_tasks: chrony.yml
 
 - name: Import prerequisite tasks
-  ansible.builtin.import_tasks: prerequisites.yml
+  import_tasks: prerequisites.yml
 
-- name: Install base applications
-  ansible.builtin.import_tasks: base_apps.yml
+- name: Import base applications tasks
+  import_tasks: base_apps.yml

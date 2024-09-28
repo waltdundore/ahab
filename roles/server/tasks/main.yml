@@ -11,6 +11,4 @@
 #- name: Import vpn setup
 #  ansible.builtin.import_tasks: vpn.yml
 
-- name: test vault
-  ansible.builtin.import_tasks: dotfiles/vault.yml
 

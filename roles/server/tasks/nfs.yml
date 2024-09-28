@@ -5,18 +5,20 @@
       dnf:
         name:
           - nfs-utils
+          - sssd-nfs-idmap
+          - libnfsidmap
         state: present
 
     - name: Create the NFS export directory
       file:
-        path: /var/nfs/vagrant  
+        path: /var/nfs/shared 
         state: directory
         mode: 0755
 
     - name: Configure the NFS export
       lineinfile:
         path: /etc/exports
-        line: "/var/nfs/vagrant *(rw,sync,no_subtree_check,fsid=0,proto=tcp,vers=3)" 
+        line: "/var/nfs/shared *(rw,sync,no_subtree_check,fsid=0,proto=tcp,vers=3)" 
         create: yes
 
     - name: Copy a new nfs file into place
@@ -32,8 +34,6 @@
         enabled: yes
       with_items:
         - nfs-server
-        - rpcbind
-        - mountd
 
 
     - name: Stop service httpd, if started

@@ -1,0 +1,24 @@
+---
+# ==============================================================================
+# Proxy Server Playbook
+# ==============================================================================
+# Deploys base system with Docker for proxy/gateway hosts
+# Additional roles (gitea, letsencrypt, mariadb, proxy) not yet implemented
+#
+# Usage:
+#   ansible-playbook -i inventory/prod/hosts.yml playbooks/proxy.yml
+#   make deploy PLAYBOOK=proxy
+#
+# Roles:
+#   - common: Base system configuration
+#   - docker: Docker engine for containerized services
+#   - nfs: NFS client configuration (optional)
+
+- name: Deploy proxy server base
+  hosts: all
+  become: true
+
+  roles:
+    - common
+    - docker
+    # - nfs  # Uncomment if NFS storage needed

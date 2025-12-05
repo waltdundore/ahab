@@ -1,0 +1,34 @@
+---
+# ==============================================================================
+# Base Applications
+# ==============================================================================
+# Install and remove common applications
+#
+# Variables (from defaults/main.yml):
+#   - packages_to_remove: List of packages to uninstall
+#   - packages_to_install: List of packages to install
+
+- name: Display target system
+  ansible.builtin.debug:
+    msg: "Configuring {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+- name: Remove unwanted software (RedHat family)
+  ansible.builtin.dnf:
+    name: "{{ packages_to_remove }}"
+    state: absent
+    autoremove: true
+  when: ansible_facts['os_family'] | lower == 'redhat'
+
+- name: Install common software (RedHat family)
+  ansible.builtin.dnf:
+    name: "{{ packages_to_install }}"
+    state: latest
+    update_cache: true
+  when: ansible_facts['os_family'] | lower == 'redhat'
+
+- name: Install common software (Debian family)
+  ansible.builtin.apt:
+    name: "{{ packages_to_install }}"
+    state: latest
+    update_cache: true
+  when: ansible_facts['os_family'] | lower == 'debian'

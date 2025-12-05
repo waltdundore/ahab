@@ -1,0 +1,153 @@
+---
+# ==============================================================================
+# Docker Installation and Configuration
+# ==============================================================================
+# Install Docker engine on RedHat and Debian systems
+#
+# Variables (from defaults/main.yml):
+#   - docker_use_official_repo: Use official Docker repo vs distro repo (Debian)
+#   - docker_users: List of users to add to docker group
+#   - docker_apt_keyring_url: Docker GPG key URL (Debian)
+#   - docker_apt_keyring_path: Docker GPG key path (Debian)
+#   - docker_apt_keyring_hash: Docker GPG key SHA256 hash (Debian)
+#   - docker_apt_repo_url: Docker APT repository URL (Debian)
+
+# RedHat/Fedora Installation
+# ------------------------------------------------------------------------------
+
+- name: Install Docker GPG key (RedHat family)
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/fedora/gpg
+    dest: /etc/pki/rpm-gpg/docker-gpg
+    mode: '0644'
+  when: ansible_facts['os_family'] | lower == 'redhat'
+
+- name: Add Docker CE repository (RedHat family)
+  ansible.builtin.copy:
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: '0644'
+    content: |
+      [docker-ce-stable]
+      name=Docker CE Stable - $basearch
+      baseurl=https://download.docker.com/linux/fedora/$releasever/$basearch/stable
+      enabled=1
+      gpgcheck=1
+      gpgkey=https://download.docker.com/linux/fedora/gpg
+  when: ansible_facts['os_family'] | lower == 'redhat'
+
+- name: Remove Fedora Docker (moby) packages
+  ansible.builtin.dnf:
+    name:
+      - moby-engine
+      - moby-cli
+    state: absent
+    autoremove: true
+  when: ansible_facts['os_family'] | lower == 'redhat'
+
+- name: Install Docker CE from official repository (RedHat family)
+  ansible.builtin.dnf:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  when: ansible_facts['os_family'] | lower == 'redhat'
+
+- name: Ensure git is installed (RedHat family)
+  ansible.builtin.dnf:
+    name: git
+    state: present
+  when: ansible_facts['os_family'] | lower == 'redhat'
+
+# Debian/Ubuntu Installation
+# ------------------------------------------------------------------------------
+
+- name: Add official Docker APT key (Debian family)
+  ansible.builtin.get_url:
+    url: "{{ docker_apt_keyring_url }}"
+    dest: "{{ docker_apt_keyring_path }}"
+    checksum: "sha256:{{ docker_apt_keyring_hash }}"
+    mode: '0644'
+    owner: root
+    group: root
+  when: ansible_facts['os_family'] | lower == 'debian'
+
+- name: Add Docker APT repository (Debian family)
+  ansible.builtin.apt_repository:
+    repo: >
+      deb [arch=amd64 signed-by={{ docker_apt_keyring_path }}]
+      {{ docker_apt_repo_url }}
+      {{ 'bookworm' if ansible_distribution_release == 'trixie' else ansible_distribution_release }}
+      stable
+    state: "{{ 'present' if docker_use_official_repo else 'absent' }}"
+    filename: "{{ docker_apt_keyring_path | regex_replace('^.*/', '') }}"
+    update_cache: true
+  when: ansible_facts['os_family'] | lower == 'debian' and docker_use_official_repo
+
+- name: Install Docker from Debian repositories
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - docker-compose
+      - containerd
+      - runc
+    state: "{{ 'absent' if docker_use_official_repo else 'present' }}"
+    autoremove: true
+  when: ansible_facts['os_family'] | lower == 'debian'
+
+- name: Install Docker from official repositories (Debian family)
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: "{{ 'present' if docker_use_official_repo else 'absent' }}"
+    autoremove: true
+  when: ansible_facts['os_family'] | lower == 'debian'
+
+- name: Ensure git is installed (Debian family)
+  ansible.builtin.apt:
+    name: git
+    state: present
+  when: ansible_facts['os_family'] | lower == 'debian'
+
+# Docker Service Configuration
+# ------------------------------------------------------------------------------
+
+- name: Start Docker service and enable on boot
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Add users to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ docker_users }}"
+
+# Docker Verification
+# ------------------------------------------------------------------------------
+
+- name: Verify Docker installation
+  ansible.builtin.command:
+    cmd: docker run hello-world
+  register: docker_test
+  changed_when: false
+  failed_when: "'Hello from Docker!' not in docker_test.stdout"
+
+- name: Display Docker version
+  ansible.builtin.command:
+    cmd: docker --version
+  register: docker_version
+  changed_when: false
+
+- name: Show Docker version
+  ansible.builtin.debug:
+    msg: "{{ docker_version.stdout }}"

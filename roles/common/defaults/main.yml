@@ -1,0 +1,29 @@
+---
+# ==============================================================================
+# Common Role Default Variables
+# ==============================================================================
+# CONFIGURE: config.yml (common.*) for all settings
+# CONFIGURE: inventory/*/hosts.yml (all.vars.ansible_user) for username
+#
+# These defaults load from config.yml - edit config.yml instead of this file
+
+# CONFIGURE: inventory/*/hosts.yml (all.vars.ansible_user)
+common_user: "{{ ansible_user }}"
+common_home: "/home/{{ common_user }}"
+
+# CONFIGURE: config.yml (ssh.public_key)
+common_ssh_key: "{{ lookup('env', 'HOME') }}/.ssh/id_ed25519.pub"
+
+# CONFIGURE: config.yml (common.packages_to_remove)
+packages_to_remove:
+  - elisa
+  - transmission
+
+# CONFIGURE: config.yml (common.packages_to_install)
+packages_to_install:
+  - git
+  - htop
+  - iperf3
+  - rsync
+  - screen
+  - wget

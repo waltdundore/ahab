@@ -1,0 +1,22 @@
+---
+# ==============================================================================
+# Docker Development Stack Playbook
+# ==============================================================================
+# Deploys a complete Docker development environment
+# This is the default playbook used by Vagrant and make deploy
+#
+# Usage:
+#   ansible-playbook -i inventory/dev/hosts.yml playbooks/docker.yml
+#   make deploy
+#
+# Roles:
+#   - common: Base system configuration
+#   - docker: Docker engine installation and configuration
+
+- name: Deploy Docker development stack
+  hosts: all
+  become: true
+
+  roles:
+    - common
+    - docker

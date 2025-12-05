@@ -1,0 +1,151 @@
+# ==============================================================================
+# Ahab Control - Makefile
+# ==============================================================================
+# Automated Host Administration & Build
+# Automates Vagrant VM management and Ansible deployments
+
+.PHONY: all help status install debug clean provision ssh multi deploy vmstatus
+
+# Variables
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+INVENTORY := inventory/$(BRANCH)/hosts.yml
+PLAYBOOK := playbooks/docker.yml
+VAGRANT_INVENTORY := inventory/vagrant.py
+
+# Default target
+all: install
+
+#------------------------------------------------------------------------------
+# Commands
+#------------------------------------------------------------------------------
+
+help:
+	@echo "Ahab Control - Available Commands:"
+	@echo ""
+	@echo "Vagrant Commands:"
+	@echo "  make install   - Create and provision single VM"
+	@echo "  make multi     - Create multiple VMs (Fedora + Debian)"
+	@echo "  make provision - Re-provision running VMs"
+	@echo "  make vmstatus  - Show VM status"
+	@echo "  make ssh       - SSH into VM as root"
+	@echo "  make clean     - Destroy all VMs"
+	@echo ""
+	@echo "Ansible Commands:"
+	@echo "  make deploy    - Deploy to hosts (use HOST=name to limit)"
+	@echo ""
+	@echo "Other:"
+	@echo "  make status    - Show git status"
+	@echo "  make nuke      - Clean Vagrant global state"
+	@echo ""
+
+status:
+	@git status
+
+#------------------------------------------------------------------------------
+# Vagrant - Single VM
+#------------------------------------------------------------------------------
+
+install:
+	vagrant up --no-destroy-on-error
+
+debug:
+	vagrant up --debug --no-destroy-on-error
+
+clean:
+	@cd $(shell pwd) && vagrant destroy -f 2>/dev/null || true
+	@sleep 2
+	@cd $(shell pwd) && VAGRANT_VAGRANTFILE=Vagrantfile.multi vagrant destroy -f 2>/dev/null || true
+	@rm -rf .vagrant
+
+provision:
+	@cd $(shell pwd) && \
+	if vagrant status 2>/dev/null | grep -q "running" || \
+	   VAGRANT_VAGRANTFILE=Vagrantfile.multi vagrant status 2>/dev/null | grep -q "running"; then \
+		ansible-playbook -i $(VAGRANT_INVENTORY) $(PLAYBOOK); \
+	else \
+		echo "No VMs running. Run 'make install' or 'make multi' first."; \
+		exit 1; \
+	fi
+
+vmstatus:
+	@echo "=== Single VM Status ==="
+	@cd $(shell pwd) && vagrant status 2>/dev/null || echo "No single VM configured"
+	@echo ""
+	@echo "=== Multi VM Status ==="
+	@cd $(shell pwd) && VAGRANT_VAGRANTFILE=Vagrantfile.multi vagrant status 2>/dev/null || echo "No multi VMs configured"
+
+ssh:
+	@cd $(shell pwd) && \
+	VMS=$$(vagrant status 2>/dev/null | grep 'running' | awk '{print $$1}'); \
+	MULTI_VMS=$$(VAGRANT_VAGRANTFILE=Vagrantfile.multi vagrant status 2>/dev/null | grep 'running' | awk '{print $$1}'); \
+	ALL_VMS="$$VMS $$MULTI_VMS"; \
+	if [ -z "$$ALL_VMS" ]; then \
+		echo "No VMs running. Run 'make install' or 'make multi' first."; \
+		exit 1; \
+	fi; \
+	VM_COUNT=$$(echo $$ALL_VMS | wc -w | tr -d ' '); \
+	if [ $$VM_COUNT -eq 1 ]; then \
+		VM=$$(echo $$ALL_VMS | awk '{print $$1}'); \
+		if [ "$$VM" = "default" ]; then \
+			vagrant ssh -c "sudo -E -s su"; \
+		else \
+			osascript -e "tell application \"Terminal\" to do script \"cd $$(pwd) && VAGRANT_VAGRANTFILE=Vagrantfile.multi vagrant ssh $$VM -c 'sudo -E -s su'\""; \
+		fi; \
+	else \
+		echo "Select VM to SSH into:"; \
+		select VM in $$ALL_VMS; do \
+			if [ -n "$$VM" ]; then \
+				if [ "$$VM" = "default" ]; then \
+					osascript -e "tell application \"Terminal\" to do script \"cd $$(pwd) && vagrant ssh -c 'sudo -E -s su'\""; \
+				else \
+					osascript -e "tell application \"Terminal\" to do script \"cd $$(pwd) && VAGRANT_VAGRANTFILE=Vagrantfile.multi vagrant ssh $$VM -c 'sudo -E -s su'\""; \
+				fi; \
+				break; \
+			fi; \
+		done; \
+	fi
+
+#------------------------------------------------------------------------------
+# Vagrant - Multi VM
+#------------------------------------------------------------------------------
+
+multi:
+	@cd $(shell pwd) && VAGRANT_VAGRANTFILE=Vagrantfile.multi vagrant up --no-destroy-on-error
+
+#------------------------------------------------------------------------------
+# Ansible Deployment
+#------------------------------------------------------------------------------
+
+deploy:
+	@if [ ! -f "$(INVENTORY)" ]; then \
+		echo "Error: Inventory file not found: $(INVENTORY)"; \
+		exit 1; \
+	fi
+	@if [ -n "$(HOST)" ]; then \
+		ansible-playbook -i $(INVENTORY) $(PLAYBOOK) --limit $(HOST); \
+	else \
+		ansible-playbook -i $(INVENTORY) $(PLAYBOOK); \
+	fi
+
+#------------------------------------------------------------------------------
+# Advanced
+#------------------------------------------------------------------------------
+
+nuke:
+	@echo "⚠️  WARNING: This will clean Vagrant's global state cache"
+	@echo "This removes ALL cached Vagrant VM entries (VMs themselves are not deleted)."
+	@echo ""
+	@read -p "Continue? [y/N] " confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		rm -f ~/.vagrant.d/data/machine-index/index.lock; \
+		if [ -f ~/.vagrant.d/data/machine-index/index ]; then \
+			cp ~/.vagrant.d/data/machine-index/index ~/.vagrant.d/data/machine-index/index.backup; \
+			echo '{"version":1,"machines":{}}' > ~/.vagrant.d/data/machine-index/index; \
+			echo "✓ Vagrant global state cleared"; \
+			echo "Backup saved to: ~/.vagrant.d/data/machine-index/index.backup"; \
+		else \
+			echo "No Vagrant state file found"; \
+		fi; \
+	else \
+		echo "Cancelled"; \
+	fi

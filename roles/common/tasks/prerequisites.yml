@@ -1,0 +1,43 @@
+---
+# ==============================================================================
+# System Prerequisites
+# ==============================================================================
+# Install required packages and configure system settings
+#
+# Variables (from defaults/main.yml):
+#   - common_user: User for sudo configuration
+
+- name: Install SELinux Python bindings (RedHat family)
+  ansible.builtin.package:
+    name: python3-libselinux
+    state: present
+  when: ansible_facts['os_family'] | lower == 'redhat'
+
+- name: Stop firewalld service (temporary)
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+  when: ansible_facts['os_family'] | lower == 'redhat'
+  tags: firewall
+
+- name: Upgrade all packages (RedHat family)
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: true
+  when: ansible_facts['os_family'] | lower == 'redhat'
+
+- name: Upgrade all packages (Debian family)
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+    update_cache: true
+  when: ansible_facts['os_family'] | lower == 'debian'
+
+- name: Configure sudo access for user
+  ansible.builtin.template:
+    src: sudoers_user.j2
+    dest: /etc/sudoers.d/10_{{ common_user }}
+    mode: '0440'
+    validate: /usr/sbin/visudo -cf %s
+  when: common_user is defined

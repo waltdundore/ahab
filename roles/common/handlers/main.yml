@@ -1,0 +1,10 @@
+---
+# ==============================================================================
+# Common Role Handlers
+# ==============================================================================
+# Service restart handlers
+
+- name: Restart chronyd
+  ansible.builtin.service:
+    name: chronyd
+    state: restarted

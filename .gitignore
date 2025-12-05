@@ -1,0 +1,33 @@
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE Files
+.kiro/
+.amazonq/
+amazonq*
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Vagrant
+.vagrant/
+
+# Development/Scratch
+dotfiles/
+scratch/
+website/
+scripts/
+Makefile.dev
+/Makefile
+
+# Environment-specific (gitignored, use examples)
+inventory/workstation/hosts.yml
+
+# Temporary Files
+*.tmp
+*.bak
+*.backup
+*.log

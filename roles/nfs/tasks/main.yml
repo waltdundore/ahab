@@ -1,0 +1,11 @@
+---
+# ==============================================================================
+# NFS Role Main Tasks
+# ==============================================================================
+# Install and configure NFS client
+
+- name: Install and configure NFS client
+  ansible.builtin.import_tasks: nfs.yml
+  
+
+

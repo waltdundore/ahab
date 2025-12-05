@@ -1,0 +1,17 @@
+---
+# ==============================================================================
+# Common Role Main Tasks
+# ==============================================================================
+# Base configuration applied to all systems
+
+- name: Configure SSH keys
+  ansible.builtin.import_tasks: ssh_keys.yml
+
+- name: Configure time synchronization
+  ansible.builtin.import_tasks: chrony.yml
+
+- name: Install system prerequisites
+  ansible.builtin.import_tasks: prerequisites.yml
+
+- name: Install base applications
+  ansible.builtin.import_tasks: base_apps.yml

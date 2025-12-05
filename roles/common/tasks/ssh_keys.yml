@@ -1,0 +1,23 @@
+---
+# ==============================================================================
+# SSH Key Configuration
+# ==============================================================================
+# Deploy SSH public keys to target systems
+#
+# Variables (from defaults/main.yml):
+#   - common_user: Target user for SSH key deployment
+#   - common_ssh_key: Path to SSH public key file
+
+- name: Deploy SSH public key to vagrant user
+  ansible.posix.authorized_key:
+    user: vagrant
+    state: present
+    key: "{{ lookup('file', common_ssh_key) }}"
+  when: "'vagrant' in group_names"
+
+- name: Deploy SSH public key to primary user
+  ansible.posix.authorized_key:
+    user: "{{ common_user }}"
+    state: present
+    key: "{{ lookup('file', common_ssh_key) }}"
+  when: common_user is defined

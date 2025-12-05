@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <title>Ahab Software, LLC - Automated Host Administration & Build</title>
+    <meta name="description" content="Ahab - Automated Host Administration & Build. Ansible-based infrastructure automation for provisioning and managing Linux systems.">
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="logo-container">
+                <img src="https://raw.githubusercontent.com/waltdundore/ansible-control/prod/docs/images/ahab-logo.png" alt="Ahab Logo" class="logo">
+            </div>
+            <h1>AHAB</h1>
+            <p class="tagline">Automated Host Administration & Build</p>
+            <p class="subtitle">Ansible-based infrastructure automation for provisioning and managing Linux systems</p>
+        </section>
+
+        <!-- About Section -->
+        <section class="about">
+            <h2>About Ahab</h2>
+            <p>Ahab is a comprehensive infrastructure automation solution that simplifies the deployment and management of Linux systems across multiple distributions. Built on Ansible, Ahab provides a structured, maintainable approach to infrastructure as code.</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-server"></i>
+                    <h3>Multi-Distribution Support</h3>
+                    <p>Deploy to Fedora, Debian, Ubuntu, and more with consistent configurations</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-code-branch"></i>
+                    <h3>Environment Management</h3>
+                    <p>Separate configurations for dev, prod, and workstation environments</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Security First</h3>
+                    <p>Built-in security scanning and best practices enforcement</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Repositories Section -->
+        <section class="repositories">
+            <h2>Project Repositories</h2>
+            <div class="repo-grid">
+                <div class="repo-card">
+                    <i class="fas fa-cogs"></i>
+                    <h3>Ahab Control</h3>
+                    <p>Core automation engine with playbooks, roles, and Vagrant integration</p>
+                    <a href="https://github.com/waltdundore/ansible-control" target="_blank" class="btn">
+                        <i class="fab fa-github"></i> View Repository
+                    </a>
+                </div>
+                <div class="repo-card">
+                    <i class="fas fa-list"></i>
+                    <h3>Ahab Inventory</h3>
+                    <p>Environment-specific host definitions for dev, prod, and workstation</p>
+                    <a href="https://github.com/waltdundore/ansible-inventory" target="_blank" class="btn">
+                        <i class="fab fa-github"></i> View Repository
+                    </a>
+                </div>
+                <div class="repo-card">
+                    <i class="fas fa-sliders-h"></i>
+                    <h3>Ahab Config</h3>
+                    <p>Centralized configuration management for all environments</p>
+                    <a href="https://github.com/waltdundore/ansible-config" target="_blank" class="btn">
+                        <i class="fab fa-github"></i> View Repository
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section class="quickstart">
+            <h2>Quick Start</h2>
+            <div class="code-block">
+                <pre><code># Clone all three repositories
+cd ~/git
+git clone git@github.com:waltdundore/ansible-control.git
+git clone git@github.com:waltdundore/ansible-inventory.git
+git clone git@github.com:waltdundore/ansible-config.git
+
+# Create symlinks
+cd ansible-control
+ln -s ../ansible-inventory inventory
+ln -s ../ansible-config/config.yml config.yml
+
+# Configure and deploy
+make help</code></pre>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Ahab Software, LLC</h3>
+                    <p>Automated Host Administration & Build</p>
+                    <p class="website">ahabsoftware.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <a href="https://github.com/waltdundore/ansible-control" target="_blank">Documentation</a>
+                    <a href="https://github.com/waltdundore" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <div class="social-links">
+                        <a href="https://github.com/waltdundore" target="_blank" title="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/dundore/" target="_blank" title="LinkedIn">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Ahab Software, LLC. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

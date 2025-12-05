@@ -1,0 +1,44 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# ==============================================================================
+# Multi-VM Vagrant Configuration
+# ==============================================================================
+# Dynamically creates VMs based on config.yml vagrant_multi.vms list
+#
+# To modify VM settings, edit config.yml:
+#   - Playbook: config.yml (ansible.playbook)
+#   - CPU count per VM: config.yml (vagrant_multi.cpus)
+#   - Memory per VM: config.yml (vagrant_multi.memory)
+#   - VM list: config.yml (vagrant_multi.vms)
+
+require_relative 'vagrant_common'
+
+cfg = load_config
+multi_cfg = cfg['vagrant_multi'] || {}
+ansible_cfg = cfg['ansible'] || {}
+
+# CONFIGURE: config.yml (ansible.playbook)
+PLAYBOOK = ansible_cfg['playbook'] || 'docker'
+# CONFIGURE: config.yml (vagrant_multi.cpus)
+CPUS     = multi_cfg['cpus'] || 2
+# CONFIGURE: config.yml (vagrant_multi.memory)
+MEMORY   = multi_cfg['memory'] || 8192
+# CONFIGURE: config.yml (vagrant_multi.vms)
+VMS      = multi_cfg['vms'] || []
+
+Vagrant.configure("2") do |config|
+  config.ssh.forward_agent = true
+  config.vm.synced_folder "scratch", "/scratch", type: "rsync",  create: true
+
+  # Dynamically create VMs from config
+  VMS.each do |vm_config|
+    config.vm.define vm_config['name'] do |vm|
+      vm.vm.box = vm_config['box']
+      vm.vm.hostname = vm_config['hostname']
+      vm.vm.network "private_network", type: "dhcp"
+      configure_providers(vm.vm, CPUS, MEMORY)
+      configure_ansible(vm.vm, PLAYBOOK)
+    end
+  end
+end

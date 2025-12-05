@@ -1,0 +1,20 @@
+---
+# ==============================================================================
+# Docker Role Default Variables
+# ==============================================================================
+# CONFIGURE: config.yml (docker.*) for all settings
+#
+# These defaults load from config.yml - edit config.yml instead of this file
+
+# CONFIGURE: config.yml (docker.use_official_repo)
+docker_use_official_repo: false
+
+# Docker Official Repository Configuration (Debian) - rarely needs changes
+docker_apt_keyring_url: https://download.docker.com/linux/debian/gpg
+docker_apt_keyring_path: /usr/share/keyrings/docker-archive-keyring.gpg
+docker_apt_keyring_hash: 1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570
+docker_apt_repo_url: https://download.docker.com/linux/debian
+
+# CONFIGURE: config.yml (docker.users)
+docker_users:
+  - vagrant

@@ -1,0 +1,22 @@
+---
+# ==============================================================================
+# NFS Role Default Variables
+# ==============================================================================
+# CONFIGURE: config.yml (nfs.*) for all settings
+#
+# These defaults load from config.yml - edit config.yml instead of this file
+
+# CONFIGURE: config.yml (nfs.server)
+nfs_server: storage.example.com
+
+# CONFIGURE: config.yml (nfs.export)
+nfs_export: /volume1/nas
+
+# CONFIGURE: config.yml (nfs.mountpoint)
+nfs_mountpoint: /nas
+
+# CONFIGURE: config.yml (nfs.permissions)
+nfs_permissions: '0777'
+
+# CONFIGURE: config.yml (nfs.options)
+nfs_options: rw,sync

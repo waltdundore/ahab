@@ -1,0 +1,19 @@
+---
+# ==============================================================================
+# Common Configuration Playbook
+# ==============================================================================
+# Applies base system configuration to all nodes
+#
+# Usage:
+#   ansible-playbook -i inventory/dev/hosts.yml playbooks/common.yml
+#   make deploy PLAYBOOK=common
+#
+# Roles:
+#   - common: Base system packages, users, SSH keys, time sync
+
+- name: Apply common configuration to all nodes
+  hosts: all
+  become: true
+
+  roles:
+    - common

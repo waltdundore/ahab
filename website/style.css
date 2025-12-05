@@ -1,0 +1,332 @@
+/* Ahab Software Website Styles */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+:root {
+    --navy: #3d5a6c;
+    --slate: #5a7a8c;
+    --light-blue: #8ba9bc;
+    --dark-bg: #1a2332;
+    --darker-bg: #0f1419;
+    --text-light: #e0e6ed;
+    --text-gray: #9ca3af;
+    --white: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--darker-bg);
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Hero Section */
+.hero {
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--slate) 100%);
+}
+
+.logo-container {
+    margin-bottom: 30px;
+}
+
+.logo {
+    max-width: 300px;
+    height: auto;
+    border-radius: 10px;
+}
+
+.hero h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 10px;
+    letter-spacing: 8px;
+}
+
+.tagline {
+    font-size: 1.5rem;
+    color: var(--light-blue);
+    margin-bottom: 10px;
+    font-weight: 300;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    color: var(--text-gray);
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* About Section */
+.about {
+    padding: 80px 20px;
+    background-color: var(--dark-bg);
+}
+
+.about h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    color: var(--white);
+}
+
+.about > p {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 60px;
+    font-size: 1.2rem;
+    color: var(--text-gray);
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.feature {
+    text-align: center;
+    padding: 30px;
+    background-color: var(--darker-bg);
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.feature:hover {
+    transform: translateY(-5px);
+}
+
+.feature i {
+    font-size: 3rem;
+    color: var(--light-blue);
+    margin-bottom: 20px;
+}
+
+.feature h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: var(--white);
+}
+
+.feature p {
+    color: var(--text-gray);
+}
+
+/* Repositories Section */
+.repositories {
+    padding: 80px 20px;
+    background-color: var(--darker-bg);
+}
+
+.repositories h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 50px;
+    color: var(--white);
+}
+
+.repo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.repo-card {
+    background-color: var(--dark-bg);
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.repo-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.repo-card i {
+    font-size: 3rem;
+    color: var(--slate);
+    margin-bottom: 20px;
+}
+
+.repo-card h3 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: var(--white);
+}
+
+.repo-card p {
+    color: var(--text-gray);
+    margin-bottom: 25px;
+    min-height: 60px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background-color: var(--navy);
+    color: var(--white);
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    font-weight: 500;
+}
+
+.btn:hover {
+    background-color: var(--slate);
+}
+
+.btn i {
+    margin-right: 8px;
+    font-size: 1rem;
+}
+
+/* Quick Start Section */
+.quickstart {
+    padding: 80px 20px;
+    background-color: var(--dark-bg);
+}
+
+.quickstart h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    color: var(--white);
+}
+
+.code-block {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: var(--darker-bg);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.code-block pre {
+    margin: 0;
+    padding: 30px;
+    overflow-x: auto;
+}
+
+.code-block code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    color: var(--light-blue);
+    line-height: 1.8;
+}
+
+/* Footer */
+footer {
+    background-color: var(--darker-bg);
+    padding: 60px 20px 20px;
+    border-top: 1px solid var(--navy);
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    max-width: 1000px;
+    margin: 0 auto 40px;
+}
+
+.footer-section h3 {
+    color: var(--white);
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.footer-section p {
+    color: var(--text-gray);
+    margin-bottom: 10px;
+}
+
+.footer-section .website {
+    color: var(--light-blue);
+    font-weight: 500;
+}
+
+.footer-section a {
+    display: block;
+    color: var(--text-gray);
+    text-decoration: none;
+    margin-bottom: 10px;
+    transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+    color: var(--light-blue);
+}
+
+.social-links {
+    display: flex;
+    gap: 20px;
+}
+
+.social-links a {
+    font-size: 2rem;
+    display: inline-block;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 30px;
+    border-top: 1px solid var(--navy);
+    color: var(--text-gray);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem;
+        letter-spacing: 4px;
+    }
+    
+    .tagline {
+        font-size: 1.2rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+    }
+    
+    .logo {
+        max-width: 200px;
+    }
+    
+    .about h2,
+    .repositories h2,
+    .quickstart h2 {
+        font-size: 2rem;
+    }
+    
+    .features,
+    .repo-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .code-block pre {
+        padding: 20px;
+    }
+    
+    .code-block code {
+        font-size: 0.85rem;
+    }
+}

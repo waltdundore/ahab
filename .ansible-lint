@@ -1,0 +1,20 @@
+---
+# ==============================================================================
+# Ansible Lint Configuration
+# ==============================================================================
+# Configuration for ansible-lint to enforce best practices
+
+profile: production
+
+exclude_paths:
+  - .ansible/
+  - .amazonq/
+  - scratch/
+  - inventory/
+
+skip_list:
+  - package-latest  # Allow latest for dev/test environments
+  - no-changed-when  # Some commands are read-only by nature
+
+warn_list:
+  - experimental  # Warn about experimental features

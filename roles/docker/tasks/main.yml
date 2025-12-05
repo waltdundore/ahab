@@ -1,0 +1,8 @@
+---
+# ==============================================================================
+# Docker Role Main Tasks
+# ==============================================================================
+# Install and configure Docker
+
+- name: Install Docker engine
+  ansible.builtin.import_tasks: docker.yml

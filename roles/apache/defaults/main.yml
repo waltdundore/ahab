@@ -1,0 +1,23 @@
+---
+# Apache default variables
+# These can be overridden in playbooks or inventory
+
+# Server configuration
+apache_server_name: "{{ ansible_fqdn | default('localhost') }}"
+apache_port: 80
+apache_ssl_port: 443
+
+# Document root
+apache_document_root: /var/www/html
+
+# Logging
+apache_log_level: warn
+
+# Performance tuning
+apache_max_clients: 150
+apache_max_requests_per_child: 3000
+
+# Security
+apache_server_tokens: Prod
+apache_server_signature: "Off"
+apache_trace_enable: "Off"

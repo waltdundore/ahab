@@ -1,0 +1,61 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck python3-pip
+        pip3 install ansible-core ansible-lint --break-system-packages
+        ansible-galaxy collection install ansible.posix community.general community.docker
+        
+    - name: Run NASA Power of 10 validation
+      run: make test-nasa
+      
+    - name: Record test status
+      if: success()
+      run: |
+        bash scripts/record-test-pass.sh
+        cat .test-status
+        
+    - name: Record test failure
+      if: failure()
+      run: |
+        bash scripts/record-test-fail.sh || true
+        
+    - name: Upload test status
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-status
+        path: .test-status
+        
+    - name: Comment PR with status
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const status = fs.readFileSync('.test-status', 'utf8');
+          const passing = status.includes('PASS');
+          const emoji = passing ? '✅' : '❌';
+          const message = passing ? 'All tests passed!' : 'Tests failed';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `${emoji} **${message}**\n\n\`\`\`\n${status}\n\`\`\``
+          });

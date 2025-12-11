@@ -1,0 +1,283 @@
+# License Compatibility Matrix
+# Defines compatibility rules for open-source licenses used in Ahab
+# This file helps validate that all component licenses are compatible with each other
+# and with Ahab's overall licensing approach
+
+# Ahab's primary license (for documentation and educational materials)
+ahab_license: "CC BY-NC-SA 4.0"
+
+# Licenses that are generally compatible with most other open-source licenses
+compatible_licenses:
+  - "MIT"
+  - "BSD-2-Clause"
+  - "BSD-3-Clause"
+  - "Apache-2.0"
+  - "ISC"
+  - "Python-2.0"
+  - "Unlicense"
+  - "0BSD"
+
+# Copyleft licenses that require derivative works to use compatible licenses
+copyleft_licenses:
+  - "GPL-2.0"
+  - "GPL-2.0+"
+  - "GPL-3.0"
+  - "GPL-3.0+"
+  - "AGPL-3.0"
+  - "AGPL-3.0+"
+  - "LGPL-2.1"
+  - "LGPL-2.1+"
+  - "LGPL-3.0"
+  - "LGPL-3.0+"
+  - "MPL-2.0"
+
+# Licenses that require attribution in documentation or binary distributions
+attribution_required:
+  - "MIT"
+  - "BSD-2-Clause"
+  - "BSD-3-Clause"
+  - "Apache-2.0"
+  - "ISC"
+
+# Detailed compatibility matrix
+# For each license, specify which licenses it's compatible with
+compatibility_matrix:
+  "MIT":
+    compatible_with: 
+      - "MIT"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "Apache-2.0"
+      - "ISC"
+      - "GPL-2.0"
+      - "GPL-2.0+"
+      - "GPL-3.0"
+      - "GPL-3.0+"
+      - "AGPL-3.0"
+      - "AGPL-3.0+"
+      - "LGPL-2.1"
+      - "LGPL-2.1+"
+      - "LGPL-3.0"
+      - "LGPL-3.0+"
+      - "MPL-2.0"
+    notes: "MIT is very permissive and compatible with most licenses"
+    
+  "BSD-3-Clause":
+    compatible_with:
+      - "MIT"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "Apache-2.0"
+      - "ISC"
+      - "GPL-2.0"
+      - "GPL-2.0+"
+      - "GPL-3.0"
+      - "GPL-3.0+"
+      - "AGPL-3.0"
+      - "AGPL-3.0+"
+      - "LGPL-2.1"
+      - "LGPL-2.1+"
+      - "LGPL-3.0"
+      - "LGPL-3.0+"
+      - "MPL-2.0"
+    notes: "BSD-3-Clause is permissive and widely compatible"
+    
+  "Apache-2.0":
+    compatible_with:
+      - "MIT"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "Apache-2.0"
+      - "ISC"
+      - "GPL-3.0"
+      - "GPL-3.0+"
+      - "AGPL-3.0"
+      - "AGPL-3.0+"
+      - "LGPL-3.0"
+      - "LGPL-3.0+"
+      - "MPL-2.0"
+    incompatible_with:
+      - "GPL-2.0"
+      - "GPL-2.0+"
+      - "LGPL-2.1"
+      - "LGPL-2.1+"
+    notes: "Apache-2.0 has patent clauses that make it incompatible with GPL-2.0"
+    
+  "GPL-3.0":
+    compatible_with:
+      - "GPL-3.0"
+      - "GPL-3.0+"
+      - "AGPL-3.0"
+      - "AGPL-3.0+"
+      - "LGPL-3.0"
+      - "LGPL-3.0+"
+    can_use_but_not_relicense:
+      - "MIT"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "Apache-2.0"
+      - "ISC"
+    incompatible_with:
+      - "GPL-2.0"
+      - "LGPL-2.1"
+      - "LGPL-2.1+"
+    notes: "GPL-3.0 can incorporate permissive code but result must be GPL-3.0"
+    
+  "GPL-2.0":
+    compatible_with:
+      - "GPL-2.0"
+      - "GPL-2.0+"
+      - "LGPL-2.1"
+      - "LGPL-2.1+"
+    can_use_but_not_relicense:
+      - "MIT"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "ISC"
+    incompatible_with:
+      - "Apache-2.0"
+      - "GPL-3.0"
+      - "AGPL-3.0"
+      - "LGPL-3.0"
+    notes: "GPL-2.0 is incompatible with Apache-2.0 and GPL-3.0"
+    
+  "LGPL-3.0":
+    compatible_with:
+      - "LGPL-3.0"
+      - "LGPL-3.0+"
+      - "GPL-3.0"
+      - "GPL-3.0+"
+      - "AGPL-3.0"
+      - "AGPL-3.0+"
+    can_link_with:
+      - "MIT"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "Apache-2.0"
+      - "ISC"
+      - "Proprietary"
+    notes: "LGPL allows linking with other licenses but modifications must be LGPL"
+    
+  "Python-2.0":
+    compatible_with:
+      - "MIT"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "Apache-2.0"
+      - "ISC"
+      - "Python-2.0"
+      - "GPL-2.0"
+      - "GPL-2.0+"
+      - "GPL-3.0"
+      - "GPL-3.0+"
+      - "LGPL-2.1"
+      - "LGPL-2.1+"
+      - "LGPL-3.0"
+      - "LGPL-3.0+"
+    notes: "Python-2.0 is GPL-compatible and widely permissive"
+
+# Special compatibility rules for common scenarios
+special_rules:
+  # Educational and non-commercial use
+  educational_use:
+    description: "For educational projects like Ahab"
+    generally_acceptable:
+      - "MIT"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "Apache-2.0"
+      - "ISC"
+      - "Python-2.0"
+      - "CC-BY-4.0"
+      - "CC-BY-SA-4.0"
+    requires_review:
+      - "GPL-2.0"
+      - "GPL-3.0"
+      - "AGPL-3.0"
+      - "LGPL-2.1"
+      - "LGPL-3.0"
+    notes: "Copyleft licenses may require making derivative works available under same license"
+  
+  # Dependency usage (not modification)
+  dependency_usage:
+    description: "Using libraries as dependencies without modification"
+    generally_acceptable:
+      - "MIT"
+      - "BSD-2-Clause"
+      - "BSD-3-Clause"
+      - "Apache-2.0"
+      - "ISC"
+      - "Python-2.0"
+      - "LGPL-2.1"
+      - "LGPL-3.0"
+    requires_care:
+      - "GPL-2.0"
+      - "GPL-3.0"
+      - "AGPL-3.0"
+    notes: "LGPL allows linking, GPL may require entire work to be GPL"
+
+# Attribution requirements by license
+attribution_requirements:
+  "MIT":
+    requires_attribution: true
+    requires_copyright_notice: true
+    requires_license_text: true
+    attribution_location: "documentation and/or binary distributions"
+    
+  "BSD-3-Clause":
+    requires_attribution: true
+    requires_copyright_notice: true
+    requires_license_text: true
+    additional_requirements: "Cannot use author names for endorsement without permission"
+    attribution_location: "documentation and/or binary distributions"
+    
+  "Apache-2.0":
+    requires_attribution: true
+    requires_copyright_notice: true
+    requires_license_text: true
+    requires_notice_file: true
+    patent_grant: true
+    attribution_location: "NOTICE file and documentation"
+    
+  "GPL-3.0":
+    requires_attribution: true
+    requires_copyright_notice: true
+    requires_license_text: true
+    requires_source_availability: true
+    copyleft: true
+    attribution_location: "source code and documentation"
+    
+  "Python-2.0":
+    requires_attribution: true
+    requires_copyright_notice: true
+    requires_license_text: false
+    attribution_location: "documentation"
+
+# Common license compatibility warnings
+warnings:
+  - license_pair: ["Apache-2.0", "GPL-2.0"]
+    warning: "Apache-2.0 and GPL-2.0 are incompatible due to patent clause differences"
+    recommendation: "Use GPL-3.0 instead of GPL-2.0 if you need GPL compatibility with Apache-2.0"
+    
+  - license_pair: ["GPL-3.0", "GPL-2.0"]
+    warning: "GPL-3.0 and GPL-2.0 are incompatible"
+    recommendation: "Use GPL-2.0+ (or later) to allow upgrading to GPL-3.0"
+    
+  - license_pair: ["AGPL-3.0", "*"]
+    warning: "AGPL-3.0 has network copyleft requirements"
+    recommendation: "Ensure you can comply with AGPL's network service requirements"
+
+# Notes for maintainers
+notes: |
+  This compatibility matrix is based on common interpretations of open-source licenses.
+  For legal advice on specific situations, consult with a qualified attorney.
+  
+  Key principles:
+  1. Permissive licenses (MIT, BSD, Apache) are generally compatible with everything
+  2. Copyleft licenses (GPL, AGPL) require derivative works to use compatible licenses
+  3. LGPL allows linking with other licenses but modifications must be LGPL
+  4. Always check specific license text for exact requirements
+  5. When in doubt, choose more permissive licenses for better compatibility
+  
+  This file is used by the license validator to check for compatibility issues
+  in the component documentation system.

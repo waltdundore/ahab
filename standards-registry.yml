@@ -1,0 +1,271 @@
+# Georgia CS Standards Registry
+# Source: https://case.georgiastandards.org/00fcf0e2-b9c3-11e7-a4ad-47f36833e889/a4aeca3a-1532-11eb-b674-0242ac150004/591
+# Version: Current as of December 8, 2025
+# Last Updated: December 8, 2025
+# Verified By: Walt Dundore (Project Maintainer)
+
+metadata:
+  source_url: "https://case.georgiastandards.org/00fcf0e2-b9c3-11e7-a4ad-47f36833e889/a4aeca3a-1532-11eb-b674-0242ac150004/591"
+  standards_version: "Current (2025)"
+  last_verified: "2025-12-08"
+  verified_by: "Walt Dundore"
+  organization_model: "Course-based (not grade-based)"
+  note: "Georgia CS standards are organized by career pathway courses, not traditional grade bands"
+
+standards:
+  # Computer Science Principles (IT-CSP) - Foundational Course
+  computer_science_principles:
+    course_code: "IT-CSP"
+    course_name: "Computer Science Principles"
+    level: "Foundational"
+    typical_grades: [9, 10, 11, 12]
+    standards:
+      - id: "IT-CSP-1"
+        official_text: "Demonstrate employability skills required by business and industry."
+        description: "Foundational employability skills for CS careers"
+        concepts: ["employability", "professional skills", "workplace readiness"]
+        
+      - id: "IT-CSP-2"
+        official_text: "Create digital artifacts that foster creative expression including programs, digital music, videos, images, documents, and combinations of these such as infographics, presentations, and web pages."
+        description: "Digital artifact creation and creative expression"
+        concepts: ["digital artifacts", "creative expression", "multimedia", "programming"]
+        
+      - id: "IT-CSP-3"
+        official_text: "Apply abstractions in digital data to explain how bits are grouped to represent higher-level abstractions such as numbers and characters."
+        description: "Data abstraction and representation"
+        concepts: ["abstraction", "data representation", "binary", "encoding"]
+        
+      - id: "IT-CSP-4"
+        official_text: "Design and create computer programs to process and extract information to gain insight and knowledge."
+        description: "Programming for data processing and analysis"
+        concepts: ["programming", "data processing", "information extraction", "analysis"]
+        
+      - id: "IT-CSP-5"
+        official_text: "Develop, express, implement, and analyze algorithms analytically and empirically"
+        description: "Algorithm development and analysis"
+        concepts: ["algorithms", "analytical thinking", "empirical analysis", "problem solving"]
+        
+      - id: "IT-CSP-6"
+        official_text: "Create programs that translate human intention into computational artifacts including music, images, visualizations, and more while exploring the concepts, techniques and development used in writing programs."
+        description: "Programming as translation of human intention"
+        concepts: ["programming", "computational artifacts", "human-computer interaction", "software development"]
+        
+      - id: "IT-CSP-7"
+        official_text: "Gain insight into the operation of the Internet, study characteristics of the Internet and systems built upon it, and analyze important concerns, such as cybersecurity."
+        description: "Internet operation and cybersecurity"
+        concepts: ["internet", "networking", "cybersecurity", "distributed systems"]
+        
+      - id: "IT-CSP-8"
+        official_text: "Develop a logical argument from the many ways in which computing enables innovation and our methods for communicating, collaborating, problem solving, and doing business, and analyze the potential benefits and harmful effects of computing in the way people think, work, live, and play."
+        description: "Computing's societal impact"
+        concepts: ["computing impact", "innovation", "ethics", "society"]
+        
+      - id: "IT-CSP-9"
+        official_text: "Review and update personal online career portfolio."
+        description: "Career portfolio development"
+        concepts: ["career development", "portfolio", "professional presentation"]
+        
+      - id: "IT-CSP-10"
+        official_text: "Explore how related student organizations are integral parts of career and technology education courses through leadership development, school and community service projects, entrepreneurship development, and competitive events."
+        description: "Student organization participation"
+        concepts: ["leadership", "community service", "entrepreneurship", "career development"]
+
+  # Programming, Games, Apps, and Society (IT-PGAS) - Intermediate Course
+  programming_games_apps_society:
+    course_code: "IT-PGAS"
+    course_name: "Programming, Games, Apps, and Society"
+    level: "Intermediate"
+    typical_grades: [10, 11, 12]
+    standards:
+      - id: "IT-PGAS-1"
+        official_text: "Demonstrate employability skills required by business and industry."
+        description: "Employability skills for software development careers"
+        concepts: ["employability", "professional skills", "software industry"]
+        
+      - id: "IT-PGAS-2"
+        official_text: "Describe the software application life cycle and use a prototype development model to develop applications."
+        description: "Software development lifecycle and prototyping"
+        concepts: ["SDLC", "prototyping", "iterative development", "software engineering"]
+        
+      - id: "IT-PGAS-3"
+        official_text: "Design and develop applications using objects."
+        description: "Object-oriented programming"
+        concepts: ["OOP", "objects", "classes", "encapsulation"]
+        
+      - id: "IT-PGAS-4"
+        official_text: "Design, develop, and implement accessible and usable interfaces, and analyze applications for engaging the user."
+        description: "User interface design and accessibility"
+        concepts: ["UI/UX", "accessibility", "usability", "user engagement"]
+        
+      - id: "IT-PGAS-5"
+        official_text: "Use and implement different digital representations of media."
+        description: "Digital media representation and implementation"
+        concepts: ["media", "digital representation", "multimedia", "encoding"]
+        
+      - id: "IT-PGAS-6"
+        official_text: "Evaluate an application design in terms of meeting privacy needs, legal and intellectual property requirements, and security considerations."
+        description: "Privacy, legal, and security considerations"
+        concepts: ["privacy", "security", "legal compliance", "intellectual property"]
+        
+      - id: "IT-PGAS-7"
+        official_text: "Develop applications that read real-world data from sensors, interpret the data, and respond to the real-world stimuli."
+        description: "Sensor data and real-world interaction"
+        concepts: ["sensors", "IoT", "data interpretation", "real-time systems"]
+        
+      - id: "IT-PGAS-8"
+        official_text: "Describe the unique needs for information and communication technologies for diverse audiences"
+        description: "ICT for diverse audiences"
+        concepts: ["diversity", "accessibility", "inclusive design", "communication"]
+        
+      - id: "IT-PGAS-9"
+        official_text: "Explore how related student organizations are integral parts of career and technology education courses through leadership development, school and community service projects, entrepreneurship development, and competitive events."
+        description: "Student organization participation"
+        concepts: ["leadership", "community service", "entrepreneurship"]
+
+  # Network Systems and Services (IT-NSS) - Specialized Networking Course
+  network_systems_services:
+    course_code: "IT-NSS"
+    course_name: "Network Systems and Services"
+    level: "Specialized"
+    typical_grades: [10, 11, 12]
+    standards:
+      - id: "IT-NSS-1"
+        official_text: "Demonstrate employability skills required by business and industry."
+        description: "Employability skills for networking careers"
+        concepts: ["employability", "professional skills", "networking industry"]
+        
+      - id: "IT-NSS-2"
+        official_text: "Identify the fundamental principles of networking demonstrating installation, configuration, optimization, and upgrades of networking."
+        description: "Networking fundamentals and lifecycle"
+        concepts: ["networking", "installation", "configuration", "optimization", "upgrades"]
+        
+      - id: "IT-NSS-3"
+        official_text: "Explore local-area network (LAN), metropolitan area network (MAN), wide-area network (WAN), and wireless local-area network (WLAN) trends and issues including the basics of telecommunications and use in the interconnection of networks."
+        description: "Network types and telecommunications"
+        concepts: ["LAN", "MAN", "WAN", "WLAN", "telecommunications"]
+        
+      - id: "IT-NSS-4"
+        official_text: "Demonstrate knowledge of LAN physical media and knowledge of network connectivity basics."
+        description: "Physical media and connectivity"
+        concepts: ["physical media", "connectivity", "cabling", "network hardware"]
+        
+      - id: "IT-NSS-5"
+        official_text: "Understand through explanation and demonstration of the two standard computer network communication protocols (OSI Layer and TCP/IP) and its importance to standards-based networks."
+        description: "Network protocols (OSI and TCP/IP)"
+        concepts: ["OSI model", "TCP/IP", "protocols", "standards"]
+        
+      - id: "IT-NSS-6"
+        official_text: "Demonstrate the concept of sub-netting and the importance to standards-based networks."
+        description: "Subnetting and network segmentation"
+        concepts: ["subnetting", "IP addressing", "network segmentation"]
+        
+      - id: "IT-NSS-7"
+        official_text: "Identify the fundamental principles of network security systems for optimal network operation and administration."
+        description: "Network security principles"
+        concepts: ["network security", "security systems", "administration"]
+        
+      - id: "IT-NSS-8"
+        official_text: "Troubleshoot network problems and functions."
+        description: "Network troubleshooting"
+        concepts: ["troubleshooting", "problem solving", "diagnostics"]
+        
+      - id: "IT-NSS-9"
+        official_text: "Create a network using design standards, analysis, and selection for networks."
+        description: "Network design and standards"
+        concepts: ["network design", "standards", "analysis", "architecture"]
+        
+      - id: "IT-NSS-10"
+        official_text: "Explain computer network operation and management procedures including network maintenance and diagnostic testing."
+        description: "Network operation and management"
+        concepts: ["network operations", "management", "maintenance", "diagnostics"]
+        
+      - id: "IT-NSS-11"
+        official_text: "Apply network applications and knowledge of network operating systems by installing basic system architectures using current windows operating system software and perform network administration."
+        description: "Network OS and administration"
+        concepts: ["network OS", "system administration", "Windows", "network applications"]
+        
+      - id: "IT-NSS-12"
+        official_text: "Organize personal online career portfolio for specific career interests."
+        description: "Career portfolio for networking"
+        concepts: ["career development", "portfolio", "networking careers"]
+        
+      - id: "IT-NSS-13"
+        official_text: "Explore how related student organizations are integral parts of career and technology education courses through leadership development, school and community service projects, entrepreneurship development, and competitive events."
+        description: "Student organization participation"
+        concepts: ["leadership", "community service", "entrepreneurship"]
+
+  # IT Support Specialist (IT-ITS) - Technical Support Course
+  it_support_specialist:
+    course_code: "IT-ITS"
+    course_name: "IT Support Specialist"
+    level: "Specialized"
+    typical_grades: [10, 11, 12]
+    standards:
+      - id: "IT-ITS-1"
+        official_text: "Demonstrate employability skills required by business and industry."
+        description: "Comprehensive employability skills (with sub-standards)"
+        concepts: ["employability", "professional skills", "IT support"]
+        sub_standards:
+          - id: "IT-ITS-1.1"
+            official_text: "Communicate effectively through writing, speaking, listening, reading, and interpersonal abilities."
+            concepts: ["communication", "interpersonal skills"]
+          - id: "IT-ITS-1.2"
+            official_text: "Demonstrate creativity by asking challenging questions and applying innovative procedures and methods."
+            concepts: ["creativity", "innovation", "critical thinking"]
+          - id: "IT-ITS-1.3"
+            official_text: "Exhibit critical thinking and problem-solving skills to locate, analyze and apply information in career planning and employment situations."
+            concepts: ["critical thinking", "problem solving", "analysis"]
+          - id: "IT-ITS-1.4"
+            official_text: "Model work readiness traits required for success in the workplace including integrity, honesty, accountability, punctuality, time management, and respect for diversity."
+            concepts: ["work readiness", "integrity", "professionalism"]
+          - id: "IT-ITS-1.5"
+            official_text: "Apply the appropriate skill sets to be productive in a changing, technological, diverse workplace to be able to work independently and apply teamwork skills."
+            concepts: ["teamwork", "independence", "adaptability"]
+          - id: "IT-ITS-1.6"
+            official_text: "Present a professional image through appearance, behavior and language."
+            concepts: ["professionalism", "professional image"]
+            
+      - id: "IT-ITS-2"
+        official_text: "Apply knowledge and skills to install, configure, optimize, and upgrade printers and scanners."
+        description: "Hardware installation and configuration"
+        concepts: ["hardware", "printers", "scanners", "peripherals"]
+        
+      - id: "IT-ITS-3"
+        official_text: "Apply knowledge and skills of networks to install, configure, optimize, and upgrade networks."
+        description: "Network installation and configuration"
+        concepts: ["networking", "installation", "configuration", "optimization"]
+        
+      - id: "IT-ITS-4"
+        official_text: "Identify the fundamentals and principles of security."
+        description: "Security fundamentals"
+        concepts: ["security", "security principles", "fundamentals"]
+        
+      - id: "IT-ITS-5"
+        official_text: "Apply knowledge and skills to install, configure, upgrade, and optimize security."
+        description: "Security implementation"
+        concepts: ["security", "installation", "configuration", "hardening"]
+        
+      - id: "IT-ITS-6"
+        official_text: "Describe the aspects and importance of safety and environmental issues with computer support and services."
+        description: "Safety and environmental considerations"
+        concepts: ["safety", "environmental", "best practices"]
+        
+      - id: "IT-ITS-7"
+        official_text: "Perform maintenance procedures on laptops and portable devices."
+        description: "Device maintenance"
+        concepts: ["maintenance", "laptops", "mobile devices"]
+        
+      - id: "IT-ITS-8"
+        official_text: "Use job-related professional behavior in language, interaction and communication including notation of privacy, confidentiality, and respect for the customer property."
+        description: "Professional behavior and customer service"
+        concepts: ["professionalism", "customer service", "privacy", "confidentiality"]
+        
+      - id: "IT-ITS-9"
+        official_text: "Organize personal online career portfolio for specific career interests."
+        description: "Career portfolio for IT support"
+        concepts: ["career development", "portfolio", "IT support careers"]
+        
+      - id: "IT-ITS-10"
+        official_text: "Explore how related student organizations are integral parts of career and technology education courses through leadership development, school and community service projects, entrepreneurship development, and competitive events."
+        description: "Student organization participation"
+        concepts: ["leadership", "community service", "entrepreneurship"]

@@ -1,0 +1,14 @@
+---
+# Apache variables for RedHat family (Fedora, RHEL, CentOS)
+
+apache_packages:
+  - httpd
+  - mod_ssl
+
+apache_service: httpd
+apache_user: apache
+apache_group: apache
+apache_config_file: /etc/httpd/conf/httpd.conf
+apache_security_conf: /etc/httpd/conf.d/security.conf
+apache_document_root: /var/www/html
+apache_log_dir: /var/log/httpd

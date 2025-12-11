@@ -1,0 +1,165 @@
+---
+# ==============================================================================
+# PHP - Ansible Tasks
+# ==============================================================================
+# Installs and configures PHP on Fedora/Debian/Ubuntu
+#
+# This role:
+#   - Detects OS family and version
+#   - Installs PHP packages and extensions
+#   - Configures PHP settings
+#   - Integrates with Apache
+#   - Creates test PHP file
+#   - Verifies PHP is working
+# ==============================================================================
+
+- name: Include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+  tags: [php, config]
+
+- name: Display PHP installation info
+  debug:
+    msg: "Installing PHP on {{ ansible_distribution }} {{ ansible_distribution_version }}"
+  tags: [php]
+
+#------------------------------------------------------------------------------
+# Dependency Check
+#------------------------------------------------------------------------------
+
+- name: Check if Apache is installed
+  command: "{{ apache_check_command }}"
+  register: apache_check
+  failed_when: false
+  changed_when: false
+  tags: [php, dependencies]
+
+- name: Fail if Apache is not installed
+  fail:
+    msg: "Apache must be installed before PHP. Please install the apache role first."
+  when: apache_check.rc != 0
+  tags: [php, dependencies]
+
+#------------------------------------------------------------------------------
+# Package Installation
+#------------------------------------------------------------------------------
+
+- name: Install PHP packages (RedHat family)
+  package:
+    name: "{{ php_packages }}"
+    state: present
+  when: ansible_os_family == "RedHat"
+  notify: restart apache
+  tags: [php, packages]
+
+- name: Install PHP packages (Debian family)
+  package:
+    name: "{{ php_packages }}"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+  notify: restart apache
+  tags: [php, packages]
+
+- name: Install additional PHP extensions
+  package:
+    name: "{{ php_extensions }}"
+    state: present
+  when: php_extensions is defined and php_extensions | length > 0
+  notify: restart apache
+  tags: [php, packages, extensions]
+
+#------------------------------------------------------------------------------
+# PHP Configuration
+#------------------------------------------------------------------------------
+
+- name: Configure PHP settings
+  lineinfile:
+    path: "{{ php_ini_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '^;?memory_limit =', line: 'memory_limit = {{ php_memory_limit }}' }
+    - { regexp: '^;?upload_max_filesize =', line: 'upload_max_filesize = {{ php_upload_max_filesize }}' }
+    - { regexp: '^;?post_max_size =', line: 'post_max_size = {{ php_post_max_size }}' }
+    - { regexp: '^;?max_execution_time =', line: 'max_execution_time = {{ php_max_execution_time }}' }
+    - { regexp: '^;?max_input_time =', line: 'max_input_time = {{ php_max_input_time }}' }
+    - { regexp: '^;?display_errors =', line: 'display_errors = {{ php_display_errors }}' }
+    - { regexp: '^;?error_reporting =', line: 'error_reporting = {{ php_error_reporting }}' }
+    - { regexp: '^;?date.timezone =', line: 'date.timezone = {{ php_timezone }}' }
+  notify: restart apache
+  tags: [php, config]
+
+#------------------------------------------------------------------------------
+# Apache Integration
+#------------------------------------------------------------------------------
+
+- name: Enable PHP module in Apache (Debian)
+  apache2_module:
+    name: php
+    state: present
+  when: ansible_os_family == "Debian"
+  notify: restart apache
+  tags: [php, apache]
+
+- name: Create PHP info test file
+  template:
+    src: info.php.j2
+    dest: "{{ apache_document_root }}/info.php"
+    owner: "{{ apache_user }}"
+    group: "{{ apache_group }}"
+    mode: '0644'
+  tags: [php, test]
+
+- name: Create PHP test file
+  template:
+    src: test.php.j2
+    dest: "{{ apache_document_root }}/test.php"
+    owner: "{{ apache_user }}"
+    group: "{{ apache_group }}"
+    mode: '0644'
+  tags: [php, test]
+
+#------------------------------------------------------------------------------
+# Service Management
+#------------------------------------------------------------------------------
+
+- name: Ensure Apache is restarted to load PHP
+  service:
+    name: "{{ apache_service }}"
+    state: restarted
+  tags: [php, service]
+
+- name: Wait for Apache to be ready
+  wait_for:
+    port: 80
+    delay: 2
+    timeout: 30
+  tags: [php, service]
+
+#------------------------------------------------------------------------------
+# Verification
+#------------------------------------------------------------------------------
+
+- name: Verify PHP is working
+  uri:
+    url: "http://localhost/test.php"
+    status_code: 200
+    return_content: yes
+  register: php_response
+  retries: 3
+  delay: 5
+  tags: [php, verify]
+
+- name: Check if PHP version is in response
+  assert:
+    that:
+      - "'PHP Version' in php_response.content or 'PHP is working' in php_response.content"
+    fail_msg: "PHP does not appear to be working correctly"
+    success_msg: "PHP is installed and working"
+  tags: [php, verify]
+
+- name: Display PHP status
+  debug:
+    msg: "PHP is installed and working. Test page: http://{{ ansible_default_ipv4.address }}/test.php"
+  tags: [php, verify]

@@ -1,0 +1,54 @@
+# Ansible Vault Template for Sensitive Variables
+# 
+# This file contains encrypted sensitive variables for Ahab deployment.
+# To use this template:
+# 1. Copy to vault.yml: cp vault.yml.template vault.yml
+# 2. Edit with your values: ansible-vault edit vault.yml
+# 3. Commit vault.yml (it will be encrypted)
+#
+# NEVER commit this template with real values!
+
+# Production deployment credentials
+ansible_become_pass: "CHANGE_ME_PRODUCTION_SUDO_PASSWORD"
+
+# Database passwords
+mysql_root_password: "CHANGE_ME_MYSQL_ROOT_PASSWORD"
+mysql_app_password: "CHANGE_ME_MYSQL_APP_PASSWORD"
+
+# Application secrets
+app_secret_key: "CHANGE_ME_APP_SECRET_KEY"
+jwt_secret: "CHANGE_ME_JWT_SECRET"
+
+# API keys (if needed)
+monitoring_api_key: "CHANGE_ME_MONITORING_API_KEY"
+backup_api_key: "CHANGE_ME_BACKUP_API_KEY"
+
+# SSL/TLS certificates (if using custom certs)
+ssl_private_key: |
+  -----BEGIN PRIVATE KEY-----
+  CHANGE_ME_SSL_PRIVATE_KEY_CONTENT
+  -----END PRIVATE KEY-----
+
+ssl_certificate: |
+  -----BEGIN CERTIFICATE-----
+  CHANGE_ME_SSL_CERTIFICATE_CONTENT
+  -----END CERTIFICATE-----
+
+# SSH keys for deployment (if needed)
+deployment_ssh_private_key: |
+  -----BEGIN OPENSSH PRIVATE KEY-----
+  CHANGE_ME_DEPLOYMENT_SSH_PRIVATE_KEY
+  -----END OPENSSH PRIVATE KEY-----
+
+# External service credentials
+external_service_username: "CHANGE_ME_EXTERNAL_USERNAME"
+external_service_password: "CHANGE_ME_EXTERNAL_PASSWORD"
+
+# Backup encryption keys
+backup_encryption_key: "CHANGE_ME_BACKUP_ENCRYPTION_KEY"
+
+# Notes:
+# - All passwords should be strong (16+ characters, mixed case, numbers, symbols)
+# - API keys should be obtained from respective service providers
+# - SSH keys should be generated specifically for deployment use
+# - This template shows the structure - replace ALL values before encrypting

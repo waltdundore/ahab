@@ -1,0 +1,216 @@
+---
+# ==============================================================================
+# Apache HTTP Server - Ansible Tasks
+# ==============================================================================
+# Installs and configures Apache web server on Fedora/Debian/Ubuntu
+#
+# This role:
+#   - Detects OS family and version
+#   - Installs Apache packages
+#   - Configures Apache
+#   - Manages firewall rules
+#   - Starts and enables Apache service
+#   - Creates document root
+#   - Sets up basic security
+# ==============================================================================
+
+- name: Include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+  tags: [apache, config]
+
+- name: Display Apache installation info
+  debug:
+    msg: "Installing Apache on {{ ansible_distribution }} {{ ansible_distribution_version }}"
+  tags: [apache]
+
+#------------------------------------------------------------------------------
+# Package Installation
+#------------------------------------------------------------------------------
+
+- name: Install Apache packages (RedHat family)
+  package:
+    name: "{{ apache_packages }}"
+    state: present
+  when: ansible_os_family == "RedHat"
+  tags: [apache, packages]
+
+- name: Install Apache packages (Debian family)
+  package:
+    name: "{{ apache_packages }}"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+  tags: [apache, packages]
+
+#------------------------------------------------------------------------------
+# Configuration
+#------------------------------------------------------------------------------
+
+- name: Create document root directory
+  file:
+    path: "{{ apache_document_root }}"
+    state: directory
+    owner: "{{ apache_user }}"
+    group: "{{ apache_group }}"
+    mode: '0755'
+  tags: [apache, config]
+
+- name: Download index.html from website repository
+  get_url:
+    url: https://raw.githubusercontent.com/waltdundore/waltdundore.github.io/main/index.html
+    dest: "{{ apache_document_root }}/index.html"
+    owner: "{{ apache_user }}"
+    group: "{{ apache_group }}"
+    mode: '0644'
+    force: no
+  tags: [apache, config]
+  # Single Source of Truth: waltdundore.github.io repository
+  # No HTML duplication - follows DRY principle
+
+- name: Configure Apache ServerName (RedHat)
+  lineinfile:
+    path: "{{ apache_config_file }}"
+    regexp: '^#?ServerName'
+    line: "ServerName {{ apache_server_name }}"
+    state: present
+  when: ansible_os_family == "RedHat"
+  notify: restart apache
+  tags: [apache, config]
+
+- name: Configure Apache ServerName (Debian)
+  lineinfile:
+    path: /etc/apache2/conf-available/servername.conf
+    regexp: '^ServerName'
+    line: "ServerName {{ apache_server_name }}"
+    create: yes
+    state: present
+  when: ansible_os_family == "Debian"
+  notify: restart apache
+  tags: [apache, config]
+
+- name: Enable servername config (Debian)
+  command: a2enconf servername
+  args:
+    creates: /etc/apache2/conf-enabled/servername.conf
+  when: ansible_os_family == "Debian"
+  notify: restart apache
+  tags: [apache, config]
+
+#------------------------------------------------------------------------------
+# Security Configuration
+#------------------------------------------------------------------------------
+
+- name: Disable directory listing
+  lineinfile:
+    path: "{{ apache_config_file }}"
+    regexp: '^\s*Options.*Indexes'
+    line: '    Options -Indexes +FollowSymLinks'
+    state: present
+  notify: restart apache
+  tags: [apache, security]
+
+- name: Set ServerTokens to Prod
+  lineinfile:
+    path: "{{ apache_security_conf }}"
+    regexp: '^ServerTokens'
+    line: 'ServerTokens Prod'
+    state: present
+    create: yes
+  notify: restart apache
+  tags: [apache, security]
+
+- name: Set ServerSignature to Off
+  lineinfile:
+    path: "{{ apache_security_conf }}"
+    regexp: '^ServerSignature'
+    line: 'ServerSignature Off'
+    state: present
+    create: yes
+  notify: restart apache
+  tags: [apache, security]
+
+#------------------------------------------------------------------------------
+# Firewall Configuration
+#------------------------------------------------------------------------------
+
+- name: Configure firewall for HTTP (firewalld)
+  firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+    immediate: yes
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_service_mgr == "systemd"
+  ignore_errors: yes
+  tags: [apache, firewall]
+
+- name: Configure firewall for HTTPS (firewalld)
+  firewalld:
+    service: https
+    permanent: yes
+    state: enabled
+    immediate: yes
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_service_mgr == "systemd"
+  ignore_errors: yes
+  tags: [apache, firewall]
+
+- name: Configure firewall for HTTP (ufw)
+  ufw:
+    rule: allow
+    port: '80'
+    proto: tcp
+  when:
+    - ansible_os_family == "Debian"
+  ignore_errors: yes
+  tags: [apache, firewall]
+
+- name: Configure firewall for HTTPS (ufw)
+  ufw:
+    rule: allow
+    port: '443'
+    proto: tcp
+  when:
+    - ansible_os_family == "Debian"
+  ignore_errors: yes
+  tags: [apache, firewall]
+
+#------------------------------------------------------------------------------
+# Service Management
+#------------------------------------------------------------------------------
+
+- name: Start and enable Apache service
+  service:
+    name: "{{ apache_service }}"
+    state: started
+    enabled: yes
+  tags: [apache, service]
+
+- name: Wait for Apache to be ready
+  wait_for:
+    port: 80
+    delay: 2
+    timeout: 30
+  tags: [apache, service]
+
+#------------------------------------------------------------------------------
+# Verification
+#------------------------------------------------------------------------------
+
+- name: Verify Apache is responding
+  uri:
+    url: "http://localhost"
+    status_code: 200
+    return_content: yes
+  register: apache_response
+  retries: 3
+  delay: 5
+  tags: [apache, verify]
+
+- name: Display Apache status
+  debug:
+    msg: "Apache is running and responding on port 80"
+  when: apache_response.status == 200
+  tags: [apache, verify]

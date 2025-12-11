@@ -1,0 +1,167 @@
+# Self-Use Evidence
+# This file tracks evidence that the Ahab development team uses what we document
+# Last Updated: 2025-12-08
+
+infrastructure:
+  homelab:
+    description: "Development team's homelab infrastructure"
+    location: "Walt's homelab"
+    ahab_version: "current-dev"
+    services_running:
+      - apache
+    last_verified: "2025-12-08"
+    verification_method: "make test on actual infrastructure"
+    os_versions_tested:
+      - "Ubuntu 22.04"
+      - "Debian 12"
+      - "Debian 13"
+      - "Fedora 43"
+    notes: "Multi-OS testing implemented and verified on real VMs"
+    
+  docker_compose_orchestration:
+    description: "Proof that we can orchestrate multiple interconnected services"
+    capability: "Generate and deploy docker-compose stacks with service linking and data sharing"
+    evidence:
+      - "Apache web server with linked database backend"
+      - "Services share networks for inter-container communication"
+      - "Volume mounting for persistent data across service restarts"
+      - "Environment variable injection for service configuration"
+      - "Service dependencies ensure proper startup ordering"
+    last_verified: "2025-12-08"
+    verification_method: "make generate-compose apache && docker-compose up"
+    notes: "Only critical services needed for functionality - no bloat. This is the core value proposition."
+
+commands_we_use:
+  make_install:
+    documented_in: "README.md"
+    used_by_team: true
+    evidence: "Git history shows make install in team workflows"
+    last_used: "2025-12-08"
+    frequency: "daily"
+    notes: "Primary command for creating workstation VMs"
+  
+  make_test:
+    documented_in: "README.md"
+    used_by_team: true
+    evidence: "Git commits reference test results, .test-status file tracks usage"
+    last_used: "2025-12-08"
+    frequency: "multiple times per day"
+    notes: "Run before every commit per DEVELOPMENT_RULES.md"
+  
+  make_clean:
+    documented_in: "README.md"
+    used_by_team: true
+    evidence: "Used before make install to ensure clean state"
+    last_used: "2025-12-08"
+    frequency: "daily"
+    notes: "Part of standard development workflow"
+  
+  make_ssh:
+    documented_in: "README.md"
+    used_by_team: true
+    evidence: "Used for debugging and verification"
+    last_used: "2025-12-08"
+    frequency: "multiple times per day"
+    notes: "Essential for troubleshooting VM issues"
+  
+  make_generate_compose:
+    documented_in: "README.md"
+    used_by_team: true
+    evidence: "Docker compose files generated for apache and other services"
+    last_used: "2025-12-08"
+    frequency: "as needed"
+    notes: "Used when testing new service deployments"
+  
+  make_audit:
+    documented_in: "README.md"
+    used_by_team: true
+    evidence: "Audit files (.audit-state, .audit-dependencies-state) present"
+    last_used: "2025-12-08"
+    frequency: "weekly"
+    notes: "Part of quality assurance process"
+  
+  make_bootstrap:
+    documented_in: "README.md"
+    used_by_team: true
+    evidence: "Repository structure follows bootstrap setup"
+    last_used: "2025-12-08"
+    frequency: "once per repository setup"
+    notes: "Used when initializing new development environments"
+
+workflows_we_follow:
+  feature_development:
+    documented_in: "DEVELOPMENT_RULES.md"
+    team_follows: true
+    evidence: "Git commits follow documented workflow"
+    verification: "Audit of last 50 commits shows compliance"
+    steps:
+      - "Write code"
+      - "Run make test immediately"
+      - "Document changes"
+      - "Commit"
+    notes: "Quick iterative testing is core to our process"
+  
+  testing_before_commit:
+    documented_in: "DEVELOPMENT_RULES.md"
+    team_follows: true
+    evidence: ".test-status file shows test runs before commits"
+    verification: "Test status tracked in repository"
+    notes: "Only passing versions are promotable"
+  
+  lessons_learned_documentation:
+    documented_in: "DEVELOPMENT_RULES.md"
+    team_follows: true
+    evidence: "LESSONS_LEARNED.md has 12+ entries with dates and details"
+    verification: "All major issues documented publicly"
+    notes: "Transparency is a core principle"
+  
+  make_commands_only:
+    documented_in: "DEVELOPMENT_RULES.md, .kiro/steering/ahab-development.md"
+    team_follows: true
+    evidence: "Documentation shows make commands, not direct script execution"
+    verification: "README.md and docs use make commands consistently"
+    notes: "We eat our own dog food - if make doesn't work for us, it won't work for users"
+
+docker_first_architecture:
+  python_in_docker:
+    documented_in: ".kiro/steering/python-in-docker.md"
+    team_follows: true
+    evidence: "Python scripts executed via Docker, not directly on host"
+    verification: "Makefile uses PYTHON_DOCKER variable for Python execution"
+    notes: "All Python execution happens in containers for consistency"
+  
+  containerized_services:
+    documented_in: "README.md"
+    team_follows: true
+    evidence: "Services deployed via docker-compose, not manual installation"
+    verification: "Generated docker-compose.yml files in use"
+    notes: "No manual dependency installation required"
+
+documentation_practices:
+  executive_summary:
+    documented_in: "EXECUTIVE_SUMMARY.md"
+    team_follows: true
+    evidence: "Core principles referenced in development decisions"
+    verification: "This compliance spec exists to enforce those principles"
+    notes: "Principles are not aspirational - they're enforceable requirements"
+  
+  troubleshooting_guide:
+    documented_in: "TROUBLESHOOTING.md"
+    team_follows: true
+    evidence: "Common issues documented with solutions"
+    verification: "File exists and is maintained"
+    notes: "Updated when new issues are discovered"
+  
+  standards_mapping:
+    documented_in: "GEORGIA_STANDARDS_VERIFICATION.md"
+    team_follows: true
+    evidence: "Educational standards mapped to features"
+    verification: "Standards registry and task mapping files exist"
+    notes: "Teachability is built into the architecture"
+
+verification_metadata:
+  last_audit_date: "2025-12-08"
+  audited_by: "Development team"
+  audit_method: "Manual review of git history, file system, and documentation"
+  next_audit_due: "2025-12-15"
+  notes: "This file should be updated weekly to maintain current evidence"

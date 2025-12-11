@@ -1,0 +1,238 @@
+---
+# ==============================================================================
+# Network Switch Management Playbook
+# ==============================================================================
+# Manages HP Aruba and Ruckus switches for version information and basic config
+#
+# Supported Devices:
+#   - HP Aruba switches (2930F, 2540, 3810M series)
+#   - Ruckus switches (ICX series)
+#
+# Features:
+#   - Show version information
+#   - Basic connectivity testing
+#   - Configuration backup (future)
+#   - Firmware updates (future)
+#
+# Usage:
+#   ansible-playbook playbooks/network-switches.yml
+#   ansible-playbook playbooks/network-switches.yml --tags show_version
+#   ansible-playbook playbooks/network-switches.yml --limit aruba_switches
+#
+# Security:
+#   - Uses SSH with key-based authentication
+#   - No passwords stored in playbook
+#   - Credentials managed via Ansible Vault
+#
+# Called by: make network-switches
+# ==============================================================================
+
+- name: Manage Network Switches
+  hosts: network_switches
+  gather_facts: false
+  connection: network_cli
+
+  vars:
+    # Timeout settings for network operations
+    ansible_command_timeout: 30
+    ansible_connect_timeout: 10
+
+    # Common commands for different switch types
+    aruba_commands:
+      version: "show version"
+      uptime: "show uptime"
+      interfaces: "show interfaces brief"
+      config: "show running-config"
+
+    ruckus_commands:
+      version: "show version"
+      uptime: "show uptime"
+      interfaces: "show interface brief"
+      config: "show running-config"
+
+  tasks:
+    - name: Display switch management start
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Network Switch Management"
+          - "=========================================="
+          - "Target: {{ inventory_hostname }}"
+          - "Type: {{ switch_type | default('unknown') }}"
+          - "Model: {{ switch_model | default('unknown') }}"
+
+    # Network Switch Version Information (Generic approach)
+    - name: Get switch version information (Aruba)
+      ansible.builtin.raw: "{{ aruba_commands.version }}"
+      register: aruba_version_output
+      when: switch_type == 'aruba'
+      changed_when: false
+      tags:
+        - show_version
+        - aruba
+
+    - name: Get switch uptime information (Aruba)
+      ansible.builtin.raw: "{{ aruba_commands.uptime }}"
+      register: aruba_uptime_output
+      when: switch_type == 'aruba'
+      changed_when: false
+      tags:
+        - show_version
+        - aruba
+
+    - name: Display Aruba version information
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Aruba Switch Version Information"
+          - "=========================================="
+          - "Switch: {{ inventory_hostname }}"
+          - "Model: {{ switch_model | default('Unknown') }}"
+          - "Location: {{ location | default('Unknown') }}"
+          - ""
+          - "Version Output:"
+          - "{{ aruba_version_output.stdout | default('No output') }}"
+          - ""
+          - "Uptime Output:"
+          - "{{ aruba_uptime_output.stdout | default('No output') }}"
+      when:
+        - switch_type == 'aruba'
+        - aruba_version_output is defined
+      tags:
+        - show_version
+        - aruba
+
+    # Ruckus Switch Tasks
+    - name: Get switch version information (Ruckus)
+      ansible.builtin.raw: "{{ ruckus_commands.version }}"
+      register: ruckus_version_output
+      when: switch_type == 'ruckus'
+      changed_when: false
+      tags:
+        - show_version
+        - ruckus
+
+    - name: Get switch uptime information (Ruckus)
+      ansible.builtin.raw: "{{ ruckus_commands.uptime }}"
+      register: ruckus_uptime_output
+      when: switch_type == 'ruckus'
+      changed_when: false
+      tags:
+        - show_version
+        - ruckus
+
+    - name: Display Ruckus version information
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Ruckus Switch Version Information"
+          - "=========================================="
+          - "Switch: {{ inventory_hostname }}"
+          - "Model: {{ switch_model | default('Unknown') }}"
+          - "Location: {{ location | default('Unknown') }}"
+          - ""
+          - "Version Output:"
+          - "{{ ruckus_version_output.stdout | default('No output') }}"
+          - ""
+          - "Uptime Output:"
+          - "{{ ruckus_uptime_output.stdout | default('No output') }}"
+      when:
+        - switch_type == 'ruckus'
+        - ruckus_version_output is defined
+      tags:
+        - show_version
+        - ruckus
+
+    # Generic network device fallback (using raw commands)
+    - name: Get generic switch version (fallback)
+      ansible.builtin.raw: "show version"
+      register: generic_version_output
+      when: switch_type not in ['aruba', 'ruckus']
+      changed_when: false
+      tags:
+        - show_version
+        - generic
+
+    - name: Get generic switch uptime (fallback)
+      ansible.builtin.raw: "show uptime"
+      register: generic_uptime_output
+      when: switch_type not in ['aruba', 'ruckus']
+      changed_when: false
+      tags:
+        - show_version
+        - generic
+
+    - name: Display generic version information
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Generic Switch Version Information"
+          - "=========================================="
+          - "Switch: {{ inventory_hostname }}"
+          - "Type: {{ switch_type | default('generic') }}"
+          - "Model: {{ switch_model | default('Unknown') }}"
+          - "Location: {{ location | default('Unknown') }}"
+          - ""
+          - "Version Output:"
+          - "{{ generic_version_output.stdout | default('No output') }}"
+          - ""
+          - "Uptime Output:"
+          - "{{ generic_uptime_output.stdout | default('No output') }}"
+      when:
+        - switch_type not in ['aruba', 'ruckus']
+        - generic_version_output is defined
+      tags:
+        - show_version
+        - generic
+
+    # Connectivity Test
+    - name: Test switch connectivity
+      ansible.builtin.wait_for_connection:
+        timeout: 10
+      tags:
+        - connectivity
+        - test
+
+    - name: Display connectivity success
+      ansible.builtin.debug:
+        msg:
+          - "✅ Successfully connected to {{ inventory_hostname }}"
+          - "   Type: {{ switch_type | default('generic') }}"
+          - "   Connection: {{ ansible_connection }}"
+      tags:
+        - connectivity
+        - test
+
+  handlers:
+    - name: Log switch operation
+      ansible.builtin.debug:
+        msg: "Switch operation completed on {{ inventory_hostname }} at {{ ansible_date_time.iso8601 }}"
+
+# ==============================================================================
+# Post-tasks for reporting
+# ==============================================================================
+- name: Generate Switch Report
+  hosts: localhost
+  gather_facts: false
+  run_once: true
+
+  tasks:
+    - name: Display operation summary
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Network Switch Operation Complete"
+          - "=========================================="
+          - ""
+          - "Switches processed: {{ groups['network_switches'] | length }}"
+          - "Timestamp: {{ ansible_date_time.iso8601 }}"
+          - ""
+          - "Next steps:"
+          - "  - Review output above for version information"
+          - "  - Check switch logs for any issues"
+          - "  - Update inventory if needed"
+          - ""
+          - "Available commands:"
+          - "  make network-switches              # Run all tasks"
+          - "  make network-switches-version      # Version info only"
+          - "  make network-switches-test         # Connectivity test"

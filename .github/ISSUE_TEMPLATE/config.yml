@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://waltdundore.github.io
+    about: Check the official documentation and tutorials
+  - name: 💬 Discussions
+    url: https://github.com/waltdundore/ahab/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🔒 Security Issues
+    url: https://github.com/waltdundore/ahab/security/advisories/new
+    about: Report security vulnerabilities privately

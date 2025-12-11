@@ -1,0 +1,50 @@
+name: DRY Violation Checks
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: 'Path to check (relative to repository root)'
+        required: false
+        type: string
+        default: '.'
+
+jobs:
+  dry:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check Duplicate Code
+        run: |
+          if [ -f scripts/ci/check-duplicate-code.sh ]; then
+            bash scripts/ci/check-duplicate-code.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: check-duplicate-code.sh not found, skipping"
+          fi
+      
+      - name: Check Duplicate Documentation
+        run: |
+          if [ -f scripts/ci/check-duplicate-docs.sh ]; then
+            bash scripts/ci/check-duplicate-docs.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: check-duplicate-docs.sh not found, skipping"
+          fi
+      
+      - name: Check Duplicate Configuration
+        run: |
+          if [ -f scripts/ci/check-duplicate-config.sh ]; then
+            bash scripts/ci/check-duplicate-config.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: check-duplicate-config.sh not found, skipping"
+          fi
+      
+      - name: Verify Shared Libraries Used
+        run: |
+          if [ -f scripts/ci/check-shared-libraries.sh ]; then
+            bash scripts/ci/check-shared-libraries.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: check-shared-libraries.sh not found, skipping"
+          fi

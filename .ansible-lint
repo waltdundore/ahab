@@ -1,0 +1,39 @@
+# Ansible Lint Configuration for Ahab
+# ==============================================================================
+
+# Profile to use (min, basic, moderate, safety, shared, production)
+profile: basic
+
+# Exclude certain paths
+exclude_paths:
+  - .cache/
+  - .github/
+  - .vagrant/
+  - generated/
+
+# Skip specific rules for legitimate use cases
+skip_list: []
+
+# Enable offline mode (don't check for newer versions)
+offline: true
+
+# Parseable output format
+parseable: false
+
+# Quiet mode (only show errors)
+quiet: false
+
+# Verbosity level (0-2)
+verbosity: 1
+
+# Warn on unmatched ignore rules
+warn_list:
+  - experimental
+  - yaml[line-length]  # Allow longer lines in some cases
+  - name[casing]       # Allow lowercase handler names
+
+# Use default rules
+use_default_rules: true
+
+# Enable progressive mode (stricter rules for newer content)
+progressive: false

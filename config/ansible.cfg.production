@@ -1,0 +1,74 @@
+# Ahab Production Ansible Configuration Template
+# ==============================================================================
+# This file is a TEMPLATE for production deployments
+# Generated file: ../ansible.cfg (not committed to git)
+# ==============================================================================
+# 
+# This template is used by:
+# 1. scripts/setup-production-credentials.sh (CLI setup)
+# 2. ahab-gui (GUI-based setup and editing)
+#
+# Variables to be substituted:
+# - {{INVENTORY_PATH}} - Path to inventory file (default: inventory/production)
+# - {{BECOME_ASK_PASS}} - Whether to prompt for password (True/False)
+# - {{VAULT_PASSWORD_FILE}} - Path to vault password file (optional)
+# ==============================================================================
+
+[defaults]
+# Inventory configuration
+inventory = {{INVENTORY_PATH}}
+
+# Connection settings
+host_key_checking = False
+retry_files_enabled = False
+timeout = 30
+
+# Output settings
+stdout_callback = yaml
+bin_ansible_callbacks = True
+
+# Logging (STIG-ANSI-AU-000001 - Audit logging required)
+log_path = /var/log/ansible/ansible.log
+
+[privilege_escalation]
+# Privilege escalation settings
+become = True
+become_method = sudo
+become_user = root
+become_ask_pass = {{BECOME_ASK_PASS}}
+
+# Vault password file (STIG-ANSI-IA-000001 - Vault required for production)
+vault_password_file = {{VAULT_PASSWORD_FILE}}
+
+[ssh_connection]
+# SSH settings for remote deployments
+pipelining = True
+control_path = %(directory)s/%%h-%%r
+
+# ==============================================================================
+# Configuration Method Guide
+# ==============================================================================
+#
+# Method 1: Passwordless Sudo (Development/Testing)
+# --------------------------------------------------
+# become_ask_pass = False
+# Requires: /etc/sudoers.d/ahab with NOPASSWD configuration
+# Security: Moderate (limited to specific commands)
+# Use case: Development workstations, testing environments
+#
+# Method 2: Password Prompt (Interactive)
+# ----------------------------------------
+# become_ask_pass = True
+# Requires: Interactive terminal session
+# Security: Good (no stored credentials)
+# Use case: Manual deployments, one-off operations
+#
+# Method 3: Ansible Vault (Production)
+# -------------------------------------
+# become_ask_pass = False
+# vault_password_file = .vault_pass
+# Requires: Encrypted credentials in inventory/group_vars/all.yml
+# Security: Excellent (encrypted at rest)
+# Use case: Production deployments, automated operations
+#
+# ==============================================================================

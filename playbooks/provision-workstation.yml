@@ -1,0 +1,180 @@
+---
+# ==============================================================================
+# Provision Ahab Workstation
+# ==============================================================================
+# Provisions a workstation VM with all tools needed to manage infrastructure
+#
+# This playbook replaces the inline shell script in Vagrantfile
+# Following Ahab policy: No scripting in Vagrantfile, use Ansible instead
+#
+# Installs:
+#   - Git (version control)
+#   - Ansible (configuration management)
+#   - Docker (container deployments)
+#   - Docker Compose (multi-container orchestration)
+#   - Python dependencies (for docker-compose generation)
+#   - Make (build automation)
+#
+# Usage:
+#   ansible-playbook playbooks/provision-workstation.yml
+#
+# Called automatically by: Vagrantfile provisioning
+# ==============================================================================
+
+- name: Provision Ahab Workstation
+  hosts: all
+  become: true
+
+  vars:
+    # Default packages (can be overridden via ahab.conf)
+    workstation_packages:
+      - git
+      - ansible
+      - docker
+      - docker-compose
+      - make
+      - curl
+      - wget
+      - python3
+      - python3-pyyaml
+
+    # Directories to create
+    ahab_directories:
+      - /home/vagrant/ahab/generated
+
+  tasks:
+    - name: Display provisioning start
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Ahab Workstation Setup ({{ ansible_distribution }})"
+          - "=========================================="
+
+    - name: Update package cache (Fedora)
+      ansible.builtin.dnf:
+        update_cache: true
+      when: ansible_distribution == 'Fedora'
+
+    - name: Update package cache (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: true
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Upgrade all packages (Fedora)
+      ansible.builtin.dnf:
+        name: "*"
+        state: present
+        update_only: true
+      when: ansible_distribution == 'Fedora'
+
+    - name: Upgrade all packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        upgrade: dist
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Install workstation packages (Fedora)
+      ansible.builtin.dnf:
+        name: "{{ workstation_packages }}"
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install workstation packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: "{{ workstation_packages }}"
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Verify Docker is running
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+      register: docker_status
+      failed_when: docker_status.status.ActiveState != 'active'
+
+    - name: Add vagrant user to docker group
+      ansible.builtin.user:
+        name: vagrant
+        groups: docker
+        append: true
+
+    - name: Create Ahab directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: vagrant
+        group: vagrant
+        mode: '0755'
+      loop: "{{ ahab_directories }}"
+
+    - name: Set ownership of ahab directory
+      ansible.builtin.file:
+        path: /home/vagrant/ahab
+        state: directory
+        owner: vagrant
+        group: vagrant
+        recurse: true
+
+    - name: Verify Git installation
+      ansible.builtin.package:
+        name: git
+        state: present
+      check_mode: true
+      register: git_check
+      changed_when: false
+
+    - name: Get Git version  # noqa: command-instead-of-module
+      ansible.builtin.command: git --version
+      register: git_ver
+      changed_when: false
+      failed_when: git_ver.rc != 0
+
+    - name: Verify Ansible installation  # noqa: command-instead-of-module
+      ansible.builtin.command: ansible --version
+      register: ansible_ver
+      changed_when: false
+      failed_when: ansible_ver.rc != 0
+
+    - name: Verify Docker installation  # noqa: command-instead-of-module
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+      failed_when: docker_version.rc != 0
+
+    - name: Verify Docker Compose installation  # noqa: command-instead-of-module
+      ansible.builtin.command: docker compose version
+      register: docker_compose_version
+      changed_when: false
+      failed_when: false
+
+    - name: Verify Python installation  # noqa: command-instead-of-module
+      ansible.builtin.command: python3 --version
+      register: python_version
+      changed_when: false
+      failed_when: python_version.rc != 0
+
+    - name: Display installation summary
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "✅ Workstation Ready ({{ ansible_distribution }})"
+          - "=========================================="
+          - ""
+          - "Operating System: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - ""
+          - "Tools installed:"
+          - "  ✓ Git {{ git_ver.stdout.split()[2] }}"
+          - "  ✓ Ansible {{ ansible_ver.stdout_lines[0].split()[1] }}"
+          - "  ✓ Docker {{ docker_version.stdout.split()[2] | replace(',', '') }}"
+          - "  ✓ Python {{ python_version.stdout.split()[1] }} (system package)"
+          - ""
+          - "Note: Python scripts run in Docker containers (no pip needed)"
+          - ""
+          - "Ready for module deployment:"
+          - "  make install apache mysql"
+          - ""

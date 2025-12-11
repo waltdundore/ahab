@@ -1,0 +1,73 @@
+# Development Inventory Example
+# ==============================================================================
+# This is an EXAMPLE file with placeholder values
+# Copy to hosts.yml and replace with your actual values
+# ==============================================================================
+#
+# Quick Start:
+#   cp hosts.yml.example hosts.yml
+#   vim hosts.yml  # Update with your actual IPs and hostnames
+#
+# Security Note:
+#   - hosts.yml.example (this file) is committed to git
+#   - hosts.yml (actual inventory) is NOT committed (protected by .gitignore)
+#   - Never commit real IP addresses or credentials
+# ==============================================================================
+
+all:
+  children:
+    # Development test machines
+    dev_machines:
+      hosts:
+        # Physical test device with dynamic IP
+        wcss-dev-asus:
+          ansible_host: 10.2.16.XXX  # Replace with actual IP
+          ansible_user: admin
+          ansible_connection: ssh
+          # Dynamic IP tracking (for future auto-discovery)
+          dynamic_ip: true
+          last_known_ip: 10.2.16.254
+          last_updated: "2025-12-09"
+          # Note: This device has a dynamic IP address
+          # Future enhancement: Device will report IP automatically
+          # For now: Update manually when IP changes
+        
+        # Example VM for testing
+        lab-vm-01:
+          ansible_host: 192.168.1.XXX  # Replace with actual IP
+          ansible_user: vagrant
+          ansible_connection: ssh
+          dynamic_ip: false
+        
+        # Example workstation
+        test-workstation:
+          ansible_host: 192.168.1.XXX  # Replace with actual IP
+          ansible_user: testuser
+          ansible_connection: ssh
+          dynamic_ip: false
+      
+      vars:
+        # Common variables for all dev machines
+        ansible_python_interpreter: /usr/bin/python3
+        # Uncomment and set if using SSH keys:
+        # ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+# ==============================================================================
+# Configuration Notes
+# ==============================================================================
+#
+# ansible_host: IP address or hostname of the machine
+# ansible_user: Username with sudo privileges
+# ansible_connection: 'ssh' for remote, 'local' for same machine
+# dynamic_ip: true if IP may change (DHCP), false if static
+#
+# For SSH key authentication:
+#   ansible_ssh_private_key_file: /path/to/private/key
+#
+# For password authentication (not recommended):
+#   ansible_ssh_pass: password  # Use Ansible Vault to encrypt!
+#
+# For sudo password (if required):
+#   ansible_become_pass: password  # Use Ansible Vault to encrypt!
+#
+# ==============================================================================

@@ -1,0 +1,41 @@
+# Network Switch Credentials Template
+# ==============================================================================
+# This is an EXAMPLE file showing how to structure switch credentials
+# 
+# To use:
+# 1. Copy to vault.yml: cp vault.yml.example vault.yml
+# 2. Edit with real credentials: ansible-vault encrypt vault.yml --vault-password-file ~/.ansible_vault_pass
+# 3. Update inventory files to reference these variables
+# ==============================================================================
+
+# Aruba Switch Credentials
+aruba_admin_username: "admin"
+aruba_admin_password: "CHANGE_ME_ARUBA_PASSWORD"
+aruba_enable_password: "CHANGE_ME_ARUBA_ENABLE"
+
+# Ruckus Switch Credentials  
+ruckus_admin_username: "admin"
+ruckus_admin_password: "CHANGE_ME_RUCKUS_PASSWORD"
+ruckus_enable_password: "CHANGE_ME_RUCKUS_ENABLE"
+
+# Generic Switch Credentials
+generic_admin_username: "admin"
+generic_admin_password: "CHANGE_ME_GENERIC_PASSWORD"
+
+# Per-Switch Credentials (if switches have different passwords)
+switch_credentials:
+  core-01:
+    username: "admin"
+    password: "CHANGE_ME_CORE01_PASSWORD"
+  access-01:
+    username: "netadmin" 
+    password: "CHANGE_ME_ACCESS01_PASSWORD"
+  distribution-01:
+    username: "admin"
+    password: "CHANGE_ME_DIST01_PASSWORD"
+
+# SSH Key Paths (alternative to passwords)
+ssh_keys:
+  network_switches_key: "~/.ssh/network_switches_key"
+  aruba_key: "~/.ssh/aruba_switches_key"
+  ruckus_key: "~/.ssh/ruckus_switches_key"

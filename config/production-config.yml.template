@@ -1,0 +1,172 @@
+# Ahab Production Configuration
+# ==============================================================================
+# This file stores production deployment settings in a simple, editable format
+# Generated file: production-config.yml (not committed to git)
+# ==============================================================================
+#
+# This file can be edited:
+# 1. Manually with a text editor
+# 2. Via scripts/setup-production-credentials.sh
+# 3. Via ahab-gui (recommended for ease of use)
+#
+# After editing, run: make setup-production
+# This will regenerate ansible.cfg and inventory/production
+# ==============================================================================
+
+# Deployment Configuration
+deployment:
+  # Type of deployment: local (same machine) or remote (SSH)
+  type: local  # Options: local, remote
+  
+  # Admin user with sudo privileges
+  admin_user: "{{ADMIN_USER}}"
+  
+  # For remote deployments only
+  remote:
+    hostname: ""  # e.g., workstation.example.com
+    ssh_key: ""   # e.g., ~/.ssh/id_rsa
+
+# Credential Method
+credentials:
+  # Method: passwordless, prompt, or vault
+  method: passwordless  # Options: passwordless, prompt, vault
+  
+  # Passwordless sudo configuration
+  passwordless:
+    # Commands allowed without password (security: limited scope)
+    allowed_commands:
+      - /usr/bin/dnf
+      - /usr/bin/apt
+      - /usr/bin/apt-get
+      - /usr/bin/systemctl
+      - /usr/bin/firewall-cmd
+      - /usr/bin/ufw
+  
+  # Vault configuration (for method: vault)
+  vault:
+    password_file: .vault_pass
+    encrypted_vars: inventory/group_vars/all.yml
+
+# Validation Rules (for GUI)
+validation:
+  admin_user:
+    required: true
+    pattern: "^[a-z_][a-z0-9_-]*$"
+    description: "Valid Linux username"
+  
+  deployment_type:
+    required: true
+    options: ["local", "remote"]
+    description: "Deployment location"
+  
+  credential_method:
+    required: true
+    options: ["passwordless", "prompt", "vault"]
+    description: "How to handle sudo password"
+
+# GUI Display Configuration
+gui:
+  # Help text for each field
+  help:
+    admin_user: "Linux user with sudo privileges (e.g., your username)"
+    deployment_type: "Choose 'local' for same machine, 'remote' for SSH deployment"
+    credential_method: |
+      - passwordless: Fast, convenient (development/testing)
+      - prompt: Secure, interactive (manual deployments)
+      - vault: Most secure, automated (production)
+    remote_hostname: "Hostname or IP address of remote workstation"
+    ssh_key: "Path to SSH private key for authentication"
+  
+  # Field order in GUI
+  field_order:
+    - deployment.type
+    - deployment.admin_user
+    - deployment.remote.hostname  # Only if type=remote
+    - deployment.remote.ssh_key   # Only if type=remote
+    - credentials.method
+  
+  # Conditional fields (show only when condition met)
+  conditional_fields:
+    deployment.remote.hostname:
+      show_when: "deployment.type == 'remote'"
+    deployment.remote.ssh_key:
+      show_when: "deployment.type == 'remote'"
+
+# ==============================================================================
+# Configuration Method Details
+# ==============================================================================
+#
+# Method 1: Passwordless Sudo
+# ---------------------------
+# credentials.method: passwordless
+# 
+# What it does:
+# - Creates /etc/sudoers.d/ahab with NOPASSWD for specific commands
+# - Admin user can run allowed commands without password
+# - Limited to specific commands for security
+#
+# Best for:
+# - Development workstations
+# - Testing environments
+# - Quick iterations
+#
+# Security: Moderate (limited command set)
+#
+# Method 2: Password Prompt
+# -------------------------
+# credentials.method: prompt
+#
+# What it does:
+# - Prompts for sudo password when needed
+# - No stored credentials
+# - Requires interactive terminal
+#
+# Best for:
+# - Manual deployments
+# - One-off operations
+# - When you want to enter password each time
+#
+# Security: Good (no stored passwords)
+#
+# Method 3: Ansible Vault
+# -----------------------
+# credentials.method: vault
+#
+# What it does:
+# - Encrypts sudo password with Ansible Vault
+# - Stores encrypted password in inventory/group_vars/all.yml
+# - Requires vault password to decrypt
+#
+# Best for:
+# - Production deployments
+# - Automated operations
+# - CI/CD pipelines
+#
+# Security: Excellent (encrypted at rest)
+#
+# ==============================================================================
+# Editing This File
+# ==============================================================================
+#
+# Via GUI (Recommended):
+# ---------------------
+# 1. Open ahab-gui in browser
+# 2. Navigate to Settings → Production Configuration
+# 3. Edit fields in the form
+# 4. Click "Save and Apply"
+# 5. GUI validates and regenerates ansible.cfg and inventory
+#
+# Via CLI:
+# --------
+# 1. Edit this file: vim ahab/config/production-config.yml
+# 2. Validate: make validate-production-config
+# 3. Apply: make setup-production
+# 4. Test: make test-production
+#
+# Manually:
+# ---------
+# 1. Edit this file with any text editor
+# 2. Run: cd ahab && make setup-production
+# 3. Verify: make test-production
+#
+# ==============================================================================

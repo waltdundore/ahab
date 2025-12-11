@@ -1,0 +1,25 @@
+# Compliance Evidence Directory
+# Keep structure but exclude potentially sensitive data
+
+# Keep directory structure
+!.gitignore
+!README.md
+
+# Exclude logs (may contain sensitive info)
+logs/*.log
+logs/*.txt
+
+# Exclude detailed reports (may contain infrastructure details)
+reports/*.html
+reports/*.json
+
+# Keep evidence summaries but exclude detailed traces
+evidence/*.trace
+evidence/*.dump
+
+# Allow YAML evidence files (these are curated for public consumption)
+!evidence/*.yml
+!evidence/*.yaml
+
+# Allow markdown reports (these are curated for public consumption)
+!reports/*.md

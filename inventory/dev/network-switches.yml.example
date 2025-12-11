@@ -1,0 +1,166 @@
+# Network Switches Inventory Example
+# ==============================================================================
+# This is an EXAMPLE file for network switch inventory
+# Copy to network-switches.yml and replace with your actual values
+# ==============================================================================
+#
+# Quick Start:
+#   cp network-switches.yml.example network-switches.yml
+#   vim network-switches.yml  # Update with your actual switch IPs
+#   ansible-playbook playbooks/network-switches.yml -i inventory/dev/network-switches.yml
+#
+# Security Note:
+#   - network-switches.yml.example (this file) is committed to git
+#   - network-switches.yml (actual inventory) is NOT committed (protected by .gitignore)
+#   - Never commit real IP addresses or credentials
+#   - Use Ansible Vault for passwords: ansible-vault encrypt_string 'password'
+# ==============================================================================
+
+all:
+  children:
+    network_switches:
+      children:
+        # HP Aruba Switches
+        aruba_switches:
+          hosts:
+            aruba-core-01:
+              ansible_host: 192.168.1.XXX  # Replace with actual IP
+              ansible_user: admin
+              ansible_connection: network_cli
+              ansible_network_os: arubaoss
+              switch_type: aruba
+              switch_model: "2930F-48G"
+              location: "Main Building - Core"
+              
+            aruba-access-01:
+              ansible_host: 192.168.1.XXX  # Replace with actual IP
+              ansible_user: admin
+              ansible_connection: network_cli
+              ansible_network_os: arubaoss
+              switch_type: aruba
+              switch_model: "2540-24G"
+              location: "Building A - Floor 1"
+              
+            aruba-access-02:
+              ansible_host: 192.168.1.XXX  # Replace with actual IP
+              ansible_user: admin
+              ansible_connection: network_cli
+              ansible_network_os: arubaoss
+              switch_type: aruba
+              switch_model: "3810M-24G"
+              location: "Building B - Floor 2"
+          
+          vars:
+            # Common Aruba variables
+            ansible_python_interpreter: /usr/bin/python3
+            # Uncomment and configure for SSH key auth:
+            # ansible_ssh_private_key_file: ~/.ssh/network_switches_key
+            # Or use Ansible Vault for password:
+            # ansible_ssh_pass: !vault |
+            #   $ANSIBLE_VAULT;1.1;AES256
+            #   [encrypted password here]
+
+        # Ruckus Switches  
+        ruckus_switches:
+          hosts:
+            ruckus-core-01:
+              ansible_host: 192.168.1.XXX  # Replace with actual IP
+              ansible_user: admin
+              ansible_connection: network_cli
+              ansible_network_os: icx
+              switch_type: ruckus
+              switch_model: "ICX7450-48P"
+              location: "Data Center - Rack 1"
+              
+            ruckus-access-01:
+              ansible_host: 192.168.1.XXX  # Replace with actual IP
+              ansible_user: admin
+              ansible_connection: network_cli
+              ansible_network_os: icx
+              switch_type: ruckus
+              switch_model: "ICX7150-24P"
+              location: "Building C - IDF 1"
+              
+            ruckus-access-02:
+              ansible_host: 192.168.1.XXX  # Replace with actual IP
+              ansible_user: admin
+              ansible_connection: network_cli
+              ansible_network_os: icx
+              switch_type: ruckus
+              switch_model: "ICX7150-48P"
+              location: "Building C - IDF 2"
+          
+          vars:
+            # Common Ruckus variables
+            ansible_python_interpreter: /usr/bin/python3
+            # Uncomment and configure for SSH key auth:
+            # ansible_ssh_private_key_file: ~/.ssh/network_switches_key
+            # Or use Ansible Vault for password:
+            # ansible_ssh_pass: !vault |
+            #   $ANSIBLE_VAULT;1.1;AES256
+            #   [encrypted password here]
+
+        # Generic switches (for other brands or testing)
+        generic_switches:
+          hosts:
+            test-switch-01:
+              ansible_host: 192.168.1.XXX  # Replace with actual IP
+              ansible_user: admin
+              ansible_connection: ssh  # Use SSH for generic switches
+              switch_type: generic
+              switch_model: "Unknown"
+              location: "Test Lab"
+          
+          vars:
+            ansible_python_interpreter: /usr/bin/python3
+
+      vars:
+        # Global variables for all network switches
+        ansible_command_timeout: 30
+        ansible_connect_timeout: 10
+        # Enable privilege escalation if needed
+        # ansible_become: true
+        # ansible_become_method: enable
+
+# ==============================================================================
+# Configuration Notes
+# ==============================================================================
+#
+# Required Variables:
+#   ansible_host: IP address of the switch
+#   ansible_user: Username with appropriate privileges
+#   ansible_connection: 'network_cli' for network devices, 'ssh' for generic
+#   ansible_network_os: Network OS type (arubaoss, icx, etc.)
+#   switch_type: 'aruba', 'ruckus', or 'generic'
+#
+# Optional Variables:
+#   switch_model: Model number for documentation
+#   location: Physical location for reference
+#   ansible_ssh_private_key_file: Path to SSH private key
+#   ansible_ssh_pass: SSH password (use Ansible Vault!)
+#   ansible_become_pass: Enable password (use Ansible Vault!)
+#
+# Authentication Methods:
+#   1. SSH Key (recommended):
+#      ansible_ssh_private_key_file: ~/.ssh/network_key
+#   
+#   2. Password with Ansible Vault (secure):
+#      ansible_ssh_pass: !vault |
+#        $ANSIBLE_VAULT;1.1;AES256
+#        [encrypted password]
+#   
+#   3. Password in plain text (NOT recommended):
+#      ansible_ssh_pass: plaintext_password
+#
+# Network OS Types:
+#   - arubaoss: HP Aruba switches (2930F, 2540, 3810M series)
+#   - icx: Ruckus ICX switches
+#   - ios: Cisco IOS switches (if needed)
+#   - eos: Arista EOS switches (if needed)
+#
+# Testing Connectivity:
+#   ansible network_switches -i inventory/dev/network-switches.yml -m ping
+#   ansible aruba_switches -i inventory/dev/network-switches.yml -m ping
+#   ansible ruckus_switches -i inventory/dev/network-switches.yml -m ping
+#
+# ==============================================================================

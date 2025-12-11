@@ -1,0 +1,57 @@
+# ==============================================================================
+# Safety System - Never Lose Data
+# ==============================================================================
+# NASA Power of 10 compliant: no interactive input, bounded operations
+#
+# Usage:
+#   make checkpoint MSG="before refactoring tests"
+#   make rollback-last
+#   make show-checkpoints
+# ==============================================================================
+
+.PHONY: checkpoint rollback-last show-checkpoints safety-check
+
+# Create checkpoint with required message
+# Usage: make checkpoint MSG="description of what you're about to do"
+checkpoint:
+	@if [ -z "$(MSG)" ]; then \
+		echo "❌ ERROR: Checkpoint requires a message"; \
+		echo ""; \
+		echo "Usage: make checkpoint MSG=\"before refactoring tests\""; \
+		echo ""; \
+		echo "This forces you to think about what you're doing."; \
+		exit 1; \
+	fi
+	@echo "Creating checkpoint: $(MSG)"
+	@git add -A 2>/dev/null || true
+	@git commit -m "Checkpoint: $(MSG)" 2>/dev/null || echo "No changes to commit"
+	@git tag "checkpoint-$$(date '+%Y%m%d-%H%M%S')" 2>/dev/null || true
+	@echo "✓ Checkpoint saved"
+	@echo ""
+	@echo "To rollback: make rollback-last"
+
+# Rollback to last checkpoint (non-interactive)
+rollback-last:
+	@LAST=$$(git tag -l "checkpoint-*" | tail -1); \
+	if [ -z "$$LAST" ]; then \
+		echo "No checkpoints found"; \
+		exit 1; \
+	fi; \
+	echo "Rolling back to $$LAST..."; \
+	git reset --hard "$$LAST" || exit 1; \
+	echo "✓ Rolled back to $$LAST"
+
+# Show all checkpoints (bounded - last 10)
+show-checkpoints:
+	@echo "Last 10 checkpoints:"
+	@git tag -l "checkpoint-*" | tail -10 || echo "No checkpoints found"
+
+# Safety check before destructive operations
+safety-check:
+	@if ! git diff-index --quiet HEAD -- 2>/dev/null; then \
+		echo "⚠ WARNING: Uncommitted changes detected"; \
+		echo ""; \
+		echo "Run 'make checkpoint' first"; \
+		exit 1; \
+	fi
+	@echo "✓ Safety check passed"

@@ -1,0 +1,95 @@
+# ==============================================================================
+# Ahab Control - Makefile
+# ==============================================================================
+# Single source of truth: ahab.conf
+# Core command: make install [modules...]
+# ==============================================================================
+
+.PHONY: help install clean verify ssh deploy
+
+# Default target
+all: help
+
+help:
+	@echo "Ahab Control - Available Commands"
+	@echo ""
+	@echo "Core Commands:"
+	@echo "  make install              - Create workstation VM"
+	@echo "  make install apache mysql - Create workstation + deploy modules"
+	@echo "  make verify               - Verify workstation is working"
+	@echo "  make ssh                  - SSH into workstation"
+	@echo "  make clean                - Destroy workstation VM"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make install              # Just the workstation"
+	@echo "  make install apache       # Workstation + Apache"
+	@echo "  make install apache mysql # Workstation + Apache + MySQL"
+	@echo ""
+
+# Extract module arguments (everything after 'install')
+MODULES := $(filter-out install,$(MAKECMDGOALS))
+
+install:
+	@echo "=========================================="
+	@echo "Ahab - Install"
+	@echo "=========================================="
+	@echo ""
+	@if [ -n "$(MODULES)" ]; then \
+		echo "Workstation + Modules: $(MODULES)"; \
+	else \
+		echo "Workstation only"; \
+	fi
+	@echo ""
+	@echo "→ Creating workstation VM..."
+	@vagrant up --no-destroy-on-error || exit 1
+	@echo ""
+	@if [ -n "$(MODULES)" ]; then \
+		echo "→ Deploying modules: $(MODULES)"; \
+		vagrant ssh -c "cd /home/vagrant/ahab && python3 scripts/generate-compose.py $(MODULES)" || exit 1; \
+		vagrant ssh -c "cd /home/vagrant/ahab/generated && docker-compose up -d" || exit 1; \
+		echo ""; \
+		echo "✅ Modules deployed: $(MODULES)"; \
+	fi
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Ready"
+	@echo "=========================================="
+	@echo ""
+	@echo "Access: vagrant ssh"
+	@echo ""
+
+# Allow module names as targets (prevents "No rule to make target" errors)
+%:
+	@:
+
+verify:
+	@echo "→ Verifying workstation..."
+	@vagrant status | grep -q "running" || (echo "❌ VM not running"; exit 1)
+	@echo "✓ VM is running"
+	@vagrant ssh -c "command -v ansible" >/dev/null 2>&1 || (echo "❌ Ansible not installed"; exit 1)
+	@echo "✓ Ansible installed"
+	@vagrant ssh -c "command -v docker" >/dev/null 2>&1 || (echo "❌ Docker not installed"; exit 1)
+	@echo "✓ Docker installed"
+	@vagrant ssh -c "systemctl is-active docker" >/dev/null 2>&1 || (echo "❌ Docker not running"; exit 1)
+	@echo "✓ Docker running"
+	@echo ""
+	@echo "✅ All checks passed"
+
+ssh:
+	@vagrant ssh
+
+clean:
+	@echo "→ Destroying workstation..."
+	@vagrant destroy -f 2>/dev/null || true
+	@rm -rf .vagrant
+	@echo "✓ Clean complete"
+
+deploy:
+	@if [ -z "$(MODULES)" ]; then \
+		echo "Usage: make deploy apache mysql"; \
+		exit 1; \
+	fi
+	@echo "→ Deploying modules: $(MODULES)"
+	@vagrant ssh -c "cd /home/vagrant/ahab && python3 scripts/generate-compose.py $(MODULES)" || exit 1
+	@vagrant ssh -c "cd /home/vagrant/ahab/generated && docker-compose up -d" || exit 1
+	@echo "✅ Deployed: $(MODULES)"

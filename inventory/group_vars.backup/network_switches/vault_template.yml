@@ -1,0 +1,14 @@
+# Network Switch Credentials Template
+# Replace 'YOUR_SWITCH_PASSWORD_HERE' with your actual switch password
+
+# Aruba switch credentials
+aruba_admin_password: "YOUR_SWITCH_PASSWORD_HERE"
+
+# If you have enable passwords
+aruba_enable_password: "YOUR_SWITCH_PASSWORD_HERE"
+
+# Per-switch credentials (if different)
+switch_credentials:
+  switch-dundore:
+    username: "admin"
+    password: "YOUR_SWITCH_PASSWORD_HERE"

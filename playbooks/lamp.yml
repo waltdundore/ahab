@@ -1,0 +1,56 @@
+---
+# ==============================================================================
+# DEPRECATED: Use webservers.yml instead
+# ==============================================================================
+# This playbook is deprecated and will be removed in a future release.
+#
+# Why deprecated:
+#   - Name is misleading (LAMP = Linux + Apache + MySQL + PHP, but no MySQL role)
+#   - Functionality duplicated by webservers.yml
+#   - Confusing to have multiple playbooks doing the same thing
+#
+# Migration:
+#   OLD: ansible-playbook -i inventory/dev/hosts.yml playbooks/lamp.yml
+#   NEW: ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
+#
+# For development:
+#   Use: make install apache php (Docker Compose - faster)
+#
+# When MySQL role exists:
+#   Use: ansible-playbook -i inventory/dev/hosts.yml playbooks/site.yml
+#
+# This file redirects to the new structure for backward compatibility.
+# ==============================================================================
+
+- name: Redirect to webservers.yml
+  hosts: webservers
+  gather_facts: false
+
+  tasks:
+    - name: Display deprecation warning
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "⚠️  DEPRECATION WARNING"
+          - "=========================================="
+          - "This playbook (lamp.yml) is deprecated."
+          - ""
+          - "Use instead:"
+          - "  ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml"
+          - ""
+          - "Or for development:"
+          - "  make install apache php"
+          - ""
+          - "Note: This playbook is named 'LAMP' but doesn't include MySQL."
+          - "When MySQL role exists, use playbooks/site.yml instead."
+          - "=========================================="
+
+    - name: Fail with migration instructions
+      ansible.builtin.fail:
+        msg: |
+          This playbook is deprecated. Please update your commands:
+
+          OLD: ansible-playbook -i inventory/dev/hosts.yml playbooks/lamp.yml
+          NEW: ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
+
+          Or use: make install apache php

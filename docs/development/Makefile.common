@@ -1,0 +1,179 @@
+# ==============================================================================
+# Ahab - Common Makefile Targets
+# ==============================================================================
+# Shared targets used across all three repositories (control, config, inventory)
+#
+# This file is included by the main Makefiles in each repo to provide
+# consistent git workflow commands across the entire project.
+#
+# Included by:
+#   - ahab/Makefile
+#   - ansible-config/Makefile
+#   - ansible-inventory/Makefile
+#
+# Provides:
+#   - sync: Pull latest changes from remote
+#   - status: Show git status
+#   - publish: Commit and push changes
+#   - promote: Merge dev → prod
+#   - release: Create tagged release with squashed commits
+#
+# ==============================================================================
+
+# Include shared configuration variables
+include $(dir $(lastword $(MAKEFILE_LIST)))Makefile.config
+
+# Declare phony targets (targets that don't create files)
+.PHONY: sync status publish promote release
+
+#------------------------------------------------------------------------------
+# Git Workflow - Common Commands
+#------------------------------------------------------------------------------
+
+# sync: Pull latest changes from remote repository
+# Usage: make sync
+# Description: Fetches and pulls changes from origin for current branch
+sync:
+	@echo "Syncing $(shell basename $(CURDIR))..."
+	@git fetch origin
+	@git pull origin $(CURRENT_BRANCH)
+	@echo "✓ Synced with remote"
+
+# status: Show git status
+# Usage: make status
+# Description: Displays current git status (modified files, branch, etc.)
+status:
+	@git status
+
+# publish: Commit and push changes to remote
+# Usage: make publish
+# Description: Stages all changes, prompts for commit message, and pushes to current branch
+# Interactive: Prompts for commit message
+# Safety: Checks if there are changes before committing
+publish:
+	@read -p "Commit message: " msg; \
+	git add -A; \
+	if git diff --cached --quiet; then \
+		echo "No changes to commit"; \
+	else \
+		git commit -m "$$msg" && \
+		git push origin $(CURRENT_BRANCH) && \
+		echo "✓ Published to $(CURRENT_BRANCH)"; \
+	fi
+
+# promote: Merge dev branch to prod branch
+# Usage: make promote
+# Description: Merges development branch to production branch and pushes
+# Requirements:
+#   - Must be on dev branch
+#   - No uncommitted changes
+# Process:
+#   1. Validates current branch is dev
+#   2. Checks for uncommitted changes
+#   3. Switches to prod branch
+#   4. Merges dev into prod
+#   5. Pushes prod to remote
+#   6. Switches back to dev
+promote:
+	@BRANCH=$(shell git rev-parse --abbrev-ref HEAD); \
+	if [ "$$BRANCH" != "dev" ]; then \
+		echo "Error: Must be on dev branch (currently on $$BRANCH)"; \
+		exit 1; \
+	fi; \
+	if ! git diff-index --quiet HEAD --; then \
+		echo "Error: You have uncommitted changes"; \
+		git status --short; \
+		exit 1; \
+	fi; \
+	echo "Merging dev → prod..."; \
+	git checkout prod && \
+	git merge dev --no-edit && \
+	git push origin prod && \
+	git checkout dev && \
+	echo "✓ Promoted dev to prod"
+
+# release: Create tagged release with squashed commits
+# Usage: make release
+# Description: Creates a new release by squashing commits and tagging
+# Requirements:
+#   - Must be on dev branch
+#   - No uncommitted changes
+# Interactive: Prompts for version number and confirmation
+# Process:
+#   1. Validates current branch is dev
+#   2. Checks for uncommitted changes
+#   3. Prompts for version number (e.g., v0.0.2-alpha)
+#   4. Shows commit count since last release
+#   5. Merges dev to prod
+#   6. Squashes all commits since last release into one
+#   7. Creates annotated git tag
+#   8. Prompts to push to GitHub
+#   9. If pushed, syncs dev with prod
+# Note: This is a destructive operation (force push), use with caution
+release:
+	@BRANCH=$(shell git rev-parse --abbrev-ref HEAD); \
+	if [ "$$BRANCH" != "dev" ]; then \
+		echo "Error: Must be on dev branch (currently on $$BRANCH)"; \
+		exit 1; \
+	fi; \
+	if ! git diff-index --quiet HEAD --; then \
+		echo "Error: You have uncommitted changes"; \
+		git status --short; \
+		exit 1; \
+	fi; \
+	echo "=========================================="; \
+	echo "Ahab $(shell basename $(CURDIR)) - Create Release"; \
+	echo "=========================================="; \
+	echo ""; \
+	read -p "Version (e.g., v0.0.2-alpha): " version; \
+	if [ -z "$$version" ]; then \
+		echo "Error: Version required"; \
+		exit 1; \
+	fi; \
+	LAST_TAG=$$(git describe --tags --abbrev=0 2>/dev/null || echo ""); \
+	if [ -z "$$LAST_TAG" ]; then \
+		echo ""; \
+		echo "No previous releases found"; \
+		echo "This will squash ALL history"; \
+	else \
+		COMMIT_COUNT=$$(git rev-list $$LAST_TAG..HEAD --count); \
+		echo ""; \
+		echo "Last release: $$LAST_TAG"; \
+		echo "Commits since: $$COMMIT_COUNT"; \
+	fi; \
+	echo ""; \
+	echo "This will:"; \
+	echo "  1. Merge dev to prod"; \
+	echo "  2. Squash commits since last release"; \
+	echo "  3. Tag as $$version"; \
+	echo "  4. Push to GitHub"; \
+	echo ""; \
+	read -p "Continue? [y/N] " confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "Cancelled"; \
+		exit 0; \
+	fi; \
+	echo "→ Merging dev to prod..."; \
+	git checkout prod && git merge dev --no-edit && \
+	echo "→ Squashing commits since last release..."; \
+	if [ -n "$$LAST_TAG" ]; then \
+		git reset --soft $$LAST_TAG; \
+	else \
+		FIRST_COMMIT=$$(git rev-list --max-parents=0 HEAD); \
+		git reset --soft $$FIRST_COMMIT; \
+	fi && \
+	git add -A && \
+	git commit -m "Release $$version" && \
+	echo "→ Tagging $$version..."; \
+	git tag -a "$$version" -m "Ahab $(shell basename $(CURDIR)) $$version" && \
+	echo ""; \
+	read -p "Push to GitHub? [y/N] " push; \
+	if [ "$$push" = "y" ] || [ "$$push" = "Y" ]; then \
+		git push -f origin prod && \
+		git push origin "$$version" && \
+		git checkout dev && git reset --hard prod && git push -f origin dev && \
+		echo "✓ Released $$version"; \
+	else \
+		echo "Push cancelled"; \
+		git checkout dev; \
+	fi

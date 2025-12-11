@@ -1,0 +1,101 @@
+---
+# ==============================================================================
+# PHP Module
+# ==============================================================================
+
+module:
+  name: php
+  version: "1.0.0"
+  description: "PHP - Server-side scripting language"
+  author: "Ahab Project"
+  license: "MIT"
+  tags: ["php", "scripting", "web", "backend"]
+  
+  deployment:
+    ansible: true
+    docker: true
+  
+  platforms:
+    - name: Fedora
+      versions: ["38", "39"]
+      packages: ["php", "php-fpm", "php-cli", "php-common"]
+      service: php-fpm
+    - name: Debian
+      versions: ["11", "12", "13"]
+      packages: ["php", "php-fpm", "php-cli", "libapache2-mod-php"]
+      service: php8.2-fpm
+  
+  dependencies:
+    modules:
+      - name: apache
+        version: ">=1.0.0"
+        optional: false
+        reason: "PHP requires a web server to serve dynamic content"
+    
+    system:
+      fedora: ["php", "php-fpm", "php-cli"]
+      debian: ["php", "php-fpm", "libapache2-mod-php"]
+    
+    docker:
+      base_image: "php:8.2-fpm-alpine"
+      links: ["apache"]
+  
+  network:
+    ports:
+      - port: 9000
+        protocol: tcp
+        description: "PHP-FPM"
+    expose: [9000]
+  
+  storage:
+    volumes:
+      - type: bind
+        source: ./app
+        target: /var/www/html
+        description: "PHP application code"
+      - type: bind
+        source: ./php-config
+        target: /usr/local/etc/php
+        description: "PHP configuration"
+  
+  environment:
+    variables:
+      - name: PHP_VERSION
+        default: "8.2"
+      - name: PHP_MEMORY_LIMIT
+        default: "256M"
+      - name: PHP_MAX_EXECUTION_TIME
+        default: "30"
+      - name: PHP_UPLOAD_MAX_FILESIZE
+        default: "64M"
+      - name: PHP_POST_MAX_SIZE
+        default: "64M"
+  
+  health:
+    docker:
+      test: ["CMD-SHELL", "php-fpm -t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  resources:
+    limits:
+      cpus: "1.0"
+      memory: "512M"
+    reservations:
+      cpus: "0.25"
+      memory: "128M"
+  
+  integration:
+    compatible_with: ["mysql", "postgresql", "redis", "wordpress"]
+    provides: ["php-runtime", "scripting-language"]
+    requires: ["webserver"]
+
+docker_compose:
+  service_name: php
+  restart: unless-stopped
+  networks: ["webnet"]
+  depends_on: ["apache"]
+  labels:
+    com.ahab.module: "php"
+    com.ahab.version: "1.0.0"

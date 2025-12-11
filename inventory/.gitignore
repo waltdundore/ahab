@@ -1,0 +1,52 @@
+# ==============================================================================
+# Inventory .gitignore
+# ==============================================================================
+# Protect actual inventory files from being committed
+# Only templates and examples should be in git
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Actual Inventory Files (DO NOT COMMIT)
+# ------------------------------------------------------------------------------
+# These contain real IP addresses, hostnames, and credentials
+dev/hosts.yml
+prod/hosts.yml
+workstation/hosts.yml
+dev/network-switches.yml
+prod/network-switches.yml
+
+# Any hosts file without .example or .template suffix
+**/hosts
+**/inventory
+!**/hosts.example
+!**/hosts.template
+!**/inventory.example
+!**/inventory.template
+
+# ------------------------------------------------------------------------------
+# Credentials and Secrets (DO NOT COMMIT)
+# ------------------------------------------------------------------------------
+# Ansible vault files, SSH keys, passwords
+group_vars/*/vault.yml
+host_vars/*/vault.yml
+*.vault
+*.key
+*.pem
+id_rsa*
+!*.pub
+
+# ------------------------------------------------------------------------------
+# Generated Inventory (DO NOT COMMIT)
+# ------------------------------------------------------------------------------
+# Dynamic inventory cache
+.vagrant/
+*.cache
+*.generated
+
+# ==============================================================================
+# What SHOULD be committed:
+# - *.example files (sanitized examples)
+# - *.template files (templates for generation)
+# - README.md files
+# - Directory structure
+# ==============================================================================

@@ -1,0 +1,91 @@
+---
+# ==============================================================================
+# Apache HTTP Server Module
+# ==============================================================================
+
+module:
+  name: apache
+  version: "1.0.0"
+  description: "Apache HTTP Server - Industry-standard web server"
+  author: "Ahab Project"
+  license: "MIT"
+  tags: ["webserver", "http", "apache", "httpd"]
+  
+  deployment:
+    ansible: true
+    docker: true
+  
+  platforms:
+    - name: Fedora
+      versions: ["38", "39"]
+      packages: ["httpd", "mod_ssl"]
+      service: httpd
+    - name: Debian
+      versions: ["11", "12", "13"]
+      packages: ["apache2", "apache2-utils"]
+      service: apache2
+  
+  dependencies:
+    modules: []
+    system:
+      fedora: ["httpd", "mod_ssl"]
+      debian: ["apache2", "apache2-utils"]
+    docker:
+      base_image: "httpd:2.4-alpine"
+  
+  network:
+    ports:
+      - port: 80
+        protocol: tcp
+        description: "HTTP"
+      - port: 443
+        protocol: tcp
+        description: "HTTPS"
+    expose: [80, 443]
+  
+  storage:
+    volumes:
+      - type: bind
+        source: ./html
+        target: /usr/local/apache2/htdocs
+        description: "Web content"
+      - type: bind
+        source: ./config
+        target: /usr/local/apache2/conf
+        description: "Apache configuration"
+  
+  environment:
+    variables:
+      - name: APACHE_SERVER_NAME
+        default: "localhost"
+      - name: APACHE_PORT
+        default: "80"
+      - name: APACHE_DOCUMENT_ROOT
+        default: "/usr/local/apache2/htdocs"
+  
+  health:
+    docker:
+      test: ["CMD", "httpd", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  resources:
+    limits:
+      cpus: "1.0"
+      memory: "512M"
+    reservations:
+      cpus: "0.25"
+      memory: "128M"
+  
+  integration:
+    compatible_with: ["php", "python", "nodejs"]
+    provides: ["webserver", "http-server"]
+
+docker_compose:
+  service_name: apache
+  restart: unless-stopped
+  networks: ["webnet"]
+  labels:
+    com.ahab.module: "apache"
+    com.ahab.version: "1.0.0"

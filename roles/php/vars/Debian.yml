@@ -1,0 +1,26 @@
+---
+# PHP variables for Debian family (Debian, Ubuntu)
+
+php_packages:
+  - php
+  - php-cli
+  - php-common
+  - php-fpm
+  - php-mysql
+  - php-gd
+  - php-mbstring
+  - php-xml
+  - php-curl
+  - libapache2-mod-php
+
+php_extensions: []
+
+php_ini_file: /etc/php/8.2/apache2/php.ini
+php_fpm_conf: /etc/php/8.2/fpm/php-fpm.conf
+php_fpm_pool_dir: /etc/php/8.2/fpm/pool.d
+
+apache_service: apache2
+apache_user: www-data
+apache_group: www-data
+apache_document_root: /var/www/html
+apache_check_command: "systemctl is-active apache2"

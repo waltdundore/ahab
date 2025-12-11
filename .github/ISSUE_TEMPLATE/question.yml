@@ -1,0 +1,53 @@
+name: Question or Help
+description: Ask a question or get help with using Ahab
+title: "[Question]: "
+labels: ["question", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question about using Ahab? We're here to help!
+        
+        **Before asking:** Please check the [documentation](https://waltdundore.github.io) and [existing issues](https://github.com/waltdundore/ahab/issues) first.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What's your question?
+      description: Please be as specific as possible.
+      placeholder: What would you like to know?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to accomplish? What have you already tried?
+      placeholder: |
+        - What I'm trying to do: ...
+        - What I've already tried: ...
+        - Where I'm stuck: ...
+
+  - type: dropdown
+    id: experience-level
+    attributes:
+      label: Experience level
+      description: How would you describe your experience with infrastructure tools?
+      options:
+        - Beginner - New to infrastructure/DevOps
+        - Intermediate - Some experience with Docker/Ansible
+        - Advanced - Experienced with infrastructure tools
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment details
+      description: If relevant, please share details about your setup.
+      placeholder: |
+        - Operating System: 
+        - Virtualization Provider: 
+        - What you're trying to deploy: 

@@ -1,0 +1,30 @@
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "userns-remap": "default",
+  "no-new-privileges": true,
+  "icc": false,
+  "userland-proxy": false,
+  "live-restore": true,
+  "selinux-enabled": true,
+  "storage-driver": "overlay2",
+  "storage-opts": [
+    "overlay2.override_kernel_check=true"
+  ],
+  "default-ulimits": {
+    "nofile": {
+      "Name": "nofile",
+      "Hard": 64000,
+      "Soft": 64000
+    }
+  },
+  "hosts": ["unix:///var/run/docker.sock"],
+  "tls": true,
+  "tlsverify": true,
+  "tlscert": "/etc/docker/server-cert.pem",
+  "tlskey": "/etc/docker/server-key.pem",
+  "tlscacert": "/etc/docker/ca.pem"
+}

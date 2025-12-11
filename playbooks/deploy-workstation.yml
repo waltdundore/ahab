@@ -1,0 +1,153 @@
+---
+# Physical Workstation Deployment Playbook
+# ==============================================================================
+# Deploy Ahab infrastructure to physical workstation running Fedora 43
+# ==============================================================================
+
+- name: Deploy Ahab to Physical Workstation
+  hosts: workstations
+  become: true
+  gather_facts: true
+
+  vars:
+    ahab_user: ahab
+    ahab_home: /home/{{ ahab_user }}
+    ahab_repo: https://github.com/waltdundore/ahab.git
+
+  tasks:
+    - name: Verify supported operating system
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ['Fedora', 'Debian', 'Ubuntu']
+        fail_msg: "This playbook supports Fedora, Debian, and Ubuntu only. Detected: {{ ansible_distribution }}"
+        success_msg: "✓ {{ ansible_distribution }} {{ ansible_distribution_version }} detected"
+
+    - name: Update system packages (Fedora)
+      ansible.builtin.dnf:
+        name: "*"
+        state: present
+        update_cache: true
+      when: ansible_distribution == 'Fedora'
+      tags: [system]
+
+    - name: Update system packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: true
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+      tags: [system]
+
+    - name: Install required packages (Fedora)
+      ansible.builtin.dnf:
+        name:
+          - git
+          - ansible
+          - docker
+          - docker-compose
+          - make
+          - curl
+          - wget
+          - python3
+          - python3-pip
+          - vim
+          - htop
+          - tree
+          - firewalld
+        state: present
+      when: ansible_distribution == 'Fedora'
+      tags: [packages]
+
+    - name: Install required packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name:
+          - git
+          - ansible
+          - docker.io
+          - docker-compose
+          - make
+          - curl
+          - wget
+          - python3
+          - python3-pip
+          - vim
+          - htop
+          - tree
+          - ufw
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+      tags: [packages]
+
+    - name: Create ahab user
+      ansible.builtin.user:
+        name: "{{ ahab_user }}"
+        groups: docker,wheel
+        shell: /bin/bash
+        create_home: true
+        append: true
+      tags: [user]
+
+    - name: Start and enable Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+      tags: [docker]
+
+    - name: Start and enable firewalld (Fedora)
+      ansible.builtin.systemd:
+        name: firewalld
+        state: started
+        enabled: true
+      when: ansible_distribution == 'Fedora'
+      tags: [firewall]
+
+    - name: Enable ufw firewall (Debian/Ubuntu)
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+      tags: [firewall]
+
+    - name: Clone Ahab repository
+      ansible.builtin.git:
+        repo: "{{ ahab_repo }}"
+        dest: "{{ ahab_home }}/ahab"
+        version: dev
+      become: true
+      become_user: "{{ ahab_user }}"
+      tags: [git]
+
+    - name: Set ownership of ahab directory
+      ansible.builtin.file:
+        path: "{{ ahab_home }}/ahab"
+        owner: "{{ ahab_user }}"
+        group: "{{ ahab_user }}"
+        recurse: true
+      tags: [permissions]
+
+    - name: Test Ahab installation
+      ansible.builtin.command: make test
+      args:
+        chdir: "{{ ahab_home }}/ahab"
+      become: true
+      become_user: "{{ ahab_user }}"
+      register: ahab_test
+      changed_when: false
+      tags: [test]
+
+    - name: Display test results
+      ansible.builtin.debug:
+        var: ahab_test.stdout_lines
+      tags: [test]
+
+    - name: Verify deployment
+      ansible.builtin.debug:
+        msg: |
+          ✅ Ahab deployed successfully to {{ inventory_hostname }}
+
+          Next steps:
+          1. SSH to workstation: ssh {{ ahab_user }}@{{ ansible_host }}
+          2. Navigate to ahab: cd ~/ahab
+          3. Run tests: make test
+          4. Deploy services: make install apache mysql

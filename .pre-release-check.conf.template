@@ -1,0 +1,141 @@
+# Pre-Release Checklist Configuration
+# Copy this file to .pre-release-check.conf and customize as needed
+
+# ============================================================================
+# Validators Configuration
+# ============================================================================
+
+# Validators to run (comma-separated)
+# Available validators:
+#   - code-compliance: Verify code follows Core Principles
+#   - documentation: Verify documentation accuracy and completeness
+#   - file-organization: Verify proper file organization and cleanup
+#   - gitignore: Verify .gitignore configuration
+#   - tests: Verify all tests pass
+#   - branding: Verify GUI follows brand guidelines
+#   - architecture: Verify architectural compliance
+#   - code-quality: Verify code quality standards
+#   - dependencies: Verify dependency management
+#   - changelog: Verify changelog and versioning
+#   - consolidation: Identify duplicate content (DRY violations)
+#   - security: Verify security compliance
+VALIDATORS="code-compliance,documentation,file-organization,gitignore,tests,branding,architecture,code-quality,dependencies,changelog,consolidation,security"
+
+# ============================================================================
+# Execution Mode
+# ============================================================================
+
+# Strict mode (treat warnings as errors)
+# Options: true, false
+STRICT_MODE=false
+
+# Auto-fix mode (attempt to fix issues automatically)
+# Options: true, false
+AUTO_FIX=false
+
+# Parallel execution (run validators in parallel)
+# Options: true, false
+# Note: Parallel mode is faster but output is less readable
+PARALLEL=false
+
+# ============================================================================
+# Reporting
+# ============================================================================
+
+# Report format
+# Options: text, json, html
+REPORT_FORMAT=text
+
+# Output file for report
+REPORT_FILE=pre-release-report.txt
+
+# ============================================================================
+# Validator-Specific Settings
+# ============================================================================
+
+# Code Compliance
+# Check for direct vagrant/ansible commands
+CHECK_VAGRANT_USAGE=true
+# Check for Python execution in Docker
+CHECK_PYTHON_DOCKER=true
+# Check for cd commands
+CHECK_CD_COMMANDS=true
+
+# Documentation
+# Check documentation locations
+CHECK_DOC_LOCATIONS=true
+# Check documentation format
+CHECK_DOC_FORMAT=true
+# Check broken links
+CHECK_BROKEN_LINKS=true
+
+# File Organization
+# Check for temporary files
+CHECK_TEMP_FILES=true
+# Check for build artifacts
+CHECK_BUILD_ARTIFACTS=true
+# Check for duplicate files
+CHECK_DUPLICATES=true
+
+# Gitignore
+# Required patterns to check for
+REQUIRED_GITIGNORE_PATTERNS="*.tmp,*.bak,*~,*.pyc,__pycache__,.vagrant,*.log,.env,*.key,*.pem"
+
+# Tests
+# Minimum property test iterations
+MIN_PROPERTY_TEST_ITERATIONS=100
+
+# Branding
+# Check color usage
+CHECK_BRAND_COLORS=true
+# Check logo presence
+CHECK_LOGO=true
+# Check accessibility
+CHECK_ACCESSIBILITY=true
+
+# Code Quality
+# Check for hardcoded credentials
+CHECK_CREDENTIALS=true
+# Check for hardcoded paths
+CHECK_HARDCODED_PATHS=true
+# Run shellcheck
+RUN_SHELLCHECK=true
+# Run flake8
+RUN_FLAKE8=true
+
+# Dependencies
+# Check Python dependencies
+CHECK_PYTHON_DEPS=true
+# Check Docker image tags
+CHECK_DOCKER_TAGS=true
+
+# Security
+# Check for secrets in git
+CHECK_SECRETS=true
+# Check privilege escalation
+CHECK_PRIVILEGE_ESCALATION=true
+# Check container root
+CHECK_CONTAINER_ROOT=true
+
+# ============================================================================
+# Performance
+# ============================================================================
+
+# Cache file scans (faster but may miss changes)
+CACHE_FILE_SCANS=false
+
+# Early exit on first failure (faster but less complete)
+EARLY_EXIT=true
+
+# Incremental checks (only check changed files)
+INCREMENTAL=false
+
+# ============================================================================
+# Exclusions
+# ============================================================================
+
+# Directories to exclude from all checks (space-separated)
+EXCLUDE_DIRS=".git .vagrant .hypothesis .pytest_cache __pycache__ node_modules venv .venv backups .kiro"
+
+# Files to exclude from all checks (space-separated patterns)
+EXCLUDE_FILES="*.pyc *.pyo *.so *.o *.a"

@@ -1,0 +1,31 @@
+---
+# PHP default variables
+# These can be overridden in playbooks or inventory
+
+# PHP version (informational)
+php_version: "8.2"
+
+# PHP configuration
+php_memory_limit: "256M"
+php_upload_max_filesize: "64M"
+php_post_max_size: "64M"
+php_max_execution_time: "30"
+php_max_input_time: "60"
+php_display_errors: "Off"
+php_error_reporting: "E_ALL & ~E_DEPRECATED & ~E_STRICT"
+php_timezone: "UTC"
+
+# PHP-FPM configuration
+php_fpm_enabled: true
+php_fpm_pm: dynamic
+php_fpm_max_children: 50
+php_fpm_start_servers: 5
+php_fpm_min_spare_servers: 5
+php_fpm_max_spare_servers: 35
+
+# Additional extensions to install (beyond defaults)
+php_extensions: []
+# Example:
+# php_extensions:
+#   - php-redis
+#   - php-imagick

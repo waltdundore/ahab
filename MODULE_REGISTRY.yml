@@ -1,0 +1,140 @@
+---
+# ==============================================================================
+# Ahab Module Registry
+# ==============================================================================
+# Central registry of available Ahab modules
+#
+# Each module entry includes:
+#   - repository: GitHub repository URL
+#   - version: Current stable version (branch name)
+#   - description: Module description
+#   - deployment: Supported deployment methods
+#   - dependencies: Required modules
+#   - status: Development status
+#
+# Version branches:
+#   - Branches match version numbers (v1.0.0, v1.1.0, etc.)
+#   - main branch always points to latest stable
+#   - dev branch for development
+# ==============================================================================
+
+registry:
+  version: "1.0"
+  updated: "2024-12-06"
+  
+  modules:
+    apache:
+      repository: "https://github.com/waltdundore/ahab-module-apache.git"
+      version: "v1.0.0"
+      description: "Apache HTTP Server - Industry-standard web server"
+      deployment: [ansible, docker]
+      dependencies: []
+      status: stable
+      platforms: [fedora, debian, ubuntu]
+      tags: [webserver, http, apache]
+      documentation: "https://github.com/waltdundore/ahab-module-apache/blob/main/README.md"
+      maintainer: "Ahab Project"
+      
+    php:
+      repository: "https://github.com/waltdundore/ahab-module-php.git"
+      version: "v1.0.0"
+      description: "PHP - Server-side scripting language"
+      deployment: [ansible, docker]
+      dependencies: [apache]
+      status: stable
+      platforms: [fedora, debian, ubuntu]
+      tags: [php, scripting, web]
+      documentation: "https://github.com/waltdundore/ahab-module-php/blob/main/README.md"
+      maintainer: "Ahab Project"
+      
+    docker:
+      repository: "https://github.com/waltdundore/ahab-module-docker.git"
+      version: "v1.0.0"
+      description: "Docker - Container runtime and orchestration"
+      deployment: [ansible]
+      dependencies: []
+      status: stable
+      platforms: [fedora, debian, ubuntu]
+      tags: [docker, containers, virtualization]
+      documentation: "https://github.com/waltdundore/ahab-module-docker/blob/main/README.md"
+      maintainer: "Ahab Project"
+    
+    # Future modules (planned)
+    mysql:
+      repository: "https://github.com/waltdundore/ahab-module-mysql.git"
+      version: "v1.0.0"
+      description: "MySQL - Relational database server"
+      deployment: [ansible, docker]
+      dependencies: []
+      status: planned
+      platforms: [fedora, debian, ubuntu]
+      tags: [database, mysql, sql]
+      documentation: "https://github.com/waltdundore/ahab-module-mysql/blob/main/README.md"
+      maintainer: "Ahab Project"
+    
+    postgresql:
+      repository: "https://github.com/waltdundore/ahab-module-postgresql.git"
+      version: "v1.0.0"
+      description: "PostgreSQL - Advanced relational database"
+      deployment: [ansible, docker]
+      dependencies: []
+      status: planned
+      platforms: [fedora, debian, ubuntu]
+      tags: [database, postgresql, sql]
+      documentation: "https://github.com/waltdundore/ahab-module-postgresql/blob/main/README.md"
+      maintainer: "Ahab Project"
+    
+    nginx:
+      repository: "https://github.com/waltdundore/ahab-module-nginx.git"
+      version: "v1.0.0"
+      description: "Nginx - High-performance web server and reverse proxy"
+      deployment: [ansible, docker]
+      dependencies: []
+      status: planned
+      platforms: [fedora, debian, ubuntu]
+      tags: [webserver, nginx, proxy]
+      documentation: "https://github.com/waltdundore/ahab-module-nginx/blob/main/README.md"
+      maintainer: "Ahab Project"
+    
+    redis:
+      repository: "https://github.com/waltdundore/ahab-module-redis.git"
+      version: "v1.0.0"
+      description: "Redis - In-memory data structure store"
+      deployment: [ansible, docker]
+      dependencies: []
+      status: planned
+      platforms: [fedora, debian, ubuntu]
+      tags: [cache, redis, database]
+      documentation: "https://github.com/waltdundore/ahab-module-redis/blob/main/README.md"
+      maintainer: "Ahab Project"
+    
+    wordpress:
+      repository: "https://github.com/waltdundore/ahab-module-wordpress.git"
+      version: "v1.0.0"
+      description: "WordPress - Content management system"
+      deployment: [ansible, docker]
+      dependencies: [apache, php, mysql]
+      status: planned
+      platforms: [fedora, debian, ubuntu]
+      tags: [cms, wordpress, web]
+      documentation: "https://github.com/waltdundore/ahab-module-wordpress/blob/main/README.md"
+      maintainer: "Ahab Project"
+    
+    nextcloud:
+      repository: "https://github.com/waltdundore/ahab-module-nextcloud.git"
+      version: "v1.0.0"
+      description: "Nextcloud - Self-hosted file sharing and collaboration"
+      deployment: [ansible, docker]
+      dependencies: [apache, php, mysql]
+      status: planned
+      platforms: [fedora, debian, ubuntu]
+      tags: [cloud, storage, collaboration]
+      documentation: "https://github.com/waltdundore/ahab-module-nextcloud/blob/main/README.md"
+      maintainer: "Ahab Project"
+
+# Module status values:
+#   - stable: Production-ready, fully tested
+#   - beta: Feature-complete, testing in progress
+#   - alpha: Under active development
+#   - planned: Not yet implemented
+#   - deprecated: No longer maintained

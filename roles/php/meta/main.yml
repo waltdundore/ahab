@@ -1,0 +1,36 @@
+---
+# PHP role metadata
+
+galaxy_info:
+  author: Ahab Project
+  description: PHP installation and configuration with Apache integration
+  license: MIT
+  min_ansible_version: 2.9
+  
+  platforms:
+    - name: Fedora
+      versions:
+        - 38
+        - 39
+    - name: EL
+      versions:
+        - 8
+        - 9
+    - name: Debian
+      versions:
+        - 11
+        - 12
+    - name: Ubuntu
+      versions:
+        - 20.04
+        - 22.04
+  
+  galaxy_tags:
+    - php
+    - web
+    - development
+    - scripting
+
+dependencies:
+  - role: apache
+    when: apache_check.rc != 0

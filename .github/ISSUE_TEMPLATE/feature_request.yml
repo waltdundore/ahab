@@ -1,0 +1,72 @@
+name: Feature Request
+description: Suggest a new feature or improvement for Ahab
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please provide as much detail as possible.
+
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Problem or use case
+      description: What problem would this feature solve? What use case would it enable?
+      placeholder: Describe the problem or use case this feature would address.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: Describe the solution you'd like to see.
+      placeholder: Describe your ideal solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: Describe any alternative solutions or features you've considered.
+
+  - type: dropdown
+    id: user-type
+    attributes:
+      label: User type
+      description: Which type of user would benefit from this feature?
+      options:
+        - Student learning infrastructure
+        - Teacher/Instructor
+        - System Administrator
+        - Developer
+        - All users
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be helpful
+        - High - Needed for my use case
+        - Critical - Blocking my work
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context, screenshots, or examples about the feature request.
+      placeholder: |
+        - Screenshots or mockups
+        - Examples from other tools
+        - Links to relevant documentation

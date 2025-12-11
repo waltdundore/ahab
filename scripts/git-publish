@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Git Publish Command - Standardized Git Publishing
+# ==============================================================================
+# Usage: ./scripts/git-publish [branch|all] [remote]
+# Examples:
+#   ./scripts/git-publish              # Publish dev branch
+#   ./scripts/git-publish prod         # Publish prod branch  
+#   ./scripts/git-publish all          # Publish all branches
+# ==============================================================================
+
+set -euo pipefail
+
+# Get script directory and source common functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/git-publish-common.sh"
+
+# ==============================================================================
+# Main Function
+# ==============================================================================
+
+main() {
+    local action="${1:-$DEFAULT_BRANCH}"
+    local remote="${2:-origin}"
+    
+    case "$action" in
+        "all")
+            git_publish_all "$remote"
+            ;;
+        "status")
+            git_publish_status
+            ;;
+        "sync")
+            git_publish_sync "${2:-$DEFAULT_BRANCH}" "${3:-origin}"
+            ;;
+        "force")
+            git_publish_force "${2:-$DEFAULT_BRANCH}" "${3:-origin}"
+            ;;
+        "help"|"-h"|"--help")
+            show_help
+            ;;
+        *)
+            git_publish_branch "$action" "$remote"
+            ;;
+    esac
+}
+
+# ==============================================================================
+# Help Function
+# ==============================================================================
+
+show_help() {
+    cat << 'EOF'
+Git Publish - Standardized Git Publishing Tool
+
+USAGE:
+    ./scripts/git-publish [branch|command] [remote]
+
+COMMANDS:
+    <branch>        Publish specific branch (default: dev)
+    all             Publish all configured branches for this repository
+    status          Show current repository publishing status
+    sync [branch]   Sync branch with remote (pull latest changes)
+    force <branch>  Force publish branch (use with caution)
+    help            Show this help message
+
+ARGUMENTS:
+    branch          Branch name to publish (default: dev)
+    remote          Remote name (default: origin)
+
+EXAMPLES:
+    ./scripts/git-publish                 # Publish dev branch to origin
+    ./scripts/git-publish prod            # Publish prod branch to origin
+    ./scripts/git-publish all             # Publish all configured branches
+    ./scripts/git-publish status          # Show publishing status
+    ./scripts/git-publish sync            # Sync dev branch
+    ./scripts/git-publish sync prod       # Sync prod branch
+
+REPOSITORY CONFIGURATION:
+    Each repository has configured branches in git-publish-common.sh:
+    - ahab: dev, prod, master, workstation, milestone-system-v1
+    - ahab-gui: main
+    - waltdundore.github.io: main
+
+TRANSPARENCY PRINCIPLE:
+    All commands show what they're running and why, following our
+    development principle of education through transparency.
+
+SAFETY FEATURES:
+    - Validates branch and remote existence before publishing
+    - Handles GitHub push protection gracefully
+    - Provides clear error messages and recovery options
+    - Uses safer force options when needed
+
+For more details, see: scripts/lib/git-publish-common.sh
+EOF
+}
+
+# ==============================================================================
+# Execute Main Function
+# ==============================================================================
+
+main "$@"

@@ -1,0 +1,96 @@
+# Workstation Inventory Example
+# ==============================================================================
+# This is an EXAMPLE file with placeholder values
+# Copy to hosts.yml and replace with your actual workstation values
+# ==============================================================================
+#
+# Purpose: Local development and testing
+#
+# Quick Start:
+#   cp hosts.yml.example hosts.yml
+#   vim hosts.yml  # Update with your actual workstation info
+#
+# Security Note:
+#   - hosts.yml.example (this file) is committed to git
+#   - hosts.yml (actual inventory) is NOT committed (protected by .gitignore)
+#   - Workstation inventory is less sensitive than prod, but still protect it
+# ==============================================================================
+
+all:
+  children:
+    # Local development machines
+    workstations:
+      hosts:
+        # Vagrant VM (typical setup)
+        vagrant_vm:
+          ansible_host: 127.0.0.1
+          ansible_port: 2222
+          ansible_user: vagrant
+          ansible_connection: ssh
+          ansible_ssh_private_key_file: .vagrant/machines/default/virtualbox/private_key
+          dynamic_ip: false
+        
+        # Local machine (localhost)
+        localhost:
+          ansible_host: 127.0.0.1
+          ansible_user: "{{ lookup('env', 'USER') }}"
+          ansible_connection: local
+          dynamic_ip: false
+        
+        # Development workstation (example)
+        dev_workstation:
+          ansible_host: 192.168.1.XXX  # Replace with actual IP
+          ansible_user: developer
+          ansible_connection: ssh
+          dynamic_ip: false
+      
+      vars:
+        # Common variables for workstations
+        ansible_python_interpreter: /usr/bin/python3
+        # Uncomment if using SSH keys:
+        # ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+# ==============================================================================
+# Workstation Configuration Notes
+# ==============================================================================
+#
+# ansible_host: IP address or hostname
+#   - 127.0.0.1 for local/Vagrant
+#   - 192.168.x.x for local network
+#
+# ansible_port: SSH port
+#   - 22 (default)
+#   - 2222 (typical for Vagrant)
+#
+# ansible_user: Username
+#   - vagrant (for Vagrant VMs)
+#   - Your username (for local machine)
+#   - developer (for dev workstation)
+#
+# ansible_connection:
+#   - 'local' for same machine (no SSH)
+#   - 'ssh' for remote connection
+#
+# For Vagrant VMs:
+#   ansible_ssh_private_key_file: .vagrant/machines/default/virtualbox/private_key
+#
+# For local machine:
+#   ansible_connection: local
+#   No SSH key needed
+#
+# ==============================================================================
+# Testing Workflow
+# ==============================================================================
+#
+# 1. Test playbook on workstation:
+#    ansible-playbook -i inventory/workstation/hosts.yml playbooks/test.yml
+#
+# 2. Verify it works without errors
+#
+# 3. Deploy to dev environment:
+#    ansible-playbook -i inventory/dev/hosts.yml playbooks/test.yml
+#
+# 4. After thorough testing, deploy to prod
+#
+# ==============================================================================
+

@@ -1,0 +1,406 @@
+---
+# ==============================================================================
+# Install Ahab Prerequisites
+# ==============================================================================
+# Installs prerequisite packages needed before workstation provisioning
+#
+# This playbook ensures the host system has all required tools for:
+#   - Vagrant (VM management)
+#   - VirtualBox/Parallels (virtualization)
+#   - Git (version control)
+#   - Ansible (configuration management)
+#   - Docker (for Python script execution)
+#
+# Usage:
+#   ansible-playbook playbooks/install-prerequisites.yml --ask-become-pass
+#   make install-prerequisites
+#
+# Security: Follows Zero Trust - validates each installation step
+# ==============================================================================
+
+- name: Install Ahab Prerequisites
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+
+  vars:
+    # Prerequisites by OS family
+    fedora_prerequisites:
+      - git
+      - ansible
+      - vagrant
+      - VirtualBox
+      - docker
+      - make
+      - curl
+      - wget
+      - python3
+      - python3-pip
+
+    debian_prerequisites:
+      - git
+      - ansible
+      - vagrant
+      - virtualbox
+      - docker.io
+      - make
+      - curl
+      - wget
+      - python3
+      - python3-pip
+
+    macos_prerequisites:
+      - git
+      - ansible
+      - vagrant
+      - docker
+      - make
+      - curl
+      - wget
+      - python3
+
+    # Repository URLs for packages not in default repos
+    vagrant_rpm_url: "https://releases.hashicorp.com/vagrant/2.4.0/vagrant-2.4.0-1.x86_64.rpm"
+    vagrant_deb_url: "https://releases.hashicorp.com/vagrant/2.4.0/vagrant_2.4.0-1_amd64.deb"
+
+  tasks:
+    - name: Display prerequisite installation start
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Installing Ahab Prerequisites"
+          - "=========================================="
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Architecture: {{ ansible_architecture }}"
+
+    # ==============================================================================
+    # Fedora Prerequisites
+    # ==============================================================================
+    - name: Update package cache (Fedora)
+      ansible.builtin.dnf:
+        update_cache: true
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install EPEL repository (Fedora)
+      ansible.builtin.dnf:
+        name: epel-release
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install RPM Fusion repositories (Fedora)
+      ansible.builtin.dnf:
+        name:
+          - >-
+            https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{
+            ansible_distribution_major_version }}.noarch.rpm
+          - >-
+            https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{
+            ansible_distribution_major_version }}.noarch.rpm
+        state: present
+        disable_gpg_check: true
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install basic prerequisites (Fedora)
+      ansible.builtin.dnf:
+        name:
+          - git
+          - make
+          - curl
+          - wget
+          - python3
+          - python3-pip
+          - dnf-plugins-core
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Add Docker repository (Fedora)
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/fedora/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+        mode: '0644'
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install Docker (Fedora)
+      ansible.builtin.dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install VirtualBox (Fedora)
+      ansible.builtin.dnf:
+        name: VirtualBox
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install Ansible (Fedora)
+      ansible.builtin.dnf:
+        name: ansible
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Download Vagrant RPM (Fedora)
+      ansible.builtin.get_url:
+        url: "{{ vagrant_rpm_url }}"
+        dest: /tmp/vagrant.rpm
+        mode: '0644'
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install Vagrant (Fedora)
+      ansible.builtin.dnf:
+        name: /tmp/vagrant.rpm
+        state: present
+        disable_gpg_check: true
+      when: ansible_distribution == 'Fedora'
+
+    # ==============================================================================
+    # Debian/Ubuntu Prerequisites
+    # ==============================================================================
+    - name: Update package cache (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: true
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Install basic prerequisites (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name:
+          - git
+          - make
+          - curl
+          - wget
+          - python3
+          - python3-pip
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Add Docker GPG key (Debian/Ubuntu)
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Add Docker repository (Debian/Ubuntu)
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}]
+          https://download.docker.com/linux/{{ ansible_distribution | lower }}
+          {{ ansible_distribution_release }} stable
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Install Docker (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Install VirtualBox (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: virtualbox
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Install Ansible (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: ansible
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Download Vagrant DEB (Debian/Ubuntu)
+      ansible.builtin.get_url:
+        url: "{{ vagrant_deb_url }}"
+        dest: /tmp/vagrant.deb
+        mode: '0644'
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Install Vagrant (Debian/Ubuntu)
+      ansible.builtin.apt:
+        deb: /tmp/vagrant.deb
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    # ==============================================================================
+    # macOS Prerequisites (using Homebrew)
+    # ==============================================================================
+    - name: Check if Homebrew is installed (macOS)
+      ansible.builtin.command: which brew
+      register: homebrew_check
+      failed_when: false
+      changed_when: false
+      when: ansible_distribution == 'MacOSX'
+
+    - name: Install Homebrew (macOS)
+      ansible.builtin.shell: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      when:
+        - ansible_distribution == 'MacOSX'
+        - homebrew_check.rc != 0
+      become: false
+      changed_when: true
+
+    - name: Install prerequisites via Homebrew (macOS)
+      community.general.homebrew:
+        name:
+          - git
+          - ansible
+          - vagrant
+          - docker
+          - make
+          - curl
+          - wget
+          - python3
+        state: present
+      when: ansible_distribution == 'MacOSX'
+      become: false
+
+    - name: Install VirtualBox via Homebrew Cask (macOS)
+      community.general.homebrew_cask:
+        name: virtualbox
+        state: present
+      when: ansible_distribution == 'MacOSX'
+      become: false
+
+    # ==============================================================================
+    # Post-Installation Configuration
+    # ==============================================================================
+    - name: Start and enable Docker service (Linux)
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+      when: ansible_system == 'Linux'
+
+    - name: Add current user to docker group (Linux)
+      ansible.builtin.user:
+        name: "{{ ansible_user_id }}"
+        groups: docker
+        append: true
+      when: ansible_system == 'Linux'
+
+    - name: Start Docker Desktop (macOS)
+      ansible.builtin.command: open -a Docker
+      when: ansible_distribution == 'MacOSX'
+      become: false
+      failed_when: false
+      changed_when: false
+
+    # ==============================================================================
+    # Verification
+    # ==============================================================================
+    - name: Verify Git installation
+      ansible.builtin.package:
+        name: git
+        state: present
+      check_mode: true
+      register: git_check
+      changed_when: false
+
+    - name: Verify Ansible installation
+      ansible.builtin.command: ansible --version
+      register: ansible_ver_check
+      changed_when: false
+      failed_when: ansible_ver_check.rc != 0
+
+    - name: Verify Vagrant installation
+      ansible.builtin.command: vagrant --version
+      register: vagrant_version
+      changed_when: false
+      failed_when: vagrant_version.rc != 0
+
+    - name: Verify Docker installation
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+      failed_when: docker_version.rc != 0
+
+    - name: Verify VirtualBox installation (Linux)
+      ansible.builtin.command: VBoxManage --version
+      register: vbox_version
+      changed_when: false
+      failed_when: vbox_version.rc != 0
+      when: ansible_system == 'Linux'
+
+    - name: Verify VirtualBox installation (macOS)
+      ansible.builtin.command: /Applications/VirtualBox.app/Contents/MacOS/VBoxManage --version
+      register: vbox_version_mac
+      changed_when: false
+      failed_when: vbox_version_mac.rc != 0
+      when: ansible_distribution == 'MacOSX'
+
+    - name: Display installation summary
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "✅ Prerequisites Installation Complete"
+          - "=========================================="
+          - ""
+          - "Operating System: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - ""
+          - "Tools installed:"
+          - "  ✓ Git (installed)"
+          - "  ✓ Ansible {{ ansible_ver_check.stdout_lines[0].split()[1] }}"
+          - "  ✓ Vagrant {{ vagrant_version.stdout.split()[1] }}"
+          - "  ✓ Docker {{ docker_version.stdout.split()[2] | replace(',', '') }}"
+          - "  ✓ VirtualBox {{ (vbox_version.stdout if ansible_system == 'Linux' else vbox_version_mac.stdout).split('r')[0] }}"
+          - ""
+          - "⚠️  IMPORTANT: Log out and back in for Docker group changes to take effect"
+          - ""
+          - "Next steps:"
+          - "  1. Restart your terminal or log out/in"
+          - "  2. Run: make install"
+          - "  3. Test: make test"
+          - ""
+
+    # ==============================================================================
+    # Security Hardening (Zero Trust)
+    # ==============================================================================
+    - name: Configure Docker daemon security (Linux)
+      ansible.builtin.copy:
+        content: |
+          {
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "10m",
+              "max-file": "3"
+            },
+            "live-restore": true,
+            "userland-proxy": false,
+            "no-new-privileges": true
+          }
+        dest: /etc/docker/daemon.json
+        mode: '0644'
+        backup: true
+      when: ansible_system == 'Linux'
+      notify: Restart docker
+
+    - name: Ensure VirtualBox kernel modules are loaded (Linux)
+      community.general.modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - vboxdrv
+        - vboxnetflt
+        - vboxnetadp
+      when: ansible_system == 'Linux'
+      failed_when: false
+
+  handlers:
+    - name: Restart docker
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted
+      when: ansible_system == 'Linux'

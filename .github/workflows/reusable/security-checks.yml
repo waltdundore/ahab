@@ -1,0 +1,52 @@
+name: Security Checks
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: 'Path to check (relative to repository root)'
+        required: false
+        type: string
+        default: '.'
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for secret scanning
+      
+      - name: Scan for Secrets with TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+      
+      - name: Check Credential File Naming
+        run: |
+          if [ -f scripts/ci/check-credential-templates.sh ]; then
+            bash scripts/ci/check-credential-templates.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: check-credential-templates.sh not found, skipping"
+          fi
+      
+      - name: Verify No Root Containers
+        run: |
+          if [ -f scripts/ci/check-container-users.sh ]; then
+            bash scripts/ci/check-container-users.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: check-container-users.sh not found, skipping"
+          fi
+      
+      - name: Dependency Vulnerability Scan
+        run: |
+          if [ -f scripts/ci/scan-dependencies.sh ]; then
+            bash scripts/ci/scan-dependencies.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: scan-dependencies.sh not found, skipping"
+          fi

@@ -1,0 +1,38 @@
+---
+- name: Display MySQL installation info
+  ansible.builtin.debug:
+    msg: "Installing MySQL on {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+
+- name: Install MySQL packages (RedHat family)
+  ansible.builtin.dnf:
+    name: "{{ mysql_packages | default(['mysql-server', 'mysql']) }}"
+    state: present
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Install MySQL packages (Debian family)
+  ansible.builtin.apt:
+    name: "{{ mysql_packages | default(['mysql-server', 'mysql-client']) }}"
+    state: present
+    update_cache: yes
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Start and enable MySQL service
+  ansible.builtin.systemd:
+    name: mysqld
+    state: started
+    enabled: yes
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Start and enable MySQL service (Debian)
+  ansible.builtin.systemd:
+    name: mysql
+    state: started
+    enabled: yes
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Display MySQL configuration info
+  ansible.builtin.debug:
+    msg: 
+      - "MySQL installed successfully"
+      - "Port: {{ mysql_port | default(3306) }}"
+      - "Configuration loaded from: {{ config_templates_path | default('../ahab-config') }}"

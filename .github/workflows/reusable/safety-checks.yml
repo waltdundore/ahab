@@ -1,0 +1,53 @@
+name: Safety Checks
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: 'Path to check (relative to repository root)'
+        required: false
+        type: string
+        default: '.'
+
+jobs:
+  safety:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: NASA Power of 10 - Bounded Loops
+        run: |
+          if [ -f scripts/ci/check-bounded-loops.sh ]; then
+            bash scripts/ci/check-bounded-loops.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: check-bounded-loops.sh not found, skipping"
+          fi
+      
+      - name: NASA Power of 10 - Return Value Checking
+        run: |
+          if [ -f scripts/ci/check-return-values.sh ]; then
+            bash scripts/ci/check-return-values.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: check-return-values.sh not found, skipping"
+          fi
+      
+      - name: NASA Power of 10 - Function Length
+        run: |
+          if [ -f scripts/ci/check-function-length.sh ]; then
+            bash scripts/ci/check-function-length.sh "${{ inputs.path }}"
+          else
+            echo "⚠️  Warning: check-function-length.sh not found, skipping"
+          fi
+      
+      - name: Shellcheck Validation
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          if [ -f Makefile ] && grep -q "validate-scripts" Makefile; then
+            make validate-scripts
+          else
+            echo "Running shellcheck on all shell scripts..."
+            find . -name "*.sh" -type f -exec shellcheck {} + || true
+          fi

@@ -1,0 +1,8 @@
+# Git attributes for secret scanning
+# Mark test files as safe from secret detection
+tests/property/test-secret-detection.sh linguist-generated=true
+docs/SECRETS_REPOSITORY.md linguist-documentation=true
+
+# These files contain test fixtures, not real secrets
+tests/**/*secret* linguist-generated=true
+docs/**/*SECRET* linguist-documentation=true

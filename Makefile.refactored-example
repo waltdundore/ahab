@@ -1,0 +1,190 @@
+# ==============================================================================
+# Ahab Control - Makefile (REFACTORED EXAMPLE)
+# ==============================================================================
+# This shows how the Makefile could look with common functions
+# Compare to the current 1300+ line version
+# ==============================================================================
+
+# Include common functions
+include Makefile.common
+
+.PHONY: help install clean test audit secrets-setup network-switches
+
+# ==============================================================================
+# Core Commands (Simplified)
+# ==============================================================================
+
+install:
+	$(call print_header,Ahab - Install)
+	@if [ -n "$(MODULES)" ]; then \
+		echo "Workstation + Modules: $(MODULES)"; \
+	else \
+		echo "Workstation only"; \
+	fi
+	@echo ""
+	$(call show_command,vagrant up,Create Fedora 43 VM with Docker and Ansible)
+	@vagrant up --no-destroy-on-error || exit 1
+	@echo ""
+	$(call show_command,vagrant ssh -c "sudo chown...",Fix permissions)
+	@vagrant ssh -c "sudo chown -R vagrant:vagrant /home/vagrant/ahab 2>/dev/null || true"
+	@if [ -n "$(MODULES)" ]; then \
+		echo "→ Deploying modules: $(MODULES)"; \
+		$(call python_simple,pip install -q PyYAML && python3 scripts/generate-docker-compose.py $(MODULES)); \
+		vagrant ssh -c "cd /home/vagrant/ahab/generated && docker-compose up -d" || exit 1; \
+		echo "✅ Modules deployed: $(MODULES)"; \
+	fi
+	$(call print_success,Ready)
+	@echo "Access: vagrant ssh"
+
+generate-compose:
+	$(call print_header,Generating docker-compose.yml)
+	@if [ -z "$(MODULES)" ]; then \
+		echo "Error: No modules specified"; \
+		echo "Usage: make generate-compose apache mysql"; \
+		exit 1; \
+	fi
+	@echo "Modules: $(MODULES)"
+	@echo ""
+	$(call show_command,$(PYTHON_DOCKER) python scripts/generate-docker-compose.py,Generate docker-compose from module definitions)
+	$(call python_simple,pip install -q pyyaml && python scripts/generate-docker-compose.py $(MODULES))
+	$(call print_success,Generated: docker-compose.yml)
+	@echo "To start services:"
+	@echo "  docker-compose up -d"
+
+clean:
+	$(call show_command,vagrant destroy -f,Destroy workstation)
+	@vagrant destroy -f 2>/dev/null || true
+	@rm -rf .vagrant
+	@echo "✓ Clean complete"
+
+# ==============================================================================
+# Test Commands (Simplified)
+# ==============================================================================
+
+test:
+	$(call print_header,Running Ahab Test Suite)
+	@echo "This runs:"
+	@echo "  1. NASA Power of 10 validation"
+	@echo "  2. Simple integration tests (no VM required)"
+	@echo ""
+	@if $(MAKE) test-nasa && $(MAKE) test-integration-simple; then \
+		$(call print_success,All Tests Passed); \
+		bash scripts/record-test-pass.sh; \
+	else \
+		$(call print_error,Tests Failed); \
+		bash scripts/record-test-fail.sh; \
+		exit 1; \
+	fi
+
+# Use the test_target pattern for consistency
+$(eval $(call test_target,test-nasa,scripts/validate-nasa-standards.sh))
+$(eval $(call test_target,test-integration-simple,tests/integration/test-apache-simple.sh))
+$(eval $(call test_target,test-unit,tests/unit/run-all.sh))
+
+# ==============================================================================
+# Inventory Commands (Simplified with Pattern)
+# ==============================================================================
+
+# These all use the same pattern - generate them automatically
+$(eval $(call inventory_command,inventory-test,all -m ping))
+$(eval $(call inventory_command,inventory-validate,all --list))
+
+# ==============================================================================
+# Network Switch Commands (Simplified)
+# ==============================================================================
+
+network-switches:
+	$(call require_env,network-switches)
+	$(call print_header,Managing Network Switches)
+	@echo "Environment: $(ENV)"
+	@echo ""
+	$(call require_file,inventory/$(ENV)/network-switches.yml,cp inventory/$(ENV)/network-switches.yml.example inventory/$(ENV)/network-switches.yml)
+	$(call show_command,ansible-playbook playbooks/network-switches.yml,Show version information and manage HP Aruba and Ruckus switches)
+	@ansible-playbook playbooks/network-switches.yml -i inventory/$(ENV)/network-switches.yml
+	$(call print_success,Network Switch Management Complete)
+
+network-switches-version:
+	$(call require_env,network-switches-version)
+	$(call print_header,Network Switch Version Information)
+	@echo "Environment: $(ENV)"
+	@echo ""
+	$(call require_file,inventory/$(ENV)/network-switches.yml,cp inventory/$(ENV)/network-switches.yml.example inventory/$(ENV)/network-switches.yml)
+	$(call show_command,ansible-playbook playbooks/network-switches.yml --tags show_version,Show version information for HP Aruba and Ruckus switches)
+	@ansible-playbook playbooks/network-switches.yml -i inventory/$(ENV)/network-switches.yml --tags show_version
+	$(call print_success,Version Information Retrieved)
+
+# ==============================================================================
+# Secrets Management (Simplified)
+# ==============================================================================
+
+secrets-setup:
+	$(call require_env,secrets-setup)
+	$(call print_header,Secrets Repository Setup)
+	$(call show_command,Linking secrets repository to ahab,Connect private ahab-secrets repository for secure credential storage)
+	$(call require_dir,../ahab-secrets,make secrets-repository-create)
+	@mkdir -p inventory/group_vars/network_switches
+	@ln -sf ../../../ahab-secrets/ansible/group_vars/network_switches/vault_$(ENV).yml inventory/group_vars/network_switches/vault.yml
+	@echo "✓ Secrets linked for environment: $(ENV)"
+	$(call print_success,Secrets Setup Complete)
+
+secrets-test:
+	$(call print_header,Secrets Repository Test)
+	$(call show_command,Testing secrets repository access,Verify git-crypt unlock and Ansible Vault access)
+	$(call require_dir,../ahab-secrets,Repository not found at ../ahab-secrets)
+	$(call require_file,../ahab-secrets/ansible/vault-password.txt,cd ../ahab-secrets && ./scripts/setup-secrets.sh)
+	$(call show_command,ansible-vault view inventory/group_vars/network_switches/vault.yml,Test Ansible Vault decryption with secrets repository password)
+	@if ansible-vault view inventory/group_vars/network_switches/vault.yml \
+		--vault-password-file ../ahab-secrets/ansible/vault-password.txt > /dev/null 2>&1; then \
+		echo "✓ Ansible Vault access verified"; \
+	else \
+		echo "ERROR: Cannot access Ansible Vault files"; \
+		exit 1; \
+	fi
+	$(call print_success,Secrets Test Complete)
+
+# ==============================================================================
+# Audit Commands (Simplified)
+# ==============================================================================
+
+audit:
+	$(call print_header,Running Accountability Audit)
+	@bash scripts/audit-accountability.sh
+
+audit-dependencies:
+	$(call with_timeout,60,bash scripts/audit-dependencies.sh)
+
+audit-docker-stig:
+	$(call print_header,Validating Docker STIG Compliance)
+	@./scripts/ci/validate-docker-stig.sh
+
+# ==============================================================================
+# Help (Much Shorter)
+# ==============================================================================
+
+help:
+	@echo "Ahab Control - Available Commands"
+	@echo ""
+	@echo "Core Commands:"
+	@echo "  make install [modules...]     - Create workstation (+ optional modules)"
+	@echo "  make generate-compose [mods]  - Generate docker-compose.yml"
+	@echo "  make test                     - Run all tests"
+	@echo "  make clean                    - Destroy workstation"
+	@echo ""
+	@echo "Network Commands:"
+	@echo "  make network-switches ENV=dev - Manage network switches"
+	@echo ""
+	@echo "Secrets Commands:"
+	@echo "  make secrets-setup ENV=dev    - Link secrets repository"
+	@echo "  make secrets-test             - Test secrets access"
+	@echo ""
+	@echo "Audit Commands:"
+	@echo "  make audit                    - Run accountability audit"
+	@echo "  make audit-docker-stig        - Validate Docker STIG compliance"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make install apache mysql     # Workstation + services"
+	@echo "  make network-switches ENV=dev # Manage dev switches"
+
+# Allow module names as targets (prevents "No rule to make target" errors)
+%:
+	@:

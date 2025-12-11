@@ -1,0 +1,61 @@
+---
+# ==============================================================================
+# DEPRECATED: Use make install apache instead
+# ==============================================================================
+# This playbook is deprecated and will be removed in a future release.
+#
+# Why deprecated:
+#   - Docker deployments should use Docker Compose (not Ansible)
+#   - Duplicates MODULE.yml Docker configuration (violates DRY)
+#   - Make commands provide better interface
+#
+# Migration:
+#   OLD: ansible-playbook playbooks/webserver-docker.yml
+#   NEW: make install apache
+#
+# Why make install is better:
+#   - Uses Docker Compose (industry standard)
+#   - Reads from MODULE.yml (single source of truth)
+#   - Handles dependencies automatically
+#   - Faster and more reliable
+#
+# This file exists only for backward compatibility.
+# ==============================================================================
+
+- name: Redirect to make install
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Display deprecation warning
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "⚠️  DEPRECATION WARNING"
+          - "=========================================="
+          - "This playbook (webserver-docker.yml) is deprecated."
+          - ""
+          - "Docker deployments should use Docker Compose:"
+          - "  make install apache"
+          - ""
+          - "Why this is better:"
+          - "  - Uses Docker Compose (industry standard)"
+          - "  - Reads from MODULE.yml (DRY principle)"
+          - "  - Handles dependencies automatically"
+          - "  - Faster and more reliable"
+          - ""
+          - "For production Ansible deployments:"
+          - "  ansible-playbook -i inventory/prod/hosts.yml playbooks/webservers.yml"
+          - "=========================================="
+
+    - name: Fail with migration instructions
+      ansible.builtin.fail:
+        msg: |
+          This playbook is deprecated. Please update your commands:
+
+          For Docker deployments:
+            OLD: ansible-playbook playbooks/webserver-docker.yml
+            NEW: make install apache
+
+          For production Ansible deployments:
+            NEW: ansible-playbook -i inventory/prod/hosts.yml playbooks/webservers.yml

@@ -1,0 +1,301 @@
+# ==============================================================================
+# Ahab Common Makefile - Shared Targets and Variables
+# ==============================================================================
+# This file contains common make targets and variables shared across projects
+# Used by: ahab/Makefile, ahab-gui/Makefile, waltdundore.github.io/Makefile
+# ==============================================================================
+
+# Common variables
+PYTHON_DOCKER = docker run --rm -v $(PWD):/workspace -w /workspace python:3.11-slim
+TIMESTAMP = $(shell date '+%Y-%m-%d %H:%M:%S')
+
+# Common patterns for transparency
+define SHOW_COMMAND
+	@echo "→ Running: $(1)"
+	@echo "   Purpose: $(2)"
+	@echo ""
+endef
+
+# Docker check function
+define CHECK_DOCKER
+	@echo "→ Checking Docker..."
+	@if ! docker info >/dev/null 2>&1; then \
+		echo "❌ ERROR: Docker is not running"; \
+		echo "Please start Docker Desktop and try again"; \
+		exit 1; \
+	fi
+	@echo "✓ Docker is running"
+endef
+
+# Common test patterns
+define RUN_PYTHON_TESTS
+	$(call CHECK_DOCKER)
+	@echo "→ Running Python tests in Docker..."
+	@$(PYTHON_DOCKER) sh -c "pip install -q -r requirements.txt && pytest $(1) -v --tb=short"
+endef
+
+# Common cleanup patterns
+define CLEAN_PYTHON
+	@rm -rf __pycache__ .pytest_cache .coverage htmlcov
+	@find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	@find . -type f -name "*.pyc" -delete
+endef
+
+# Common validation patterns
+define VALIDATE_HTML
+	@echo "→ Running: HTML validation"
+	@echo "   Purpose: Ensure HTML meets standards and accessibility requirements"
+	@./tests/test-html.sh || exit 1
+endef
+
+define VALIDATE_CSS
+	@echo "→ Running: CSS validation"
+	@echo "   Purpose: Ensure CSS meets standards and no inline styles"
+	@./tests/test-css.sh || exit 1
+endef
+
+# Common secrets scanning
+define SCAN_SECRETS
+	@echo "→ Running: secrets scan"
+	@echo "   Purpose: Ensure no hardcoded credentials before publish"
+	@./tests/test-secrets-simple.sh || exit 1
+endef
+
+# Common link checking
+define CHECK_LINKS
+	@echo "→ Running: link verification"
+	@echo "   Purpose: Verify all internal and external links work"
+	@./scripts/check-links-simple.sh || exit 1
+endef
+
+# Common deployment pattern
+define DEPLOY_TO_GITHUB
+	@echo "→ Running: git push origin main"
+	@echo "   Purpose: Deploy to GitHub Pages after all tests pass"
+	@git add .
+	@git status
+	@echo "Ready to deploy. Run 'git commit -m \"message\" && git push origin main' to complete."
+endef
+
+# Common serve pattern for static sites
+define SERVE_STATIC
+	@echo "→ Running: docker run --rm -p $(1):$(1) -v \$$(pwd):/app:ro -w /app python:3.11-slim python3 -m http.server $(1)"
+	@echo "   Purpose: Start local development server in Docker container (secure, isolated)"
+	@echo "   Access at: http://localhost:$(1)"
+	@echo "   Press Ctrl+C to stop"
+	@docker run --rm -p $(1):$(1) -v $(PWD):/app:ro -w /app python:3.11-slim python3 -m http.server $(1)
+endef
+
+# Common status reporting
+define SHOW_STATUS
+	@echo "=========================================="
+	@echo "$(1) Status"
+	@echo "=========================================="
+	@echo "Generated: $(TIMESTAMP)"
+	@echo ""
+endef
+
+# NASA standards validation
+define VALIDATE_NASA_STANDARDS
+	@echo "→ Running: NASA Power of 10 validation"
+	@echo "   Purpose: Ensure code meets NASA safety and reliability standards"
+	@bash scripts/validate-nasa-standards.sh || exit 1
+endef
+
+# Common help header
+define HELP_HEADER
+	@echo "$(1) - Available Commands"
+	@echo ""
+endef
+
+# Common help footer
+define HELP_FOOTER
+	@echo ""
+	@echo "All commands follow transparency principle:"
+	@echo "  • Show what they're running"
+	@echo "  • Explain why they exist"
+	@echo "  • Use Docker for consistency"
+	@echo ""
+endef
+
+# Standard section header
+define SHOW_SECTION
+	@echo "=========================================="
+	@echo "$(1)"
+	@echo "=========================================="
+	@echo ""
+endef
+
+# Standard test pattern
+define RUN_SHELL_TEST
+	@echo "→ Running: $(1)"
+	@echo "   Purpose: $(2)"
+	@$(1) || exit 1
+	@echo "✅ $(2) passed"
+endef
+
+# File existence check
+define CHECK_FILE_EXISTS
+	@if [ ! -f $(1) ]; then \
+		echo "❌ ERROR: $(1) not found"; \
+		echo "Expected location: $(1)"; \
+		exit 1; \
+	fi
+endef
+
+# Git workflow pattern
+define GIT_WORKFLOW
+	@echo "→ Running: git $(1)"
+	@echo "   Purpose: $(2)"
+	@git $(1)
+endef
+
+# Standard command group display
+define SHOW_COMMAND_GROUP
+	@echo "$(1) Commands:"
+	$(2)
+	@echo ""
+endef
+
+# Standard error with solution
+define SHOW_ERROR_WITH_SOLUTION
+	@echo ""
+	@echo "=========================================="
+	@echo "❌ $(1)"
+	@echo "=========================================="
+	@echo ""
+	@echo "$(2)"
+	@echo ""
+	@echo "To fix:"
+	@echo "$(3)"
+	@echo ""
+	@exit 1
+endef
+
+# Standardized help command group display
+define HELP_COMMAND_GROUP
+	@echo "$(1):"
+	$(2)
+	@echo ""
+endef
+
+# Standard help command entry
+define HELP_COMMAND
+	@echo "  make $(1)$(2) - $(3)"
+endef
+
+# Git workflow commands (standardized)
+define GIT_SYNC
+	@echo "→ Running: git pull --rebase origin $(1)"
+	@echo "   Purpose: Sync latest changes from $(1) branch"
+	@if ! git diff-index --quiet HEAD --; then \
+		echo "⚠️  Uncommitted changes detected - stashing..."; \
+		git stash push -m "Auto-stash before sync at $(date)"; \
+		git pull --rebase --allow-unrelated-histories origin $(1); \
+		echo "→ Reapplying stashed changes..."; \
+		git stash pop; \
+	else \
+		git pull --rebase --allow-unrelated-histories origin $(1); \
+	fi
+endef
+
+define GIT_PUBLISH
+	@echo "→ Running: git push origin $(1)"
+	@echo "   Purpose: Publish changes to $(1) branch"
+	@if ! git diff-index --quiet HEAD --; then \
+		echo "❌ ERROR: Uncommitted changes detected"; \
+		echo "Commit changes before publishing"; \
+		git status --short; \
+		exit 1; \
+	fi
+	@git push origin $(1)
+endef
+
+# Standard cleanup pattern
+define CLEANUP_FILES
+	@echo "→ Running: cleanup $(1)"
+	@echo "   Purpose: Remove temporary and generated files"
+	@rm -rf $(1)
+	@echo "✓ Cleanup complete"
+endef
+
+# Sub-directory help template
+define SUBDIR_HELP
+	@echo "=========================================="
+	@echo "Ahab $(1) - Git Workflow Commands"
+	@echo "=========================================="
+	@echo ""
+	@echo "Git Commands (for this repository):"
+	@echo "  make help      - Show this help message"
+	@echo "  make sync      - Pull latest changes from git"
+	@echo "  make status    - Show git status"
+	@echo "  make publish   - Commit and push changes"
+	@echo "  make promote   - Merge dev → prod"
+	@echo "  make release   - Create tagged release"
+	@echo ""
+	@echo "=========================================="
+	@echo "⚠️  For Infrastructure Commands:"
+	@echo "=========================================="
+	@echo ""
+	@echo "This is a $(2) directory only."
+	@echo "For infrastructure commands, use:"
+	@echo ""
+	@echo "  cd .. && make install"
+	@echo "  cd .. && make deploy"
+	@echo "  cd .. && make test"
+	@echo ""
+endef
+
+# Sub-directory redirect for infrastructure commands
+define SUBDIR_REDIRECT
+	$(call SHOW_ERROR_WITH_SOLUTION,Wrong Directory,You're in: ahab/$(1)/\nCommand: make $@\n\nThis directory ($(1)/) is for $(2) only.\nInfrastructure commands must run from ahab root.,  cd .. && make $@)
+endef
+
+# Test suite patterns
+define RUN_TEST_SUITE
+	$(call SHOW_SECTION,$(1))
+	@echo "This runs:"
+	$(2)
+	@echo ""
+	@if $(3); then \
+		echo ""; \
+		echo "=========================================="; \
+		echo "✅ All Tests Passed"; \
+		echo "=========================================="; \
+		echo ""; \
+		bash scripts/record-test-pass.sh; \
+		$(4); \
+	else \
+		echo ""; \
+		echo "=========================================="; \
+		echo "❌ Tests Failed"; \
+		echo "=========================================="; \
+		echo ""; \
+		bash scripts/record-test-fail.sh; \
+		exit 1; \
+	fi
+endef
+
+# Docker container management
+define MANAGE_CONTAINER
+	@echo "→ $(1) container: $(2)"
+	@echo "   Purpose: $(3)"
+	@if docker ps | grep -q $(2); then \
+		docker $(4) $(2) >/dev/null 2>&1; \
+		echo "✓ Container $(2) $(1)"; \
+	else \
+		echo "ℹ Container $(2) is not running"; \
+	fi
+endef
+
+# Service status check
+define CHECK_SERVICE_STATUS
+	@echo "→ Checking $(1) status..."
+	@if $(2); then \
+		echo "✅ $(1) is $(3)"; \
+	else \
+		echo "❌ $(1) is not $(3)"; \
+		echo "   $(4)"; \
+		exit 1; \
+	fi
+endef

@@ -1,0 +1,26 @@
+# ==============================================================================
+# Ahab Inventory - Client Makefile
+# ==============================================================================
+# Automated Host Administration & Build - Inventory Management
+
+# Include shared configuration
+include ../ahab/Makefile.config
+
+.PHONY: help sync status
+
+help:
+	@echo "Ahab Inventory - Available Commands:"
+	@echo ""
+	@echo "  make help      - Show this help message"
+	@echo "  make sync      - Pull latest changes from git"
+	@echo "  make status    - Show git status"
+	@echo ""
+
+sync:
+	@echo "Syncing ansible-inventory..."
+	@git fetch origin
+	@git pull origin $(CURRENT_BRANCH)
+	@echo "✓ Synced with remote"
+
+status:
+	@git status

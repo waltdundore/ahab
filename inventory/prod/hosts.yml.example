@@ -1,0 +1,112 @@
+# Production Inventory Example
+# ==============================================================================
+# This is an EXAMPLE file with placeholder values
+# Copy to hosts.yml and replace with your actual production values
+# ==============================================================================
+#
+# ⚠️ CRITICAL: This is for PRODUCTION systems
+#
+# Quick Start:
+#   cp hosts.yml.example hosts.yml
+#   vim hosts.yml  # Update with your actual production IPs
+#   chmod 600 hosts.yml  # Restrict permissions
+#
+# Security Note:
+#   - hosts.yml.example (this file) is committed to git
+#   - hosts.yml (actual inventory) is NOT committed (protected by .gitignore)
+#   - NEVER commit real production IP addresses or credentials
+#   - Use Ansible Vault for sensitive data
+# ==============================================================================
+
+all:
+  children:
+    # Production web servers
+    webservers:
+      hosts:
+        web-prod-01:
+          ansible_host: 10.0.1.XXX  # Replace with actual IP
+          ansible_user: deploy
+          ansible_connection: ssh
+          dynamic_ip: false
+        
+        web-prod-02:
+          ansible_host: 10.0.1.XXX  # Replace with actual IP
+          ansible_user: deploy
+          ansible_connection: ssh
+          dynamic_ip: false
+      
+      vars:
+        # Common variables for web servers
+        ansible_python_interpreter: /usr/bin/python3
+        # ansible_ssh_private_key_file: ~/.ssh/prod_deploy_key
+    
+    # Production database servers
+    databases:
+      hosts:
+        db-prod-01:
+          ansible_host: 10.0.2.XXX  # Replace with actual IP
+          ansible_user: dbadmin
+          ansible_connection: ssh
+          dynamic_ip: false
+      
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+        # ansible_ssh_private_key_file: ~/.ssh/prod_db_key
+    
+    # Production application servers
+    appservers:
+      hosts:
+        app-prod-01:
+          ansible_host: 10.0.3.XXX  # Replace with actual IP
+          ansible_user: deploy
+          ansible_connection: ssh
+          dynamic_ip: false
+      
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+  vars:
+    # Global production variables
+    environment: production
+    # Use Ansible Vault for sensitive variables:
+    # ansible_become_pass: !vault |
+    #   $ANSIBLE_VAULT;1.1;AES256
+    #   ...encrypted content...
+
+# ==============================================================================
+# Production Configuration Notes
+# ==============================================================================
+#
+# ansible_host: IP address or hostname of the production machine
+# ansible_user: Username with sudo privileges (use dedicated deploy user)
+# ansible_connection: 'ssh' for remote machines
+# dynamic_ip: false for production (use static IPs)
+#
+# SSH Key Authentication (REQUIRED for production):
+#   ansible_ssh_private_key_file: /path/to/production/key
+#
+# Ansible Vault for Credentials (REQUIRED):
+#   ansible_become_pass: !vault |
+#     $ANSIBLE_VAULT;1.1;AES256
+#     ...encrypted content...
+#
+# Create vault:
+#   ansible-vault create group_vars/all/vault.yml
+#
+# Edit vault:
+#   ansible-vault edit group_vars/all/vault.yml
+#
+# ==============================================================================
+# Production Security Checklist
+# ==============================================================================
+#
+# [ ] Using SSH key authentication (not passwords)
+# [ ] SSH keys are protected (chmod 600)
+# [ ] Credentials encrypted with Ansible Vault
+# [ ] hosts.yml has restricted permissions (chmod 600)
+# [ ] hosts.yml is NOT committed to git
+# [ ] Tested in dev environment first
+# [ ] Have rollback plan ready
+#
+# ==============================================================================
+

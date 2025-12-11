@@ -1,0 +1,26 @@
+---
+# PHP variables for RedHat family (Fedora, RHEL, CentOS)
+
+php_packages:
+  - php
+  - php-cli
+  - php-common
+  - php-fpm
+  - php-mysqlnd
+  - php-pdo
+  - php-gd
+  - php-mbstring
+  - php-xml
+  - php-json
+
+php_extensions: []
+
+php_ini_file: /etc/php.ini
+php_fpm_conf: /etc/php-fpm.conf
+php_fpm_pool_dir: /etc/php-fpm.d
+
+apache_service: httpd
+apache_user: apache
+apache_group: apache
+apache_document_root: /var/www/html
+apache_check_command: "systemctl is-active httpd"

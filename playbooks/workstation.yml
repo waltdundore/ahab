@@ -1,0 +1,135 @@
+---
+# ==============================================================================
+# Workstation Provisioning Playbook
+# ==============================================================================
+# Provisions a workstation VM with all tools needed to manage infrastructure
+#
+# Installs:
+#   - Ansible (configuration management)
+#   - Docker (container deployments)
+#   - Git (version control)
+#   - Development tools
+#
+# Usage:
+#   ansible-playbook playbooks/workstation.yml
+#
+# Called automatically by: make install
+# ==============================================================================
+
+- name: Provision Ahab Workstation
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Verify supported operating system
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ['Fedora', 'Debian', 'Ubuntu']
+        fail_msg: "This playbook supports Fedora, Debian, and Ubuntu only. Detected: {{ ansible_distribution }}"
+        success_msg: "✓ {{ ansible_distribution }} {{ ansible_distribution_version }} detected"
+
+    - name: Update system packages (Fedora)
+      ansible.builtin.dnf:
+        name: "*"
+        state: present
+        update_cache: true
+      when: ansible_distribution == 'Fedora'
+
+    - name: Update system packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: true
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Install base development tools (Fedora)
+      ansible.builtin.dnf:
+        name:
+          - git
+          - vim
+          - curl
+          - wget
+          - tar
+          - unzip
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install base development tools (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name:
+          - git
+          - vim
+          - curl
+          - wget
+          - tar
+          - unzip
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Install Ansible (Fedora)
+      ansible.builtin.dnf:
+        name: ansible
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install Ansible (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: ansible
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Install Docker (Fedora)
+      ansible.builtin.dnf:
+        name: docker
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Install Docker (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+      when: ansible_distribution in ['Debian', 'Ubuntu']
+
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add vagrant user to docker group
+      ansible.builtin.user:
+        name: vagrant
+        groups: docker
+        append: true
+
+    - name: Verify Ansible installation
+      ansible.builtin.command: ansible --version
+      register: ansible_ver
+      changed_when: false
+      failed_when: ansible_ver.rc != 0
+
+    - name: Verify Docker installation
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+      failed_when: docker_version.rc != 0
+
+    - name: Verify Git installation
+      ansible.builtin.package:
+        name: git
+        state: present
+      check_mode: true
+      register: git_check
+      changed_when: false
+
+    - name: Display installation summary
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "Workstation Provisioned Successfully"
+          - "=========================================="
+          - "Ansible: {{ ansible_ver.stdout_lines[0] }}"
+          - "Docker: {{ docker_version.stdout }}"
+          - "Git: {{ git_version.stdout }}"
+          - "=========================================="
+          - "Ready to manage infrastructure!"
+          - "=========================================="

@@ -1,0 +1,9 @@
+all:
+  hosts:
+    rpi5-03:
+      ansible_host: rpi5-03.local
+      ansible_user: wdundore
+      ansible_connection: ssh
+      ansible_python_interpreter: /usr/bin/python3
+      ansible_become: true
+      ansible_become_method: sudo

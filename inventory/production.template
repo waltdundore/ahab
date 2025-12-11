@@ -1,0 +1,53 @@
+# Ahab Production Inventory Template
+# ==============================================================================
+# This file is a TEMPLATE for production deployments
+# Generated file: production (not committed to git)
+# ==============================================================================
+#
+# This template is used by:
+# 1. scripts/setup-production-credentials.sh (CLI setup)
+# 2. ahab-gui (GUI-based setup and editing)
+#
+# Variables to be substituted:
+# - {{ADMIN_USER}} - Username with sudo privileges
+# - {{CONNECTION_TYPE}} - Connection type (local or ssh)
+# - {{SSH_KEY_FILE}} - Path to SSH private key (for remote deployments)
+# ==============================================================================
+
+[workstation]
+# For local workstation deployment
+localhost ansible_connection={{CONNECTION_TYPE}}
+
+[workstation:vars]
+# Admin user configuration
+ansible_user={{ADMIN_USER}}
+
+# SSH configuration (for remote deployments)
+# ansible_ssh_private_key_file={{SSH_KEY_FILE}}
+
+# Python interpreter (auto-detect by default)
+# ansible_python_interpreter=/usr/bin/python3
+
+# Become password (stored in Vault if using Method 3)
+# See inventory/group_vars/all.yml for encrypted credentials
+
+# ==============================================================================
+# Connection Type Guide
+# ==============================================================================
+#
+# Local Deployment (same machine):
+# --------------------------------
+# ansible_connection=local
+# - Fastest option
+# - No SSH overhead
+# - Use for workstation setup on the same machine
+#
+# Remote Deployment (SSH):
+# ------------------------
+# ansible_connection=ssh
+# ansible_ssh_private_key_file=/path/to/key
+# - Deploy to remote workstation
+# - Requires SSH access
+# - Use for managing remote machines
+#
+# ==============================================================================

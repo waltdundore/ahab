@@ -1,0 +1,68 @@
+# ==============================================================================
+# Ahab Config - Client Makefile
+# ==============================================================================
+# Simplified Makefile for client-side configuration management
+#
+# This file is designed to be copied to client machines for local config
+# management without requiring the full Ahab infrastructure.
+#
+# Usage:
+#   make help     - Show available commands
+#   make check    - Check configuration status
+#   make apply    - Apply configuration (placeholder)
+# ==============================================================================
+
+.PHONY: help check apply info
+
+# Default target
+help:
+	@echo "=========================================="
+	@echo "Ahab Config - Client Commands"
+	@echo "=========================================="
+	@echo ""
+	@echo "Available Commands:"
+	@echo "  make help   - Show this help message"
+	@echo "  make check  - Check configuration files"
+	@echo "  make info   - Show configuration info"
+	@echo "  make apply  - Apply configuration (placeholder)"
+	@echo ""
+	@echo "This is a client-side Makefile for local use."
+	@echo ""
+
+# Check if configuration files exist
+check:
+	@echo "→ Checking configuration..."
+	@if [ -f "config.yml" ]; then \
+		echo "✓ config.yml present"; \
+		wc -l config.yml | awk '{print "  Lines:", $$1}'; \
+	else \
+		echo "✗ config.yml missing"; \
+		exit 1; \
+	fi
+	@echo "✓ Configuration check complete"
+
+# Show configuration information
+info:
+	@echo "=========================================="
+	@echo "Configuration Information"
+	@echo "=========================================="
+	@echo ""
+	@echo "Location: $$(pwd)"
+	@if [ -f "config.yml" ]; then \
+		echo "Config file: config.yml"; \
+		echo "Size: $$(wc -c < config.yml) bytes"; \
+		echo "Modified: $$(stat -f %Sm config.yml 2>/dev/null || stat -c %y config.yml 2>/dev/null)"; \
+	else \
+		echo "Config file: NOT FOUND"; \
+	fi
+	@echo ""
+
+# Apply configuration (placeholder for future implementation)
+apply:
+	@echo "→ Applying configuration..."
+	@echo "⚠ This is a placeholder command"
+	@echo "ℹ Configuration application not yet implemented"
+	@echo ""
+	@echo "To apply configuration, use the main Ahab system:"
+	@echo "  cd ../ahab"
+	@echo "  make install"

@@ -1,0 +1,116 @@
+name: Cleanup Checks
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: 'Path to check (relative to repository root)'
+        required: false
+        type: string
+        default: '.'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check Temporary Files
+        run: |
+          echo "Checking for temporary files (*.tmp, *.bak, *~)..."
+          if find . -name "*.tmp" -o -name "*.bak" -o -name "*~" | grep -v ".git" | grep .; then
+            echo "❌ ERROR: Temporary files found"
+            echo ""
+            echo "Rule Violated: Repository Cleanliness"
+            echo "Problem: Temporary files should not be committed"
+            echo "Fix: Remove temporary files and add patterns to .gitignore"
+            echo ""
+            echo "Commands:"
+            echo "  find . -name '*.tmp' -delete"
+            echo "  find . -name '*.bak' -delete"
+            echo "  find . -name '*~' -delete"
+            echo ""
+            exit 1
+          else
+            echo "✓ No temporary files found"
+          fi
+      
+      - name: Check Build Artifacts
+        run: |
+          echo "Checking for build artifacts (__pycache__, *.pyc, node_modules)..."
+          if find . -name "__pycache__" -o -name "*.pyc" -o -name "node_modules" | grep -v ".git" | grep .; then
+            echo "❌ ERROR: Build artifacts found"
+            echo ""
+            echo "Rule Violated: Repository Cleanliness"
+            echo "Problem: Build artifacts should not be committed"
+            echo "Fix: Remove build artifacts and add patterns to .gitignore"
+            echo ""
+            echo "Commands:"
+            echo "  find . -name '__pycache__' -type d -exec rm -rf {} +"
+            echo "  find . -name '*.pyc' -delete"
+            echo "  find . -name 'node_modules' -type d -exec rm -rf {} +"
+            echo ""
+            exit 1
+          else
+            echo "✓ No build artifacts found"
+          fi
+      
+      - name: Check Editor Backups
+        run: |
+          echo "Checking for editor backup files (.swp, .swo, .DS_Store)..."
+          if find . -name ".swp" -o -name ".swo" -o -name ".DS_Store" | grep -v ".git" | grep .; then
+            echo "❌ ERROR: Editor backup files found"
+            echo ""
+            echo "Rule Violated: Repository Cleanliness"
+            echo "Problem: Editor backup files should not be committed"
+            echo "Fix: Remove editor backups and add patterns to .gitignore"
+            echo ""
+            echo "Commands:"
+            echo "  find . -name '.swp' -delete"
+            echo "  find . -name '.swo' -delete"
+            echo "  find . -name '.DS_Store' -delete"
+            echo ""
+            exit 1
+          else
+            echo "✓ No editor backup files found"
+          fi
+      
+      - name: Check Log Files
+        run: |
+          echo "Checking for log files (*.log)..."
+          if find . -name "*.log" | grep -v ".git" | grep .; then
+            echo "⚠️  WARNING: Log files found"
+            echo ""
+            echo "Consider: Log files should typically not be committed"
+            echo "Fix: Remove log files and add *.log to .gitignore"
+            echo ""
+            echo "Commands:"
+            echo "  find . -name '*.log' -delete"
+            echo "  echo '*.log' >> .gitignore"
+            echo ""
+            # Don't fail on log files, just warn
+          else
+            echo "✓ No log files found"
+          fi
+      
+      - name: Check Database Files
+        run: |
+          echo "Checking for database files (*.db, *.sqlite)..."
+          if find . -name "*.db" -o -name "*.sqlite" | grep -v ".git" | grep .; then
+            echo "⚠️  WARNING: Database files found"
+            echo ""
+            echo "Consider: Database files should typically not be committed"
+            echo "Fix: Remove database files and add patterns to .gitignore"
+            echo ""
+            echo "Commands:"
+            echo "  find . -name '*.db' -delete"
+            echo "  find . -name '*.sqlite' -delete"
+            echo "  echo '*.db' >> .gitignore"
+            echo "  echo '*.sqlite' >> .gitignore"
+            echo ""
+            # Don't fail on database files, just warn
+          else
+            echo "✓ No database files found"
+          fi

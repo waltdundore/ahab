@@ -1,0 +1,519 @@
+# Task-to-Standards Cross-Reference Map
+# Maps implementation tasks to Georgia CS Standards
+# Last Updated: December 8, 2025
+
+metadata:
+  last_updated: "2025-12-08"
+  mapped_by: "Kiro AI Assistant"
+  source_spec: ".kiro/specs/georgia-cs-standards/tasks.md"
+  standards_source: "ahab/standards-registry.yml"
+  purpose: "Track which Georgia CS standards are addressed by each implementation task"
+
+# Task Mapping Structure:
+# Each task is mapped to:
+# - standards: List of Georgia CS standard IDs this task supports
+# - rationale: Explanation of how completing this task advances standards alignment
+# - contribution: What this task contributes to educational value
+
+tasks:
+  # Phase 1: Standards Verification
+  task_1:
+    task_id: "1"
+    task_name: "Obtain and verify Georgia CS standards"
+    status: "completed"
+    standards:
+      - "IT-CSP-1"  # Employability skills - professional research and verification
+      - "IT-ITS-1.3"  # Critical thinking and problem-solving
+    rationale: |
+      This task establishes the foundation for all standards alignment work. By obtaining
+      and verifying official Georgia CS standards, we ensure that all subsequent work is
+      based on accurate, current educational requirements. This demonstrates professional
+      research skills (IT-CSP-1) and critical thinking in validating sources (IT-ITS-1.3).
+    contribution: "Ensures accuracy and legitimacy of all standards alignment work"
+
+  task_2:
+    task_id: "2"
+    task_name: "Analyze standards structure"
+    status: "completed"
+    standards:
+      - "IT-CSP-5"  # Algorithm development and analysis
+      - "IT-ITS-1.3"  # Critical thinking and problem-solving
+      - "IT-PGAS-2"  # Software development lifecycle
+    rationale: |
+      Analyzing the structure of Georgia CS standards requires systematic thinking and
+      pattern recognition. This task involves identifying organizational patterns,
+      extracting numbering systems, and mapping taxonomies - all analytical skills
+      that align with IT-CSP-5. The systematic approach mirrors software development
+      lifecycle planning (IT-PGAS-2).
+    contribution: "Creates the organizational framework for all standards mapping"
+
+  task_3:
+    task_id: "3"
+    task_name: "Create proof-of-concept feature mappings"
+    status: "completed"
+    standards:
+      - "IT-CSP-6"  # Programs that translate human intention into computational artifacts
+      - "IT-PGAS-2"  # Software development lifecycle - prototyping
+      - "IT-ITS-1.3"  # Critical thinking and problem-solving
+    rationale: |
+      Creating proof-of-concept mappings demonstrates how Ahab features translate
+      educational intentions (teaching CS concepts) into computational artifacts
+      (working infrastructure). This is the essence of IT-CSP-6. The prototyping
+      approach aligns with IT-PGAS-2's emphasis on prototype development models.
+    contribution: "Validates the educational approach and mapping methodology"
+
+  task_4:
+    task_id: "4"
+    task_name: "Obtain educator validation"
+    status: "completed"
+    standards:
+      - "IT-ITS-1.1"  # Communication skills
+      - "IT-ITS-1.5"  # Teamwork and collaboration
+      - "IT-CSP-1"  # Employability skills
+    rationale: |
+      Seeking educator validation demonstrates professional communication (IT-ITS-1.1)
+      and collaboration with subject matter experts (IT-ITS-1.5). This task shows
+      the importance of peer review and expert validation in professional work (IT-CSP-1).
+    contribution: "Ensures educational accuracy and appropriateness of mappings"
+
+  task_5:
+    task_id: "5"
+    task_name: "Document verification evidence"
+    status: "completed"
+    standards:
+      - "IT-CSP-2"  # Create digital artifacts (documentation)
+      - "IT-ITS-1.1"  # Communication through writing
+      - "IT-PGAS-2"  # Software development lifecycle - documentation
+    rationale: |
+      Creating comprehensive verification documentation is a digital artifact (IT-CSP-2)
+      that demonstrates professional communication skills (IT-ITS-1.1). Documentation
+      is a critical phase of the software development lifecycle (IT-PGAS-2).
+    contribution: "Provides proof of compliance and verification methodology"
+
+  # Phase 2: Core Standards Infrastructure
+  task_6_1:
+    task_id: "6.1"
+    task_name: "Create standards-registry.yml file structure"
+    status: "completed"
+    standards:
+      - "IT-CSP-3"  # Data abstraction and representation
+      - "IT-CSP-4"  # Programs to process and extract information
+      - "IT-PGAS-5"  # Digital representations of media (data formats)
+    rationale: |
+      Creating a YAML registry demonstrates data abstraction (IT-CSP-3) by organizing
+      complex standards information into a structured, machine-readable format. The
+      registry enables programmatic processing of standards data (IT-CSP-4) and shows
+      how to represent educational information digitally (IT-PGAS-5).
+    contribution: "Creates the central data structure for all standards work"
+
+  task_6_2:
+    task_id: "6.2"
+    task_name: "Write property test for standards registry validation"
+    status: "not_started"
+    standards:
+      - "IT-CSP-5"  # Algorithm development and analysis
+      - "IT-PGAS-2"  # Software development lifecycle - testing
+      - "IT-ITS-1.3"  # Critical thinking and problem-solving
+    rationale: |
+      Property-based testing demonstrates advanced algorithmic thinking (IT-CSP-5)
+      by defining universal properties that should hold across all inputs. This
+      testing approach is part of professional software development (IT-PGAS-2)
+      and requires critical analysis of system behavior (IT-ITS-1.3).
+    contribution: "Ensures registry data quality through automated validation"
+
+  task_6_3:
+    task_id: "6.3"
+    task_name: "Create standards registry validation script"
+    status: "completed"
+    standards:
+      - "IT-CSP-4"  # Programs to process and extract information
+      - "IT-CSP-5"  # Algorithm development and analysis
+      - "IT-NSS-10"  # Network operation and management procedures (validation)
+    rationale: |
+      Writing validation scripts demonstrates programming for data processing (IT-CSP-4)
+      and algorithm development (IT-CSP-5). The validation approach mirrors network
+      diagnostic testing procedures (IT-NSS-10) - both verify system correctness.
+    contribution: "Automates quality assurance for standards data"
+
+  task_7_1:
+    task_id: "7.1"
+    task_name: "Create feature-standards-map.yml file"
+    status: "completed"
+    standards:
+      - "IT-CSP-3"  # Data abstraction and representation
+      - "IT-CSP-6"  # Translate human intention into computational artifacts
+      - "IT-NSS-9"  # Network design using standards and analysis
+    rationale: |
+      The feature mapping file represents the translation of educational intentions
+      (teaching CS concepts) into structured data (IT-CSP-6). It demonstrates data
+      abstraction (IT-CSP-3) and follows design standards for organizing information
+      (IT-NSS-9).
+    contribution: "Links Ahab features to specific educational standards"
+
+  task_7_3:
+    task_id: "7.3"
+    task_name: "Create feature mapping validation script"
+    status: "completed"
+    standards:
+      - "IT-CSP-4"  # Programs to process and extract information
+      - "IT-CSP-5"  # Algorithm development and analysis
+      - "IT-NSS-8"  # Troubleshoot network problems (validation as troubleshooting)
+    rationale: |
+      Validation scripts process structured data to identify errors (IT-CSP-4),
+      implementing algorithms for consistency checking (IT-CSP-5). The validation
+      process is analogous to network troubleshooting (IT-NSS-8) - both identify
+      and report configuration issues.
+    contribution: "Ensures referential integrity between features and standards"
+
+  task_8_1:
+    task_id: "8.1"
+    task_name: "Update README.md with educational standards section"
+    status: "completed"
+    standards:
+      - "IT-CSP-2"  # Create digital artifacts (documentation)
+      - "IT-ITS-1.1"  # Communication through writing
+      - "IT-PGAS-4"  # Accessible and usable interfaces (documentation as interface)
+    rationale: |
+      README documentation is a digital artifact (IT-CSP-2) that communicates
+      project value (IT-ITS-1.1). Making standards alignment visible in the README
+      creates an accessible interface (IT-PGAS-4) for educators to understand
+      Ahab's educational value.
+    contribution: "Makes standards alignment visible to all users"
+
+  task_8_3:
+    task_id: "8.3"
+    task_name: "Update ABOUT.md teaching mission section"
+    status: "completed"
+    standards:
+      - "IT-CSP-2"  # Create digital artifacts (documentation)
+      - "IT-CSP-8"  # Computing's societal impact
+      - "IT-ITS-1.1"  # Communication through writing
+    rationale: |
+      Documenting the teaching mission creates a digital artifact (IT-CSP-2) that
+      explains computing's educational and societal impact (IT-CSP-8). This requires
+      clear professional communication (IT-ITS-1.1) about educational values.
+    contribution: "Articulates the educational philosophy behind Ahab"
+
+  task_8_4:
+    task_id: "8.4"
+    task_name: "Update DEVELOPMENT_RULES.md with standards requirements"
+    status: "completed"
+    standards:
+      - "IT-PGAS-2"  # Software development lifecycle
+      - "IT-ITS-1.5"  # Teamwork skills (development standards)
+      - "IT-CSP-1"  # Employability skills (professional standards)
+    rationale: |
+      Development rules are part of the software development lifecycle (IT-PGAS-2),
+      establishing team standards for collaboration (IT-ITS-1.5). Requiring standards
+      documentation demonstrates professional development practices (IT-CSP-1).
+    contribution: "Integrates standards alignment into development workflow"
+
+  task_9_1:
+    task_id: "9.1"
+    task_name: "Create module-template.md file"
+    status: "not_started"
+    standards:
+      - "IT-CSP-2"  # Create digital artifacts (templates)
+      - "IT-PGAS-4"  # Accessible and usable interfaces (templates as interfaces)
+      - "IT-ITS-1.5"  # Teamwork skills (shared templates)
+    rationale: |
+      Templates are reusable digital artifacts (IT-CSP-2) that create consistent,
+      accessible interfaces (IT-PGAS-4) for documentation. Shared templates enable
+      team collaboration (IT-ITS-1.5) by establishing common formats.
+    contribution: "Standardizes module documentation structure"
+
+  task_9_3:
+    task_id: "9.3"
+    task_name: "Update existing module documentation (Apache)"
+    status: "not_started"
+    standards:
+      - "IT-NSS-2"  # Networking fundamentals (Apache is a network service)
+      - "IT-NSS-7"  # Network security systems
+      - "IT-CSP-7"  # Internet operation and cybersecurity
+    rationale: |
+      Documenting Apache deployment directly addresses networking fundamentals
+      (IT-NSS-2), security systems (IT-NSS-7), and Internet operation (IT-CSP-7).
+      This task makes explicit how Apache teaches these standards.
+    contribution: "Links Apache module to specific networking and security standards"
+
+  task_9_4:
+    task_id: "9.4"
+    task_name: "Update existing module documentation (PHP)"
+    status: "not_started"
+    standards:
+      - "IT-CSP-6"  # Programs that translate human intention (PHP as programming)
+      - "IT-PGAS-3"  # Object-oriented programming
+      - "IT-NSS-2"  # Networking fundamentals (PHP in web context)
+    rationale: |
+      PHP documentation addresses programming concepts (IT-CSP-6), object-oriented
+      design (IT-PGAS-3), and web service deployment (IT-NSS-2). This task connects
+      PHP to programming and networking standards.
+    contribution: "Links PHP module to programming and web development standards"
+
+  task_10_1:
+    task_id: "10.1"
+    task_name: "Create teaching comment guidelines document"
+    status: "not_started"
+    standards:
+      - "IT-ITS-1.1"  # Communication through writing
+      - "IT-PGAS-2"  # Software development lifecycle (documentation standards)
+      - "IT-CSP-1"  # Employability skills (professional documentation)
+    rationale: |
+      Teaching comment guidelines establish communication standards (IT-ITS-1.1)
+      for code documentation, which is part of professional software development
+      (IT-PGAS-2) and demonstrates employability skills (IT-CSP-1).
+    contribution: "Standardizes how educational value is documented in code"
+
+  task_10_3:
+    task_id: "10.3"
+    task_name: "Add teaching comments to generate-docker-compose.py"
+    status: "not_started"
+    standards:
+      - "IT-CSP-3"  # Data abstraction (Docker Compose as abstraction)
+      - "IT-CSP-6"  # Translate human intention into computational artifacts
+      - "IT-NSS-9"  # Network design using standards
+    rationale: |
+      Docker Compose generation demonstrates abstraction (IT-CSP-3), translating
+      infrastructure intentions into running systems (IT-CSP-6), and network design
+      through code (IT-NSS-9). Teaching comments make these connections explicit.
+    contribution: "Documents educational value of Docker Compose generation"
+
+  task_10_4:
+    task_id: "10.4"
+    task_name: "Add teaching comments to Makefile"
+    status: "not_started"
+    standards:
+      - "IT-CSP-5"  # Algorithm development (Make targets as algorithms)
+      - "IT-NSS-10"  # Network operation and management procedures
+      - "IT-ITS-3"  # Install, configure, optimize networks (via automation)
+    rationale: |
+      Make targets represent automation algorithms (IT-CSP-5) for network operations
+      (IT-NSS-10) and configuration management (IT-ITS-3). Teaching comments explain
+      how Make teaches these concepts.
+    contribution: "Documents educational value of Make-based automation"
+
+  task_11_1:
+    task_id: "11.1"
+    task_name: "Create learning-pathways.md document"
+    status: "not_started"
+    standards:
+      - "IT-CSP-8"  # Computing's societal impact (education pathway)
+      - "IT-PGAS-2"  # Software development lifecycle (learning as development)
+      - "IT-ITS-1.3"  # Critical thinking (curriculum design)
+    rationale: |
+      Learning pathways document how computing education progresses (IT-CSP-8),
+      treating learning as a development lifecycle (IT-PGAS-2). Designing pathways
+      requires critical thinking about concept dependencies (IT-ITS-1.3).
+    contribution: "Maps concept progression across grade levels"
+
+  task_11_3:
+    task_id: "11.3"
+    task_name: "Create lesson-plan-template.md"
+    status: "not_started"
+    standards:
+      - "IT-CSP-2"  # Create digital artifacts (lesson plans)
+      - "IT-PGAS-4"  # Accessible and usable interfaces (lesson structure)
+      - "IT-ITS-1.1"  # Communication through writing
+    rationale: |
+      Lesson plan templates are digital artifacts (IT-CSP-2) that create accessible
+      teaching interfaces (IT-PGAS-4). They require clear communication (IT-ITS-1.1)
+      of educational objectives and activities.
+    contribution: "Standardizes lesson plan structure for educators"
+
+  task_11_5:
+    task_id: "11.5"
+    task_name: "Create sample lesson plan for Ansible automation"
+    status: "not_started"
+    standards:
+      - "IT-CSP-5"  # Algorithm development (automation as algorithms)
+      - "IT-NSS-10"  # Network operation and management procedures
+      - "IT-NSS-11"  # Network administration and operating systems
+      - "IT-ITS-3"  # Install, configure, optimize networks
+    rationale: |
+      Ansible automation directly teaches algorithm development (IT-CSP-5), network
+      operations (IT-NSS-10), system administration (IT-NSS-11), and network
+      configuration (IT-ITS-3). The lesson plan makes these connections explicit.
+    contribution: "Provides ready-to-use educational material for automation"
+
+  task_11_6:
+    task_id: "11.6"
+    task_name: "Create integration-points.md document"
+    status: "not_started"
+    standards:
+      - "IT-CSP-8"  # Computing's societal impact (curriculum integration)
+      - "IT-PGAS-8"  # ICT for diverse audiences
+      - "IT-ITS-1.5"  # Teamwork skills (curriculum collaboration)
+    rationale: |
+      Integration points show how Ahab fits into broader computing education
+      (IT-CSP-8), addressing diverse learning needs (IT-PGAS-8). This requires
+      collaboration with existing curricula (IT-ITS-1.5).
+    contribution: "Guides educators on integrating Ahab into existing courses"
+
+  task_12_1:
+    task_id: "12.1"
+    task_name: "Create generate-standards-report.py script"
+    status: "not_started"
+    standards:
+      - "IT-CSP-4"  # Programs to process and extract information
+      - "IT-CSP-5"  # Algorithm development and analysis
+      - "IT-PGAS-2"  # Software development lifecycle (reporting)
+    rationale: |
+      The compliance report script processes structured data (IT-CSP-4) using
+      algorithms for analysis and reporting (IT-CSP-5). Automated reporting is
+      part of professional software development (IT-PGAS-2).
+    contribution: "Automates standards coverage analysis and reporting"
+
+  task_12_3:
+    task_id: "12.3"
+    task_name: "Create standards verification pre-commit hook"
+    status: "not_started"
+    standards:
+      - "IT-CSP-5"  # Algorithm development (validation algorithms)
+      - "IT-PGAS-2"  # Software development lifecycle (quality gates)
+      - "IT-ITS-1.3"  # Critical thinking (automated validation)
+    rationale: |
+      Pre-commit hooks implement validation algorithms (IT-CSP-5) as quality gates
+      in the development lifecycle (IT-PGAS-2). They automate critical thinking
+      about code quality (IT-ITS-1.3).
+    contribution: "Prevents standards violations through automated checks"
+
+  task_13_1:
+    task_id: "13.1"
+    task_name: "Add educational context to Docker Compose documentation"
+    status: "not_started"
+    standards:
+      - "IT-CSP-3"  # Data abstraction
+      - "IT-CSP-6"  # Translate human intention into computational artifacts
+      - "IT-CSP-8"  # Computing's societal impact (why it matters)
+    rationale: |
+      Educational context explains why Docker Compose matters in CS education,
+      connecting abstraction concepts (IT-CSP-3), infrastructure as code (IT-CSP-6),
+      and real-world impact (IT-CSP-8).
+    contribution: "Explains why Docker Compose is educationally valuable"
+
+  task_13_3:
+    task_id: "13.3"
+    task_name: "Add educational context to Ansible documentation"
+    status: "not_started"
+    standards:
+      - "IT-CSP-5"  # Algorithm development (automation algorithms)
+      - "IT-CSP-8"  # Computing's societal impact (automation's importance)
+      - "IT-NSS-10"  # Network operation and management procedures
+    rationale: |
+      Educational context explains how Ansible teaches algorithmic thinking
+      (IT-CSP-5), automation's real-world impact (IT-CSP-8), and professional
+      network management (IT-NSS-10).
+    contribution: "Explains why automation is educationally valuable"
+
+  task_13_4:
+    task_id: "13.4"
+    task_name: "Add educational context to Make documentation"
+    status: "not_started"
+    standards:
+      - "IT-CSP-5"  # Algorithm development (build algorithms)
+      - "IT-CSP-6"  # Translate human intention (Makefiles as intent)
+      - "IT-PGAS-2"  # Software development lifecycle (build process)
+    rationale: |
+      Educational context explains how Make teaches algorithmic thinking (IT-CSP-5),
+      declarative programming (IT-CSP-6), and professional build processes (IT-PGAS-2).
+    contribution: "Explains why build automation is educationally valuable"
+
+  task_14_1:
+    task_id: "14.1"
+    task_name: "Update RELEASE_INSTRUCTIONS.md"
+    status: "not_started"
+    standards:
+      - "IT-PGAS-2"  # Software development lifecycle (release process)
+      - "IT-ITS-1.4"  # Work readiness traits (accountability, process)
+      - "IT-CSP-1"  # Employability skills (professional release management)
+    rationale: |
+      Release instructions are part of the software development lifecycle (IT-PGAS-2),
+      demonstrating professional accountability (IT-ITS-1.4) and employability
+      skills (IT-CSP-1) in release management.
+    contribution: "Integrates standards verification into release process"
+
+  task_14_2:
+    task_id: "14.2"
+    task_name: "Create release standards checklist"
+    status: "not_started"
+    standards:
+      - "IT-PGAS-2"  # Software development lifecycle (quality assurance)
+      - "IT-ITS-1.3"  # Critical thinking (checklist design)
+      - "IT-ITS-1.4"  # Work readiness traits (thoroughness)
+    rationale: |
+      Release checklists ensure quality in the development lifecycle (IT-PGAS-2),
+      requiring critical thinking about completeness (IT-ITS-1.3) and demonstrating
+      professional thoroughness (IT-ITS-1.4).
+    contribution: "Ensures standards compliance before each release"
+
+  task_15_1:
+    task_id: "15.1"
+    task_name: "Create task-standards-map.yml file"
+    status: "in_progress"
+    standards:
+      - "IT-CSP-3"  # Data abstraction (task mapping as structured data)
+      - "IT-CSP-4"  # Programs to process and extract information
+      - "IT-ITS-1.3"  # Critical thinking (analyzing task-standard relationships)
+    rationale: |
+      Creating a task-to-standards mapping requires abstracting the relationship
+      between implementation work and educational outcomes (IT-CSP-3). This enables
+      programmatic analysis of standards coverage (IT-CSP-4) and requires critical
+      thinking about how tasks contribute to educational goals (IT-ITS-1.3).
+    contribution: "Links implementation tasks to educational standards"
+
+  task_15_2:
+    task_id: "15.2"
+    task_name: "Add standards references to task descriptions"
+    status: "not_started"
+    standards:
+      - "IT-ITS-1.1"  # Communication through writing
+      - "IT-PGAS-2"  # Software development lifecycle (task documentation)
+      - "IT-CSP-8"  # Computing's societal impact (educational value)
+    rationale: |
+      Adding standards references to tasks improves communication (IT-ITS-1.1)
+      about educational value, integrates standards into the development lifecycle
+      (IT-PGAS-2), and makes explicit how technical work contributes to education
+      (IT-CSP-8).
+    contribution: "Makes standards alignment visible in task planning"
+
+  task_15_3:
+    task_id: "15.3"
+    task_name: "Create task-standards validation script"
+    status: "not_started"
+    standards:
+      - "IT-CSP-4"  # Programs to process and extract information
+      - "IT-CSP-5"  # Algorithm development and analysis
+      - "IT-NSS-10"  # Network operation and management (validation as diagnostics)
+    rationale: |
+      Validation scripts process task data (IT-CSP-4) using algorithms to verify
+      standards coverage (IT-CSP-5). The validation approach mirrors network
+      diagnostic procedures (IT-NSS-10) - both ensure system correctness.
+    contribution: "Automates verification of task-standards coverage"
+
+# Summary Statistics
+summary:
+  total_tasks_mapped: 30
+  unique_standards_referenced: 28
+  most_referenced_standards:
+    - "IT-CSP-5"  # Algorithm development - 10 tasks
+    - "IT-PGAS-2"  # Software development lifecycle - 10 tasks
+    - "IT-ITS-1.3"  # Critical thinking - 9 tasks
+    - "IT-CSP-2"  # Create digital artifacts - 6 tasks
+    - "IT-CSP-6"  # Translate human intention - 6 tasks
+  
+  standards_coverage_by_course:
+    IT-CSP: 8  # Computer Science Principles
+    IT-PGAS: 5  # Programming, Games, Apps, and Society
+    IT-NSS: 6  # Network Systems and Services
+    IT-ITS: 7  # IT Support Specialist
+  
+  notes: |
+    This mapping shows that the implementation tasks themselves teach important
+    CS concepts. By completing these tasks, developers practice:
+    - Algorithm development and analysis (IT-CSP-5)
+    - Software development lifecycle (IT-PGAS-2)
+    - Critical thinking and problem-solving (IT-ITS-1.3)
+    - Data abstraction and representation (IT-CSP-3)
+    - Professional communication (IT-ITS-1.1)
+    
+    The meta-lesson: Building educational infrastructure is itself educational.

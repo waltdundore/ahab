@@ -1,0 +1,14 @@
+---
+# Apache variables for Debian family (Debian, Ubuntu)
+
+apache_packages:
+  - apache2
+  - apache2-utils
+
+apache_service: apache2
+apache_user: www-data
+apache_group: www-data
+apache_config_file: /etc/apache2/apache2.conf
+apache_security_conf: /etc/apache2/conf-available/security.conf
+apache_document_root: /var/www/html
+apache_log_dir: /var/log/apache2

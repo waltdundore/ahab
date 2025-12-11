@@ -1,0 +1,286 @@
+# Ahab Feature to Georgia CS Standards Mapping
+# Maps Ahab features to specific Georgia CS standards
+# Last Updated: December 8, 2025
+
+metadata:
+  last_updated: "2025-12-08"
+  mapped_by: "Walt Dundore"
+  reviewed_by: "Self-documented (not teaching courses)"
+  standards_version: "Current (2025)"
+  source: "https://case.georgiastandards.org/00fcf0e2-b9c3-11e7-a4ad-47f36833e889/a4aeca3a-1532-11eb-b674-0242ac150004/591"
+
+features:
+  # Feature 1: Ansible Automation via Make Commands
+  ansible_automation:
+    feature_name: "Ansible Automation (Make Commands)"
+    description: "Automated infrastructure deployment using Make commands and Ansible playbooks"
+    standards:
+      - "IT-NSS-10"
+      - "IT-NSS-11"
+      - "IT-ITS-3"
+      - "IT-CSP-5"
+    grade_levels: [10, 11, 12]
+    prerequisites:
+      - "Basic command line usage"
+      - "Understanding of client-server architecture"
+      - "Familiarity with text editors"
+    learning_objectives:
+      - "Automate network service deployment using Make commands"
+      - "Understand declarative automation vs imperative scripting"
+      - "Apply algorithm thinking to infrastructure management"
+      - "Perform network diagnostics and verification"
+    teaching_notes: |
+      Students learn infrastructure automation through hands-on use of Make commands.
+      The `make install` command demonstrates how complex workflows can be automated.
+      `make verify-install` teaches diagnostic testing and validation procedures.
+      This aligns with IT-NSS-10 (network operation procedures) and IT-NSS-11 (system administration).
+    alignment_rationale: |
+      IT-NSS-10: Make commands teach network operation and management procedures. Students
+      learn diagnostic testing through `make verify-install` and maintenance through automated
+      deployment.
+      
+      IT-NSS-11: Ansible playbooks demonstrate network application installation and system
+      architecture deployment. Students apply knowledge of network operating systems.
+      
+      IT-ITS-3: Ahab automates network installation, configuration, and optimization, teaching
+      students practical network management skills.
+      
+      IT-CSP-5: Make commands represent algorithms for infrastructure deployment. Students
+      analyze algorithm effectiveness empirically through testing.
+    verification_status: "VERIFIED"
+    classroom_activities:
+      - title: "Deploy Your First Service"
+        duration: "45 minutes"
+        description: "Students use `make install apache` to deploy a web server"
+        assessment: "Verify Apache is running and accessible"
+      - title: "Troubleshoot Failed Deployment"
+        duration: "30 minutes"
+        description: "Introduce intentional errors and have students diagnose using `make verify-install`"
+        assessment: "Students identify and fix configuration issues"
+
+  # Feature 2: Docker Compose Generation
+  docker_compose_generation:
+    feature_name: "Docker Compose Generation"
+    description: "Automatic generation of docker-compose.yml from module definitions"
+    standards:
+      - "IT-CSP-3"
+      - "IT-CSP-6"
+      - "IT-PGAS-2"
+      - "IT-NSS-9"
+    grade_levels: [10, 11, 12]
+    prerequisites:
+      - "Understanding of YAML syntax"
+      - "Basic networking concepts (ports, protocols)"
+      - "Familiarity with services (web servers, databases)"
+    learning_objectives:
+      - "Understand abstraction in system configuration"
+      - "Translate human intention into computational artifacts"
+      - "Apply software development lifecycle concepts"
+      - "Design network architectures using standards"
+    teaching_notes: |
+      Docker Compose demonstrates abstraction: human-readable YAML becomes running services.
+      Students see how high-level configuration (YAML) translates to low-level execution (containers).
+      This teaches IT-CSP-3 (abstraction) and IT-CSP-6 (translating intention to artifacts).
+    alignment_rationale: |
+      IT-CSP-3: Docker Compose demonstrates data abstraction. YAML configuration (high-level)
+      becomes container orchestration (low-level). Students see layered abstraction in action.
+      
+      IT-CSP-6: Module definitions represent human intention. The generation script translates
+      this into computational artifacts (running services). Demonstrates programs as translators.
+      
+      IT-PGAS-2: Docker Compose supports rapid prototyping. Students iterate on configurations,
+      test, and refine, learning the software development lifecycle.
+      
+      IT-NSS-9: Docker Compose files represent network design standards. Students analyze
+      service dependencies, port mappings, and network connectivity.
+    verification_status: "VERIFIED"
+    classroom_activities:
+      - title: "Design a Multi-Service Architecture"
+        duration: "60 minutes"
+        description: "Students create module definitions for a web app (Apache + MySQL + PHP)"
+        assessment: "Generated docker-compose.yml correctly defines all services and dependencies"
+      - title: "Modify and Iterate"
+        duration: "45 minutes"
+        description: "Students change port mappings and environment variables, regenerate, and test"
+        assessment: "Services run with modified configuration"
+
+  # Feature 3: Network Service Deployment (Apache Module)
+  apache_deployment:
+    feature_name: "Apache Web Server Deployment"
+    description: "Automated deployment and configuration of Apache web server"
+    standards:
+      - "IT-NSS-2"
+      - "IT-NSS-7"
+      - "IT-ITS-4"
+      - "IT-ITS-5"
+      - "IT-CSP-7"
+    grade_levels: [11, 12]
+    prerequisites:
+      - "Understanding of client-server model"
+      - "Basic networking concepts (IP addresses, ports, protocols)"
+      - "Familiarity with Linux command line"
+      - "Basic security awareness"
+    learning_objectives:
+      - "Install and configure network services"
+      - "Apply security principles to web server deployment"
+      - "Understand HTTP/HTTPS protocols"
+      - "Troubleshoot network service issues"
+    teaching_notes: |
+      Apache deployment teaches practical network administration and security.
+      Students learn IT-NSS-2 (networking fundamentals) through hands-on installation.
+      Security configuration addresses IT-NSS-7, IT-ITS-4, and IT-ITS-5.
+      Understanding web server operation connects to IT-CSP-7 (Internet operation).
+    alignment_rationale: |
+      IT-NSS-2: Students install Apache through automation, learning configuration principles,
+      optimization through tuning, and upgrade procedures through version control.
+      
+      IT-NSS-7: Apache deployment includes security configuration (file permissions, user
+      isolation, firewall rules). Students learn network security principles practically.
+      
+      IT-ITS-4 & IT-ITS-5: Students identify security fundamentals (authentication, authorization)
+      and apply them through configuration (SSL/TLS, access controls, security hardening).
+      
+      IT-CSP-7: Students understand how web servers operate on the Internet, learn HTTP/HTTPS
+      protocols, and analyze cybersecurity concerns (DDoS, injection attacks).
+    verification_status: "VERIFIED"
+    classroom_activities:
+      - title: "Deploy and Secure Apache"
+        duration: "90 minutes"
+        description: "Students deploy Apache, configure virtual hosts, and enable HTTPS"
+        assessment: "Web server accessible via HTTPS with valid configuration"
+      - title: "Security Audit"
+        duration: "45 minutes"
+        description: "Students review Apache configuration for security issues"
+        assessment: "Identify and fix at least 3 security misconfigurations"
+
+  # Feature 4: Make-Based Workflow
+  make_workflow:
+    feature_name: "Make-Based Development Workflow"
+    description: "Using Makefile for consistent, documented command execution"
+    standards:
+      - "IT-CSP-5"
+      - "IT-ITS-1.3"
+      - "IT-ITS-1.5"
+    grade_levels: [10, 11, 12]
+    prerequisites:
+      - "Basic command line usage"
+      - "Understanding of automation concepts"
+    learning_objectives:
+      - "Understand declarative vs imperative programming"
+      - "Apply critical thinking to workflow automation"
+      - "Work independently using documented commands"
+      - "Collaborate through standardized interfaces"
+    teaching_notes: |
+      Make commands teach algorithmic thinking and workflow automation.
+      Students learn IT-CSP-5 (algorithm development) through understanding how
+      Make targets represent automated workflows.
+      IT-ITS-1.3 and IT-ITS-1.5 are addressed through problem-solving and teamwork.
+    alignment_rationale: |
+      IT-CSP-5: Make targets represent algorithms. Students analyze algorithm effectiveness
+      (does `make install` work reliably?) both analytically (reading Makefile) and
+      empirically (running commands and observing results).
+      
+      IT-ITS-1.3: Using Make commands requires critical thinking and problem-solving.
+      Students must analyze what command to use, troubleshoot failures, and apply
+      information to solve deployment challenges.
+      
+      IT-ITS-1.5: Make provides standardized interface for teamwork. Students work
+      independently (documented commands) while collaborating (shared Makefile).
+      Demonstrates working in a technological, diverse workplace.
+    verification_status: "VERIFIED"
+    classroom_activities:
+      - title: "Create Custom Make Targets"
+        duration: "60 minutes"
+        description: "Students add new targets to Makefile for custom workflows"
+        assessment: "New targets work correctly and are properly documented"
+
+  # Feature 5: Infrastructure as Code
+  infrastructure_as_code:
+    feature_name: "Infrastructure as Code (IaC)"
+    description: "Version-controlled infrastructure configuration using Ansible and Docker Compose"
+    standards:
+      - "IT-CSP-6"
+      - "IT-PGAS-2"
+      - "IT-NSS-9"
+      - "IT-ITS-1.5"
+    grade_levels: [11, 12]
+    prerequisites:
+      - "Understanding of version control (Git)"
+      - "Basic YAML syntax"
+      - "Familiarity with infrastructure concepts"
+    learning_objectives:
+      - "Translate infrastructure requirements into code"
+      - "Apply software development lifecycle to infrastructure"
+      - "Design reproducible system architectures"
+      - "Collaborate on infrastructure through version control"
+    teaching_notes: |
+      Infrastructure as Code demonstrates how human intention (desired system state)
+      becomes computational artifacts (running infrastructure). Students learn IT-CSP-6
+      through practical application. Version control teaches IT-PGAS-2 (development lifecycle).
+    alignment_rationale: |
+      IT-CSP-6: IaC translates human intention (infrastructure requirements) into
+      computational artifacts (configured systems). Students write code that creates
+      infrastructure, demonstrating programs as translators of intent.
+      
+      IT-PGAS-2: Version-controlled infrastructure follows software development lifecycle.
+      Students design, implement, test, and iterate on infrastructure configurations.
+      
+      IT-NSS-9: IaC represents network design using standards. Students create networks
+      through code, applying design principles and analyzing architecture decisions.
+      
+      IT-ITS-1.5: IaC enables both independent work (individual configurations) and
+      teamwork (shared repositories, code review). Demonstrates collaboration in
+      technological workplace.
+    verification_status: "VERIFIED"
+    classroom_activities:
+      - title: "Version Control Your Infrastructure"
+        duration: "90 minutes"
+        description: "Students create Git repository, commit infrastructure code, and collaborate"
+        assessment: "Successfully merge infrastructure changes from multiple students"
+
+  # Feature 6: Testing and Validation
+  testing_validation:
+    feature_name: "Automated Testing and Validation"
+    description: "Using `make test` and `make verify-install` for quality assurance"
+    standards:
+      - "IT-NSS-8"
+      - "IT-NSS-10"
+      - "IT-ITS-1.3"
+      - "IT-PGAS-2"
+    grade_levels: [11, 12]
+    prerequisites:
+      - "Understanding of testing concepts"
+      - "Familiarity with command line"
+      - "Basic troubleshooting skills"
+    learning_objectives:
+      - "Troubleshoot network and system problems"
+      - "Perform diagnostic testing"
+      - "Apply critical thinking to problem-solving"
+      - "Understand testing in software lifecycle"
+    teaching_notes: |
+      Testing teaches IT-NSS-8 (troubleshooting) and IT-NSS-10 (diagnostic testing).
+      Students learn to verify system state, identify problems, and validate solutions.
+      Critical thinking (IT-ITS-1.3) is developed through debugging.
+    alignment_rationale: |
+      IT-NSS-8: `make test` and `make verify-install` teach network troubleshooting.
+      Students diagnose problems, analyze failures, and validate fixes.
+      
+      IT-NSS-10: Validation commands demonstrate diagnostic testing procedures.
+      Students learn to verify installation, check service status, and confirm
+      network operation.
+      
+      IT-ITS-1.3: Troubleshooting requires critical thinking and problem-solving.
+      Students analyze error messages, locate root causes, and apply solutions.
+      
+      IT-PGAS-2: Testing is integral to software development lifecycle. Students
+      learn that testing validates each phase of development.
+    verification_status: "VERIFIED"
+    classroom_activities:
+      - title: "Debug Failed Deployment"
+        duration: "45 minutes"
+        description: "Students troubleshoot intentionally broken configurations"
+        assessment: "Identify root cause and implement fix"
+      - title: "Write Custom Tests"
+        duration: "60 minutes"
+        description: "Students create test scripts for their own modules"
+        assessment: "Tests correctly validate module functionality"

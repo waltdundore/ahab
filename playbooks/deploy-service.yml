@@ -1,0 +1,43 @@
+---
+- name: Deploy Service with Modular Configuration
+  hosts: all
+  become: true
+  vars_files:
+    - "{{ config_path | default('../ahab-config') }}/common-vars.yml"
+    - "{{ config_path | default('../ahab-config') }}/{{ service }}-vars.yml"
+  pre_tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - service is defined
+          - service in ['apache', 'mysql', 'php']
+        fail_msg: "Service must be one of: apache, mysql, php"
+        success_msg: "Deploying {{ service }} service"
+
+    - name: Display configuration source
+      ansible.builtin.debug:
+        msg: "Using configuration from: {{ config_path | default('../ahab-config') }}"
+
+    - name: Display active configuration branch
+      ansible.builtin.debug:
+        msg: "Service: {{ service }}"
+
+  tasks:
+    - name: Include service-specific role
+      ansible.builtin.include_role:
+        name: "{{ service }}"
+      vars:
+        config_templates_path: "{{ config_path | default('../ahab-config') }}"
+
+  post_tasks:
+    - name: Verify service deployment
+      ansible.builtin.debug:
+        msg: "✓ {{ service | title }} deployment completed successfully"
+
+    - name: Display next steps
+      ansible.builtin.debug:
+        msg:
+          - "Next steps:"
+          - "  1. Verify service is running: systemctl status {{ service }}"
+          - "  2. Check service logs: journalctl -u {{ service }}"
+          - "  3. Test service functionality"

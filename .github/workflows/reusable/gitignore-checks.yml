@@ -1,0 +1,135 @@
+name: Gitignore Validation
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: 'Path to check (relative to repository root)'
+        required: false
+        type: string
+        default: '.'
+
+jobs:
+  gitignore:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Verify .gitignore Exists
+        run: |
+          if [ ! -f .gitignore ]; then
+            echo "❌ ERROR: .gitignore file missing"
+            echo ""
+            echo "Rule Violated: Repository Configuration"
+            echo "Problem: Every repository must have a .gitignore file"
+            echo "Fix: Create .gitignore with appropriate patterns"
+            echo ""
+            echo "Example .gitignore:"
+            echo "  # Temporary files"
+            echo "  *.tmp"
+            echo "  *.bak"
+            echo "  *~"
+            echo ""
+            echo "  # Build artifacts"
+            echo "  __pycache__/"
+            echo "  *.pyc"
+            echo "  node_modules/"
+            echo ""
+            echo "  # Editor files"
+            echo "  .swp"
+            echo "  .swo"
+            echo "  .DS_Store"
+            echo ""
+            echo "  # Sensitive files"
+            echo "  *.key"
+            echo "  *.pem"
+            echo "  .env"
+            echo ""
+            exit 1
+          else
+            echo "✓ .gitignore file exists"
+          fi
+      
+      - name: Check Temporary File Patterns
+        run: |
+          if [ -f scripts/ci/check-gitignore-patterns.sh ]; then
+            bash scripts/ci/check-gitignore-patterns.sh temp
+          else
+            echo "Checking for temporary file patterns in .gitignore..."
+            missing=0
+            for pattern in "*.tmp" "*.bak" "*~"; do
+              if ! grep -q "$pattern" .gitignore; then
+                echo "⚠️  Missing pattern: $pattern"
+                missing=1
+              fi
+            done
+            if [ $missing -eq 1 ]; then
+              echo ""
+              echo "Consider adding these patterns to .gitignore"
+            else
+              echo "✓ Temporary file patterns present"
+            fi
+          fi
+      
+      - name: Check Build Artifact Patterns
+        run: |
+          if [ -f scripts/ci/check-gitignore-patterns.sh ]; then
+            bash scripts/ci/check-gitignore-patterns.sh build
+          else
+            echo "Checking for build artifact patterns in .gitignore..."
+            missing=0
+            for pattern in "__pycache__" "*.pyc" "node_modules"; do
+              if ! grep -q "$pattern" .gitignore; then
+                echo "⚠️  Missing pattern: $pattern"
+                missing=1
+              fi
+            done
+            if [ $missing -eq 1 ]; then
+              echo ""
+              echo "Consider adding these patterns to .gitignore"
+            else
+              echo "✓ Build artifact patterns present"
+            fi
+          fi
+      
+      - name: Check Sensitive File Patterns
+        run: |
+          if [ -f scripts/ci/check-gitignore-patterns.sh ]; then
+            bash scripts/ci/check-gitignore-patterns.sh secrets
+          else
+            echo "Checking for sensitive file patterns in .gitignore..."
+            missing=0
+            for pattern in "*.key" "*.pem" ".env"; do
+              if ! grep -q "$pattern" .gitignore; then
+                echo "⚠️  Missing pattern: $pattern"
+                missing=1
+              fi
+            done
+            if [ $missing -eq 1 ]; then
+              echo ""
+              echo "Consider adding these patterns to .gitignore"
+            else
+              echo "✓ Sensitive file patterns present"
+            fi
+          fi
+      
+      - name: Verify No Tracked Ignored Files
+        run: |
+          echo "Checking for tracked files that match .gitignore patterns..."
+          if git ls-files -i --exclude-standard | grep .; then
+            echo "❌ ERROR: Tracked files match .gitignore patterns"
+            echo ""
+            echo "Rule Violated: Git Configuration"
+            echo "Problem: Files are tracked but match .gitignore patterns"
+            echo "Fix: Remove these files from git tracking"
+            echo ""
+            echo "Commands:"
+            echo "  git rm --cached <file>"
+            echo "  git commit -m 'Remove ignored files from tracking'"
+            echo ""
+            exit 1
+          else
+            echo "✓ No tracked files match .gitignore patterns"
+          fi

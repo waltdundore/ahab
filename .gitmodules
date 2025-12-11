@@ -1,0 +1,6 @@
+[submodule "modules"]
+	path = modules
+	url = https://github.com/waltdundore/ahab-modules.git
+[submodule "config-roles"]
+	path = config-roles
+	url = https://github.com/waltdundore/ahab-config.git

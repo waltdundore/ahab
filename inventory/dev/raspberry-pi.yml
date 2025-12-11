@@ -1,0 +1,62 @@
+# Raspberry Pi Development Inventory
+# ==============================================================================
+# Raspberry Pi test devices for Ahab deployment testing
+# ==============================================================================
+
+all:
+  children:
+    raspberry_pi:
+      hosts:
+        rpi5-03:
+          ansible_host: rpi5-03.local
+          ansible_user: wdundore
+          ansible_connection: ssh
+          ansible_python_interpreter: /usr/bin/python3
+          
+          # Device information
+          device_type: raspberry_pi_5
+          architecture: aarch64
+          os_family: debian
+          os_version: "13"
+          os_codename: trixie
+          
+          # Network information
+          hostname: rpi5-03
+          ip_address: 10.200.10.103
+          network_type: local
+          
+          # Ahab configuration
+          ahab_environment: development
+          ahab_testing: true
+          
+      vars:
+        # Common variables for all Raspberry Pi devices
+        ansible_become: true
+        ansible_become_method: sudo
+        
+        # ARM64 specific configurations
+        docker_architecture: arm64
+        container_platform: linux/arm64
+        
+        # Raspberry Pi optimizations
+        memory_limit: 8192  # 8GB RAM typical for Pi 5
+        cpu_limit: 4        # 4 cores on Pi 5
+        
+        # Development settings
+        debug_mode: true
+        log_level: info
+
+# ==============================================================================
+# Usage Examples
+# ==============================================================================
+#
+# Test connectivity:
+#   ansible -i inventory/dev/raspberry-pi.yml raspberry_pi -m ping
+#
+# Deploy Ahab to Raspberry Pi:
+#   ansible-playbook -i inventory/dev/raspberry-pi.yml playbooks/provision-workstation.yml
+#
+# Run specific tasks:
+#   ansible -i inventory/dev/raspberry-pi.yml raspberry_pi -m setup
+#
+# ==============================================================================

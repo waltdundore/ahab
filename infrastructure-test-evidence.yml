@@ -1,0 +1,83 @@
+# Infrastructure Test Evidence
+# This file tracks test results on real infrastructure (not just CI)
+# Last Updated: 2025-12-08
+
+test_infrastructure:
+  name: "Walt's Homelab"
+  type: "Physical servers + VMs"
+  os_versions:
+    - "Ubuntu 22.04"
+    - "Debian 12"
+    - "Debian 13"
+    - "Fedora 43"
+  virtualization: "Vagrant + VirtualBox"
+  notes: "Real hardware, real VMs, real network - not mocked or simulated"
+
+test_results:
+  workstation_bootstrap:
+    feature: "Workstation VM creation and configuration"
+    last_tested: "2025-12-08"
+    infrastructure: "homelab"
+    result: "PASS"
+    evidence: "tests/integration/test-workstation-bootstrap.sh output"
+    test_commit: "ff437628a1a4841095ae2d62c534cd7ebcfe525a"
+    notes: "VM successfully created, configured, and accessible via SSH"
+    
+  apache_deployment:
+    feature: "Apache web server deployment"
+    last_tested: "2025-12-08"
+    infrastructure: "homelab"
+    result: "PASS"
+    evidence: "tests/integration/test-apache-simple.sh output"
+    test_commit: "ff437628a1a4841095ae2d62c534cd7ebcfe525a"
+    notes: "Apache deployed and serving content successfully"
+    
+  docker_compose_generation:
+    feature: "Docker Compose file generation for services"
+    last_tested: "2025-12-08"
+    infrastructure: "homelab"
+    result: "PASS"
+    evidence: "Generated docker-compose.yml deployed successfully"
+    test_commit: "ff437628a1a4841095ae2d62c534cd7ebcfe525a"
+    notes: "Generated compose files work on real infrastructure"
+    
+  multi_os_support:
+    feature: "Multi-OS version support (Debian, Fedora, Ubuntu)"
+    last_tested: "2025-12-08"
+    infrastructure: "homelab"
+    result: "PASS"
+    evidence: "tests/integration/test-os-versions.sh output"
+    test_commit: "0ad355b"
+    notes: "Tested on Debian 12, Debian 13, Fedora 43, Ubuntu 22.04"
+    
+  error_messages:
+    feature: "Educational error messages"
+    last_tested: "2025-12-08"
+    infrastructure: "homelab"
+    result: "PASS"
+    evidence: "tests/test-error-messages.sh output"
+    test_commit: "ff437628a1a4841095ae2d62c534cd7ebcfe525a"
+    notes: "Error messages provide teaching value, not just failure reports"
+
+  make_command_interface:
+    feature: "Make command interface (install, test, clean, ssh)"
+    last_tested: "2025-12-08"
+    infrastructure: "homelab"
+    result: "PASS"
+    evidence: "Daily usage by development team, documented in self-use-evidence.yml"
+    test_commit: "ff437628a1a4841095ae2d62c534cd7ebcfe525a"
+    notes: "All documented make commands work on real infrastructure"
+
+test_status_tracking:
+  mechanism: ".test-status file"
+  last_test_date: "2025-12-09 01:54:10 UTC"
+  last_test_status: "PASS"
+  promotable_version: "ff437628a1a4841095ae2d62c534cd7ebcfe525a"
+  notes: "Only passing versions are promotable - enforced by development process"
+
+verification_metadata:
+  last_audit_date: "2025-12-08"
+  audited_by: "Development team"
+  audit_method: "Review of .test-status, test output logs, and git history"
+  next_audit_due: "2025-12-15"
+  notes: "This file should be updated after each test run on real infrastructure"

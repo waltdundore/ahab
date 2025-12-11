@@ -1,0 +1,24 @@
+---
+# PHP handlers
+
+- name: restart apache
+  service:
+    name: "{{ apache_service }}"
+    state: restarted
+
+- name: reload apache
+  service:
+    name: "{{ apache_service }}"
+    state: reloaded
+
+- name: restart php-fpm
+  service:
+    name: php-fpm
+    state: restarted
+  when: php_fpm_enabled | default(false)
+
+- name: reload php-fpm
+  service:
+    name: php-fpm
+    state: reloaded
+  when: php_fpm_enabled | default(false)

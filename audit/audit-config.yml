@@ -1,0 +1,31 @@
+# Repository Comparison Audit Configuration
+#
+# This file configures the audit system for comparing the current repository
+# against the original GitHub repository.
+
+audit:
+  # Original repository to compare against
+  original_repo: "https://github.com/waltdundore/ansible-control"
+  
+  # Current repository path (default: current directory)
+  current_repo: "."
+  
+  # Audit modules to run
+  # Available: documentation, principles, features, quality
+  modules:
+    - documentation
+    - principles
+    - features
+    - quality
+  
+  # Minimum severity to report (CRITICAL, HIGH, MEDIUM, LOW)
+  severity_threshold: "MEDIUM"
+  
+  # Enable parallel execution of independent modules
+  parallel_execution: true
+  
+  # Enable caching of file reads and parsing results
+  cache_enabled: true
+  
+  # Output file for audit report
+  output_file: "audit-report.md"

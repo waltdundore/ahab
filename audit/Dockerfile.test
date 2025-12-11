@@ -1,0 +1,11 @@
+# Test Dockerfile for STIG compliance validation
+FROM alpine:3.19
+
+# Create non-root user (STIG-DKER-EE-001010)
+RUN adduser -D -u 1000 testuser
+
+# Switch to non-root user
+USER testuser
+
+# Test command
+CMD ["echo", "STIG compliant test container"]

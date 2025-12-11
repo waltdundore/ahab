@@ -1,0 +1,52 @@
+---
+# ==============================================================================
+# DEPRECATED: Use webservers.yml instead
+# ==============================================================================
+# This playbook is deprecated and will be removed in a future release.
+#
+# Why deprecated:
+#   - Duplicates apache role logic (violates DRY principle)
+#   - Hardcoded configuration (should use inventory)
+#   - Single-host only (production needs multi-host)
+#
+# Migration:
+#   OLD: ansible-playbook playbooks/webserver.yml
+#   NEW: ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
+#
+# For development:
+#   Use: make install apache (Docker Compose - faster)
+#
+# This file redirects to the new structure for backward compatibility.
+# ==============================================================================
+
+- name: Redirect to webservers.yml
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Display deprecation warning
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "⚠️  DEPRECATION WARNING"
+          - "=========================================="
+          - "This playbook (webserver.yml) is deprecated."
+          - ""
+          - "Use instead:"
+          - "  ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml"
+          - ""
+          - "Or for development:"
+          - "  make install apache"
+          - ""
+          - "Redirecting to webservers.yml..."
+          - "=========================================="
+
+    - name: Fail with migration instructions
+      ansible.builtin.fail:
+        msg: |
+          This playbook is deprecated. Please update your commands:
+
+          OLD: ansible-playbook playbooks/webserver.yml
+          NEW: ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
+
+          Or use: make install apache

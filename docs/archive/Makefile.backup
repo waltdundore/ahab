@@ -1,0 +1,254 @@
+# ==============================================================================
+# Ahab Control - Makefile
+# ==============================================================================
+# Single source of truth: ahab.conf
+# Core command: make install [modules...]
+# ==============================================================================
+
+.PHONY: help install clean verify verify-install ssh deploy test test-unit test-integration test-e2e test-nasa validate-tests audit
+
+# Default target
+all: help
+
+help:
+	@echo "Ahab Control - Available Commands"
+	@echo ""
+	@echo "Core Commands:"
+	@echo "  make install              - Create workstation VM"
+	@echo "  make install apache mysql - Create workstation + deploy modules"
+	@echo "  make verify-install       - Verify workstation installation"
+	@echo "  make test                 - Run all tests"
+	@echo "  make audit                - Run accountability audit"
+	@echo "  make ssh                  - SSH into workstation"
+	@echo "  make clean                - Destroy workstation VM"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make install              # Just the workstation"
+	@echo "  make install apache       # Workstation + Apache"
+	@echo "  make install apache mysql # Workstation + Apache + MySQL"
+	@echo ""
+
+# Extract module arguments (everything after 'install')
+MODULES := $(filter-out install,$(MAKECMDGOALS))
+
+install:
+	@echo "=========================================="
+	@echo "Ahab - Install"
+	@echo "=========================================="
+	@echo ""
+	@if [ -n "$(MODULES)" ]; then \
+		echo "Workstation + Modules: $(MODULES)"; \
+	else \
+		echo "Workstation only"; \
+	fi
+	@echo ""
+	@echo "→ Creating workstation VM..."
+	@vagrant up --no-destroy-on-error || exit 1
+	@echo ""
+	@if [ -n "$(MODULES)" ]; then \
+		echo "→ Deploying modules: $(MODULES)"; \
+		vagrant ssh -c "cd /home/vagrant/ahab && python3 scripts/generate-compose.py $(MODULES)" || exit 1; \
+		vagrant ssh -c "cd /home/vagrant/ahab/generated && docker-compose up -d" || exit 1; \
+		echo ""; \
+		echo "✅ Modules deployed: $(MODULES)"; \
+	fi
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Ready"
+	@echo "=========================================="
+	@echo ""
+	@echo "Access: vagrant ssh"
+	@echo ""
+
+# Allow module names as targets (prevents "No rule to make target" errors)
+%:
+	@:
+
+verify:
+	@echo "→ Verifying workstation..."
+	@vagrant status | grep -q "running" || (echo "❌ VM not running"; exit 1)
+	@echo "✓ VM is running"
+	@vagrant ssh -c "command -v ansible" >/dev/null 2>&1 || (echo "❌ Ansible not installed"; exit 1)
+	@echo "✓ Ansible installed"
+	@vagrant ssh -c "command -v docker" >/dev/null 2>&1 || (echo "❌ Docker not installed"; exit 1)
+	@echo "✓ Docker installed"
+	@vagrant ssh -c "systemctl is-active docker" >/dev/null 2>&1 || (echo "❌ Docker not running"; exit 1)
+	@echo "✓ Docker running"
+	@echo ""
+	@echo "✅ All checks passed"
+
+verify-install:
+	@echo "=========================================="
+	@echo "Verifying Workstation Installation"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Checking VM status..."
+	@vagrant status | grep -q "running" || (echo "❌ VM not running"; exit 1)
+	@echo "✓ VM is running"
+	@echo ""
+	@echo "→ Checking required tools..."
+	@vagrant ssh -c "command -v git" >/dev/null 2>&1 || (echo "❌ Git not installed"; exit 1)
+	@echo "✓ Git installed"
+	@vagrant ssh -c "command -v ansible" >/dev/null 2>&1 || (echo "❌ Ansible not installed"; exit 1)
+	@echo "✓ Ansible installed"
+	@vagrant ssh -c "command -v docker" >/dev/null 2>&1 || (echo "❌ Docker not installed"; exit 1)
+	@echo "✓ Docker installed"
+	@vagrant ssh -c "systemctl is-active docker" >/dev/null 2>&1 || (echo "❌ Docker not running"; exit 1)
+	@echo "✓ Docker running"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Workstation Installation Verified"
+	@echo "=========================================="
+
+ssh:
+	@vagrant ssh
+
+clean:
+	@echo "→ Destroying workstation..."
+	@vagrant destroy -f 2>/dev/null || true
+	@rm -rf .vagrant
+	@echo "✓ Clean complete"
+
+deploy:
+	@if [ "$(word 2,$(MAKECMDGOALS))" = "" ]; then \
+		echo "Usage: make deploy apache mysql"; \
+		exit 1; \
+	fi
+	@DEPLOY_MODULES="$(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))"; \
+	echo "→ Deploying modules: $$DEPLOY_MODULES"; \
+	vagrant ssh -c "cd /home/vagrant/ahab && python3 scripts/generate-compose.py $$DEPLOY_MODULES" || exit 1; \
+	vagrant ssh -c "cd /home/vagrant/ahab/generated && docker-compose up -d" || exit 1; \
+	echo "✅ Deployed: $$DEPLOY_MODULES"
+
+test:
+	@echo "=========================================="
+	@echo "Running Ahab Tests"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running verification tests..."
+	@$(MAKE) verify-install
+	@echo ""
+	@echo "→ Running ansible-lint on playbooks..."
+	@LINT_FAILED=0; \
+	for playbook in playbooks/*.yml; do \
+		if [ -f "$$playbook" ]; then \
+			echo "  Checking: $$playbook"; \
+			if ansible-lint "$$playbook" >/dev/null 2>&1; then \
+				echo "  ✓ PASS: $$playbook"; \
+			else \
+				echo "  ✗ FAIL: $$playbook has lint errors"; \
+				LINT_FAILED=1; \
+			fi; \
+		fi; \
+	done; \
+	if [ $$LINT_FAILED -eq 1 ]; then \
+		echo ""; \
+		echo "❌ Ansible-lint errors found"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "→ Running shellcheck on scripts..."
+	@if command -v shellcheck >/dev/null 2>&1; then \
+		find scripts -name "*.sh" -type f -exec shellcheck {} + || (echo "❌ Shellcheck errors found"; exit 1); \
+	else \
+		echo "⚠ Shellcheck not installed - skipping"; \
+	fi
+	@echo ""
+	@echo "→ Checking for trailing spaces in playbooks..."
+	@if grep -n '[[:space:]]$$' playbooks/*.yml 2>/dev/null; then \
+		echo "❌ Trailing spaces found - run: sed -i '' 's/[[:space:]]*$$//' playbooks/*.yml"; \
+		exit 1; \
+	else \
+		echo "✓ No trailing spaces"; \
+	fi
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ All Tests Passed"
+	@echo "=========================================="
+
+test-unit:
+	@echo "=========================================="
+	@echo "Running Unit Tests"
+	@echo "=========================================="
+	@echo ""
+	@if [ -d "tests/unit" ] && [ -n "$$(ls -A tests/unit/*.sh 2>/dev/null)" ]; then \
+		for test in tests/unit/*.sh; do \
+			echo "→ Running $$test..."; \
+			bash $$test || exit 1; \
+		done; \
+		echo ""; \
+		echo "✅ All unit tests passed"; \
+	else \
+		echo "ℹ No unit tests found (tests/unit/ is empty)"; \
+	fi
+
+test-integration:
+	@echo "=========================================="
+	@echo "Running Integration Tests"
+	@echo "=========================================="
+	@echo ""
+	@if [ -d "tests/integration" ] && [ -n "$$(ls -A tests/integration/*.sh 2>/dev/null)" ]; then \
+		for test in tests/integration/*.sh; do \
+			echo "→ Running $$test..."; \
+			bash $$test || exit 1; \
+		done; \
+		echo ""; \
+		echo "✅ All integration tests passed"; \
+	else \
+		echo "⚠ No integration tests found"; \
+		exit 1; \
+	fi
+
+test-e2e:
+	@echo "=========================================="
+	@echo "Running End-to-End Tests"
+	@echo "=========================================="
+	@echo ""
+	@if [ -d "tests/e2e" ] && [ -n "$$(ls -A tests/e2e/*.sh 2>/dev/null)" ]; then \
+		for test in tests/e2e/*.sh; do \
+			echo "→ Running $$test..."; \
+			bash $$test || exit 1; \
+		done; \
+		echo ""; \
+		echo "✅ All e2e tests passed"; \
+	else \
+		echo "⚠ No e2e tests found"; \
+		exit 1; \
+	fi
+
+test-nasa:
+	@echo "=========================================="
+	@echo "Validating NASA Power of 10 Standards"
+	@echo "=========================================="
+	@echo ""
+	@if [ -f "scripts/validate-nasa-standards.sh" ]; then \
+		bash scripts/validate-nasa-standards.sh; \
+	else \
+		echo "⚠ NASA validation script not found"; \
+		exit 1; \
+	fi
+
+validate-tests:
+	@echo "=========================================="
+	@echo "Validating Test Scripts"
+	@echo "=========================================="
+	@echo ""
+	@if command -v shellcheck >/dev/null 2>&1; then \
+		echo "→ Running shellcheck on test scripts..."; \
+		find tests -name "*.sh" -type f -exec shellcheck {} + || exit 1; \
+		echo "→ Running shellcheck on test library..."; \
+		find tests/lib -name "*.sh" -type f -exec shellcheck {} + || exit 1; \
+		echo ""; \
+		echo "✅ All test scripts pass shellcheck"; \
+	else \
+		echo "⚠ shellcheck not installed"; \
+		echo "Install with: brew install shellcheck"; \
+		exit 1; \
+	fi
+
+audit:
+	@echo "=========================================="
+	@echo "Running Accountability Audit"
+	@echo "=========================================="
+	@echo ""
+	@bash scripts/audit-accountability.sh

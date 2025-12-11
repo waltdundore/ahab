@@ -1,0 +1,1311 @@
+# ==============================================================================
+# Ahab Control - Makefile
+# ==============================================================================
+# Single source of truth: ahab.conf
+# Core command: make install [modules...]
+# ==============================================================================
+
+# Include safety system (optional - for advanced safety checks)
+-include docs/development/Makefile.safety
+
+.PHONY: help install clean clean-all clean-boxes clean-boxes-unused clean-vms verify verify-install ssh deploy test test-unit test-integration test-e2e test-nasa test-os-versions test-properties validate-tests audit audit-unused audit-self audit-self-continue audit-self-status audit-dependencies audit-dependencies-quick audit-dependencies-fix bootstrap check-setup sync-to-workstation sync-from-workstation generate-compose setup-production test-production ui ui-test inventory-list inventory-test inventory-validate docs-components-discover docs-components-generate docs-components-validate docs-components-update docs-components-html secrets-setup secrets-test secrets-rotate secrets-validate secrets-backup secrets-repository-create
+
+# Default target
+all: help
+
+help:
+	@echo "Ahab Control - Available Commands"
+	@echo ""
+	@echo "Setup Commands:"
+	@echo "  make bootstrap            - Set up repository structure"
+	@echo "  make setup-production     - Configure production credentials"
+	@echo "  make setup-ansible-vault  - Set up Ansible Vault (STIG compliance)"
+	@echo "  make test-production      - Test production configuration"
+	@echo ""
+	@echo "Core Commands:"
+	@echo "  make install              - Create workstation VM"
+	@echo "  make install apache mysql - Create workstation + deploy modules"
+	@echo "  make verify-install       - Verify workstation installation"
+	@echo "  make deploy-hello-world   - Deploy hello world web page"
+	@echo "  make generate-compose apache mysql - Generate docker-compose.yml"
+	@echo "  make test                 - Run all tests"
+	@echo "  make test-os-journey      - Test all OSes with full documentation"
+	@echo "  make test-os-quick OS=fedora - Quick test single OS"
+	@echo "  make ssh                  - SSH into workstation"
+	@echo "  make clean                - Destroy workstation VM"
+	@echo "  make clean-all            - Destroy ALL Vagrant VMs and prune cache"
+	@echo "  make clean-vms            - Destroy all orphaned Vagrant VMs"
+	@echo "  make clean-boxes          - Interactive box cleanup (shows options)"
+	@echo "  make clean-boxes-unused   - Remove boxes not in ahab.conf (auto)"
+	@echo ""
+	@echo "Development Commands:"
+	@echo "  make sync-to-workstation  - Push local changes to workstation"
+	@echo "  make sync-from-workstation- Pull workstation changes to local"
+	@echo ""
+	@echo "Web UI Commands:"
+	@echo "  make ui                   - Start Ahab GUI web interface"
+	@echo "  make ui-test              - Test Ahab GUI"
+	@echo ""
+	@echo "Network Commands:"
+	@echo "  make network-switches ENV=dev - Manage network switches (show version)"
+	@echo "  make network-switches-version ENV=dev - Show switch version info only"
+	@echo "  make network-switches-test ENV=dev - Test switch connectivity"
+	@echo "  make network-switches-setup-vault - Set up encrypted switch credentials"
+	@echo ""
+	@echo "Secrets Management Commands:"
+	@echo "  make secrets-setup ENV=dev     - Link secrets repository to ahab"
+	@echo "  make secrets-test              - Test secrets repository access"
+	@echo "  make secrets-rotate ENV=dev SERVICE=network_switches - Rotate credentials"
+	@echo "  make secrets-validate          - Validate all secrets in repository"
+	@echo "  make secrets-backup            - Create encrypted backup of secrets"
+	@echo "  make secrets-repository-create - Create new ahab-secrets repository structure"
+	@echo ""
+	@echo "Inventory Commands:"
+	@echo "  make inventory-list       - List all inventory environments"
+	@echo "  make inventory-test ENV=dev [HOST=hostname] - Test connectivity"
+	@echo "  make inventory-validate ENV=dev - Validate inventory syntax"
+	@echo ""
+	@echo "Documentation Commands:"
+	@echo "  make docs-components-discover - Discover all open-source components"
+	@echo "  make docs-components-generate - Generate component documentation"
+	@echo "  make docs-components-validate - Validate documentation completeness"
+	@echo "  make docs-components-update   - Full update cycle (discover + generate + validate)"
+	@echo ""
+	@echo "Audit Commands:"
+	@echo "  make audit                - Run accountability audit"
+	@echo "  make audit-dependencies   - Run dependency minimization audit"
+	@echo "  make audit-docker-stig    - Validate Docker STIG compliance"
+	@echo "  make audit-self           - Run self-audit system"
+	@echo "  make audit-self-status    - Show audit status"
+	@echo "  make audit-self-continue  - Continue interrupted audit"
+	@echo "  make audit-unused         - Find unused files"
+	@echo "  make scan-specs           - Scan .kiro/specs/ for secrets"
+	@echo ""
+	@echo "Docker Security Commands:"
+	@echo "  make scan-docker-images   - Scan images for vulnerabilities"
+	@echo "  make test-docker-stig     - Run Docker STIG property tests"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make install              # Just the workstation"
+	@echo "  make install apache       # Workstation + Apache"
+	@echo "  make install apache mysql # Workstation + Apache + MySQL"
+	@echo "  make generate-compose apache mysql # Generate docker-compose.yml"
+	@echo ""
+
+# Extract module arguments (everything after 'install' or 'generate-compose')
+MODULES := $(filter-out install generate-compose deploy,$(MAKECMDGOALS))
+
+install:
+	@echo "=========================================="
+	@echo "Ahab - Install"
+	@echo "=========================================="
+	@echo ""
+	@if [ -n "$(MODULES)" ]; then \
+		echo "Workstation + Modules: $(MODULES)"; \
+	else \
+		echo "Workstation only"; \
+	fi
+	@echo ""
+	@echo "→ Creating workstation VM..."
+	@vagrant up --no-destroy-on-error || exit 1
+	@echo ""
+	@echo "→ Fixing permissions..."
+	@vagrant ssh -c "sudo chown -R vagrant:vagrant /home/vagrant/ahab 2>/dev/null || true"
+	@echo ""
+	@if [ -n "$(MODULES)" ]; then \
+		echo "→ Deploying modules: $(MODULES)"; \
+		vagrant ssh -c "cd /home/vagrant/ahab && docker run --rm -v \$$(pwd):/workspace -w /workspace python:3.11-slim bash -c 'pip install -q PyYAML && python3 scripts/generate-docker-compose.py $(MODULES)'" || exit 1; \
+		vagrant ssh -c "cd /home/vagrant/ahab/generated && docker-compose up -d" || exit 1; \
+		echo ""; \
+		echo "✅ Modules deployed: $(MODULES)"; \
+	fi
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Ready"
+	@echo "=========================================="
+	@echo ""
+	@echo "Access: vagrant ssh"
+	@echo ""
+
+# Allow module names as targets (prevents "No rule to make target" errors)
+%:
+	@:
+
+# Python Docker command (ALWAYS run Python in Docker)
+PYTHON_DOCKER = docker run --rm -v $(PWD):/workspace -w /workspace python:3.11-slim
+
+# Generate docker-compose.yml from module definitions
+generate-compose:
+	@echo "=========================================="
+	@echo "Generating docker-compose.yml"
+	@echo "=========================================="
+	@echo ""
+	@if [ -z "$(MODULES)" ]; then \
+		echo "Error: No modules specified"; \
+		echo "Usage: make generate-compose apache mysql"; \
+		exit 1; \
+	fi
+	@echo "Modules: $(MODULES)"
+	@echo ""
+	@echo "→ Running generation script in Docker..."
+	@$(PYTHON_DOCKER) sh -c "pip install -q pyyaml && python scripts/generate-docker-compose.py $(MODULES)"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Generated: docker-compose.yml"
+	@echo "=========================================="
+	@echo ""
+	@echo "To start services:"
+	@echo "  docker-compose up -d"
+	@echo ""
+
+verify:
+	@echo "→ Verifying workstation..."
+	@vagrant status | grep -q "running" || (echo "❌ VM not running"; exit 1)
+	@echo "✓ VM is running"
+	@vagrant ssh -c "command -v ansible" >/dev/null 2>&1 || (echo "❌ Ansible not installed"; exit 1)
+	@echo "✓ Ansible installed"
+	@vagrant ssh -c "command -v docker" >/dev/null 2>&1 || (echo "❌ Docker not installed"; exit 1)
+	@echo "✓ Docker installed"
+	@vagrant ssh -c "systemctl is-active docker" >/dev/null 2>&1 || (echo "❌ Docker not running"; exit 1)
+	@echo "✓ Docker running"
+	@echo ""
+	@echo "✅ All checks passed"
+
+verify-install:
+	@echo "=========================================="
+	@echo "Verifying Workstation Installation"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Checking VM status..."
+	@vagrant status | grep -q "running" || (echo "❌ VM not running"; exit 1)
+	@echo "✓ VM is running"
+	@echo ""
+	@echo "→ Checking required tools..."
+	@vagrant ssh -c "command -v git" >/dev/null 2>&1 || (echo "❌ Git not installed"; exit 1)
+	@echo "✓ Git installed"
+	@vagrant ssh -c "command -v ansible" >/dev/null 2>&1 || (echo "❌ Ansible not installed"; exit 1)
+	@echo "✓ Ansible installed"
+	@vagrant ssh -c "command -v docker" >/dev/null 2>&1 || (echo "❌ Docker not installed"; exit 1)
+	@echo "✓ Docker installed"
+	@vagrant ssh -c "systemctl is-active docker" >/dev/null 2>&1 || (echo "❌ Docker not running"; exit 1)
+	@echo "✓ Docker running"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Workstation Installation Verified"
+	@echo "=========================================="
+
+ssh:
+	@vagrant ssh
+
+clean:
+	@echo "→ Destroying workstation..."
+	@vagrant destroy -f 2>/dev/null || true
+	@rm -rf .vagrant
+	@echo "✓ Clean complete"
+
+clean-vms:
+	@echo "=========================================="
+	@echo "Cleaning Up Orphaned Vagrant VMs"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Pruning invalid Vagrant cache entries..."
+	@vagrant global-status --prune >/dev/null 2>&1
+	@echo "✓ Cache pruned"
+	@echo ""
+	@echo "→ Finding all Vagrant VMs..."
+	@VAGRANT_VMS=$$(vagrant global-status --prune | grep -E '(running|poweroff|saved|aborted)' | awk '{print $$1}' || true); \
+	if [ -z "$$VAGRANT_VMS" ]; then \
+		echo "✓ No VMs found"; \
+	else \
+		echo "Found VMs:"; \
+		vagrant global-status --prune | grep -E '(running|poweroff|saved|aborted)' || true; \
+		echo ""; \
+		read -p "Destroy all these VMs? [y/N] " confirm; \
+		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+			for vm_id in $$VAGRANT_VMS; do \
+				echo "→ Destroying VM $$vm_id..."; \
+				vagrant destroy -f $$vm_id 2>/dev/null || true; \
+			done; \
+			echo ""; \
+			echo "✓ All VMs destroyed"; \
+		else \
+			echo "Cancelled"; \
+		fi; \
+	fi
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ VM Cleanup Complete"
+	@echo "=========================================="
+
+clean-boxes:
+	@echo "=========================================="
+	@echo "Cleaning Up Vagrant Boxes"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Listing installed boxes..."
+	@vagrant box list
+	@echo ""
+	@echo "=========================================="
+	@echo "Boxes Currently in Use (from ahab.conf):"
+	@echo "=========================================="
+	@echo "  ✓ bento/fedora-$$(grep '^FEDORA_VERSION=' ../ahab.conf 2>/dev/null | cut -d'=' -f2 || echo '43')"
+	@echo "  ✓ bento/debian-$$(grep '^DEBIAN_VERSION=' ../ahab.conf 2>/dev/null | cut -d'=' -f2 || echo '13')"
+	@echo "  ✓ bento/ubuntu-$$(grep '^UBUNTU_VERSION=' ../ahab.conf 2>/dev/null | cut -d'=' -f2 || echo '24.04')"
+	@echo ""
+	@echo "=========================================="
+	@echo "Boxes You Can Safely Remove:"
+	@echo "=========================================="
+	@echo ""
+	@echo "Old versions (if you have newer):"
+	@echo "  • bento/fedora-39, fedora-40, fedora-41, fedora-42"
+	@echo "  • bento/debian-11, debian-12"
+	@echo "  • bento/ubuntu-20.04, ubuntu-22.04"
+	@echo ""
+	@echo "Experimental/unused boxes:"
+	@echo "  • generic/* (if not using)"
+	@echo "  • koalephant/* (if not using)"
+	@echo "  • perk/* (if not using)"
+	@echo "  • utm/* (if not using)"
+	@echo ""
+	@echo "=========================================="
+	@echo "Cleanup Options:"
+	@echo "=========================================="
+	@echo ""
+	@echo "1. Remove old versions only (safe):"
+	@echo "   vagrant box prune"
+	@echo ""
+	@echo "2. Remove specific box:"
+	@echo "   vagrant box remove <box-name>"
+	@echo ""
+	@echo "3. Remove specific box with provider:"
+	@echo "   vagrant box remove <box-name> --provider parallels"
+	@echo ""
+	@echo "4. Remove ALL boxes (dangerous!):"
+	@echo "   vagrant box prune --force"
+	@echo ""
+	@read -p "Run 'vagrant box prune' to remove old versions? [y/N] " confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		echo ""; \
+		echo "→ Running vagrant box prune..."; \
+		vagrant box prune; \
+		echo ""; \
+		echo "✓ Old versions removed"; \
+	else \
+		echo ""; \
+		echo "Cancelled - no boxes removed"; \
+		echo ""; \
+		echo "To manually remove unused boxes:"; \
+		echo "  vagrant box remove generic/debian12 --provider parallels"; \
+		echo "  vagrant box remove generic/debian12 --provider virtualbox"; \
+		echo "  vagrant box remove generic/debian12 --provider libvirt"; \
+		echo "  vagrant box remove generic/ubuntu2204 --provider parallels"; \
+		echo "  vagrant box remove koalephant/debian13 --provider parallels"; \
+		echo "  vagrant box remove perk/ubuntu-2204-arm64 --provider libvirt"; \
+		echo "  vagrant box remove utm/bookworm --provider utm"; \
+	fi
+	@echo ""
+	@echo "=========================================="
+	@echo "Current Disk Usage:"
+	@echo "=========================================="
+	@du -sh ~/.vagrant.d 2>/dev/null || echo "  (Vagrant directory not found)"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Box Cleanup Complete"
+	@echo "=========================================="
+
+clean-boxes-unused:
+	@bash scripts/clean-unused-boxes.sh
+
+clean-all: clean-vms clean-boxes-unused
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Complete Cleanup Finished"
+	@echo "=========================================="
+	@echo ""
+	@echo "Summary:"
+	@echo "  ✓ All VMs destroyed"
+	@echo "  ✓ Old boxes removed"
+	@echo "  ✓ Vagrant cache pruned"
+	@echo ""
+	@echo "Disk space recovered:"
+	@du -sh ~/.vagrant.d 2>/dev/null || echo "  (Vagrant directory not found)"
+	@echo ""
+
+deploy:
+	@if [ "$(word 2,$(MAKECMDGOALS))" = "" ]; then \
+		echo "Usage: make deploy apache mysql"; \
+		exit 1; \
+	fi
+	@DEPLOY_MODULES="$(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))"; \
+	echo "→ Deploying modules: $$DEPLOY_MODULES"; \
+	vagrant ssh -c "cd /home/vagrant/ahab && docker run --rm -v \$$(pwd):/workspace -w /workspace python:3.11-slim bash -c 'pip install -q PyYAML && python3 scripts/generate-docker-compose.py $$DEPLOY_MODULES'" || exit 1; \
+	vagrant ssh -c "cd /home/vagrant/ahab/generated && docker-compose up -d" || exit 1; \
+	echo "✅ Deployed: $$DEPLOY_MODULES"
+
+test:
+	@echo "=========================================="
+	@echo "Running Ahab Test Suite"
+	@echo "=========================================="
+	@echo ""
+	@echo "This runs:"
+	@echo "  1. NASA Power of 10 validation"
+	@echo "  2. Simple integration tests (no VM required)"
+	@echo ""
+	@if $(MAKE) test-nasa && $(MAKE) test-integration-simple; then \
+		echo ""; \
+		echo "=========================================="; \
+		echo "✅ All Tests Passed"; \
+		echo "=========================================="; \
+		echo ""; \
+		bash scripts/record-test-pass.sh; \
+		echo "Additional test commands:"; \
+		echo "  make test-unit         - Run unit tests"; \
+		echo "  make test-integration  - Run all integration tests (requires VM)"; \
+		echo "  make test-e2e          - Run end-to-end tests"; \
+		echo "  make validate-tests    - Validate test scripts"; \
+		echo "  make audit             - Run accountability audit"; \
+	else \
+		echo ""; \
+		echo "=========================================="; \
+		echo "❌ Tests Failed"; \
+		echo "=========================================="; \
+		echo ""; \
+		bash scripts/record-test-fail.sh; \
+		exit 1; \
+	fi
+
+test-integration-simple:
+	@echo "=========================================="
+	@echo "Running Simple Integration Tests"
+	@echo "=========================================="
+	@echo ""
+	@if [ -f "tests/integration/test-apache-simple.sh" ]; then \
+		echo "→ Running tests/integration/test-apache-simple.sh..."; \
+		bash tests/integration/test-apache-simple.sh || exit 1; \
+		echo ""; \
+		echo "✅ Simple integration tests passed"; \
+	else \
+		echo "⚠ No simple integration tests found"; \
+	fi
+test-unit:
+	@echo "=========================================="
+	@echo "Running Unit Tests"
+	@echo "=========================================="
+	@echo ""
+	@if [ -d "tests/unit" ] && [ -n "$$(ls -A tests/unit/*.sh 2>/dev/null)" ]; then \
+		for test in tests/unit/*.sh; do \
+			echo "→ Running $$test..."; \
+			bash $$test || exit 1; \
+		done; \
+		echo ""; \
+		echo "✅ All unit tests passed"; \
+	else \
+		echo "ℹ No unit tests found (tests/unit/ is empty)"; \
+	fi
+
+test-integration:
+	@echo "=========================================="
+	@echo "Running Integration Tests"
+	@echo "=========================================="
+	@echo ""
+	@if [ -d "tests/integration" ] && [ -n "$$(ls -A tests/integration/*.sh 2>/dev/null)" ]; then \
+		for test in tests/integration/*.sh; do \
+			echo "→ Running $$test..."; \
+			bash $$test || exit 1; \
+		done; \
+		echo ""; \
+		echo "✅ All integration tests passed"; \
+	else \
+		echo "⚠ No integration tests found"; \
+		exit 1; \
+	fi
+
+test-e2e:
+	@echo "=========================================="
+	@echo "Running End-to-End Tests"
+	@echo "=========================================="
+	@echo ""
+	@if [ -d "tests/e2e" ] && [ -n "$$(ls -A tests/e2e/*.sh 2>/dev/null)" ]; then \
+		for test in tests/e2e/*.sh; do \
+			echo "→ Running $$test..."; \
+			bash $$test || exit 1; \
+		done; \
+		echo ""; \
+		echo "✅ All e2e tests passed"; \
+	else \
+		echo "⚠ No e2e tests found"; \
+		exit 1; \
+	fi
+
+test-nasa:
+	@echo "=========================================="
+	@echo "Validating NASA Power of 10 Standards"
+	@echo "=========================================="
+	@echo ""
+	@if [ -f "scripts/validate-nasa-standards.sh" ]; then \
+		bash scripts/validate-nasa-standards.sh; \
+	else \
+		echo "⚠ NASA validation script not found"; \
+		exit 1; \
+	fi
+
+test-os-versions:
+	@echo "=========================================="
+	@echo "Testing OS Versions"
+	@echo "=========================================="
+	@echo ""
+	@echo "This will test Debian, Fedora, and Ubuntu"
+	@echo "Warning: This takes time as it creates 3 VMs"
+	@echo ""
+	@if [ -f "tests/integration/test-os-versions.sh" ]; then \
+		bash tests/integration/test-os-versions.sh; \
+	else \
+		echo "❌ OS version test script not found"; \
+		exit 1; \
+	fi
+
+test-os-journey:
+	@echo "=========================================="
+	@echo "Testing OS Installation Journey"
+	@echo "=========================================="
+	@echo ""
+	@echo "This will:"
+	@echo "  1. Test Fedora, Debian, and Ubuntu installations"
+	@echo "  2. Document every step with timestamps"
+	@echo "  3. Generate LESSONS_LEARNED_OS_TESTING.md"
+	@echo "  4. Deploy hello world as proof of functionality"
+	@echo ""
+	@echo "Warning: This takes 30-60 minutes (creates 3 VMs)"
+	@echo ""
+	@read -p "Continue? [y/N] " confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		bash tests/integration/test-os-install-journey.sh; \
+	else \
+		echo "Cancelled"; \
+	fi
+
+test-os-quick:
+	@echo "=========================================="
+	@echo "Quick OS Test"
+	@echo "=========================================="
+	@echo ""
+	@echo "Test a single OS quickly (for learning/debugging)"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make test-os-quick OS=fedora"
+	@echo "  make test-os-quick OS=debian"
+	@echo "  make test-os-quick OS=ubuntu"
+	@echo ""
+	@if [ -z "$(OS)" ]; then \
+		echo "Error: OS parameter required"; \
+		echo "Example: make test-os-quick OS=fedora"; \
+		exit 1; \
+	fi
+	@bash scripts/quick-test-os.sh $(OS)
+
+deploy-hello-world:
+	@echo "=========================================="
+	@echo "Deploying Hello World"
+	@echo "=========================================="
+	@echo ""
+	@if ! vagrant status 2>/dev/null | grep -q "running"; then \
+		echo "❌ Workstation not running"; \
+		echo "Run: make install"; \
+		exit 1; \
+	fi
+	@bash scripts/deploy-hello-world.sh
+
+validate-tests:
+	@echo "=========================================="
+	@echo "Validating Test Scripts"
+	@echo "=========================================="
+	@echo ""
+	@if command -v shellcheck >/dev/null 2>&1; then \
+		echo "→ Running shellcheck on test scripts..."; \
+		find tests -name "*.sh" -type f -exec shellcheck {} + || exit 1; \
+		echo "→ Running shellcheck on test library..."; \
+		find tests/lib -name "*.sh" -type f -exec shellcheck {} + || exit 1; \
+		echo ""; \
+		echo "✅ All test scripts pass shellcheck"; \
+	else \
+		echo "⚠ shellcheck not installed"; \
+		echo "Install with: brew install shellcheck"; \
+		exit 1; \
+	fi
+
+audit:
+	@echo "=========================================="
+	@echo "Running Accountability Audit"
+	@echo "=========================================="
+	@echo ""
+	@bash scripts/audit-accountability.sh
+
+audit-unused:
+	@echo "=========================================="
+	@echo "Auditing Unused Files"
+	@echo "=========================================="
+	@echo ""
+	@bash scripts/audit-unused-files.sh
+
+audit-self:
+	@echo "=========================================="
+	@echo "Running Self-Audit System"
+	@echo "=========================================="
+	@echo ""
+	@bash scripts/audit-self.sh run
+
+audit-self-continue:
+	@echo "=========================================="
+	@echo "Continuing Self-Audit"
+	@echo "=========================================="
+	@echo ""
+	@bash scripts/audit-self.sh continue
+
+audit-self-status:
+	@bash scripts/audit-self.sh status
+
+audit-dependencies:
+	@(bash scripts/audit-dependencies.sh & \
+		PID=$$!; \
+		(sleep 60; kill -TERM $$PID 2>/dev/null) & \
+		TIMER_PID=$$!; \
+		wait $$PID; \
+		EXIT_CODE=$$?; \
+		kill $$TIMER_PID 2>/dev/null; \
+		if [ $$EXIT_CODE -eq 143 ]; then \
+			echo "ERROR: Audit hung after 60 seconds"; \
+			if [ -f .audit-dependencies-state ]; then \
+				echo "Last known state:"; \
+				cat .audit-dependencies-state; \
+			fi; \
+			exit 142; \
+		fi; \
+		exit $$EXIT_CODE)
+
+audit-dependencies-quick:
+	@(bash scripts/audit-dependencies.sh --quick & \
+		PID=$$!; \
+		(sleep 30; kill -TERM $$PID 2>/dev/null) & \
+		TIMER_PID=$$!; \
+		wait $$PID; \
+		EXIT_CODE=$$?; \
+		kill $$TIMER_PID 2>/dev/null; \
+		if [ $$EXIT_CODE -eq 143 ]; then \
+			echo "ERROR: Quick audit hung after 30 seconds"; \
+			if [ -f .audit-dependencies-state ]; then \
+				echo "Last known state:"; \
+				cat .audit-dependencies-state; \
+			fi; \
+			exit 142; \
+		fi; \
+		exit $$EXIT_CODE)
+
+audit-dependencies-fix:
+	@bash scripts/audit-dependencies.sh --fix
+
+release-check:
+	@echo "=========================================="
+	@echo "Pre-Release Validation"
+	@echo "=========================================="
+	@echo ""
+	@echo "Running critical checks before push..."
+	@echo ""
+	@$(MAKE) test-nasa || exit 1
+	@echo ""
+	@if ! git diff-index --quiet HEAD --; then \
+		echo "❌ ERROR: Uncommitted changes detected"; \
+		echo ""; \
+		echo "Commit or stash changes before release"; \
+		git status --short; \
+		exit 1; \
+	fi
+	@echo "✓ No uncommitted changes"
+	@echo ""
+	@if ls audit-report-*.md >/dev/null 2>&1; then \
+		echo "⚠ WARNING: Audit reports found"; \
+		echo "Run: rm -f audit-report-*.md"; \
+		echo ""; \
+	fi
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ RELEASE CHECK PASSED"
+	@echo "=========================================="
+	@echo ""
+	@echo "Safe to push to dev branch"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  git push origin dev"
+	@echo ""
+	@echo "For main branch, also run:"
+	@echo "  make audit"
+	@echo "  Update CHANGELOG.md"
+	@echo "  Tag release: git tag v0.x.x"
+
+# Sync local changes to workstation (for development)
+sync-to-workstation:
+	@echo "→ Syncing local changes to workstation..."
+	@if ! vagrant status 2>/dev/null | grep -q "running"; then \
+		echo "❌ Workstation not running"; \
+		echo "Run: make install"; \
+		exit 1; \
+	fi
+	@vagrant rsync
+	@echo "✓ Changes synced to workstation"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  make ssh"
+	@echo "  cd ~/git/ahab"
+	@echo "  make test"
+
+# Sync workstation changes back to local (for development)
+sync-from-workstation:
+	@echo "→ Syncing workstation changes to local..."
+	@if ! vagrant status 2>/dev/null | grep -q "running"; then \
+		echo "❌ Workstation not running"; \
+		exit 1; \
+	fi
+	@vagrant rsync-back
+	@echo "✓ Changes synced from workstation"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  git status"
+	@echo "  git add -A"
+	@echo "  git commit -m '...'"
+	@echo "  git push origin dev"
+
+# Sync from remote (handles uncommitted changes)
+sync:
+	@echo "=========================================="
+	@echo "Syncing from remote"
+	@echo "=========================================="
+	@echo ""
+	@if ! git diff-index --quiet HEAD --; then \
+		echo "⚠️  Uncommitted changes detected - stashing..."; \
+		git stash push -m "Auto-stash before sync at $$(date)"; \
+		git pull --rebase --allow-unrelated-histories origin dev; \
+		echo "→ Reapplying stashed changes..."; \
+		git stash pop; \
+	else \
+		git pull --rebase --allow-unrelated-histories origin dev; \
+	fi
+	@echo ""
+	@echo "✅ Sync complete"
+
+test-properties:
+	@echo "=========================================="
+	@echo "Running Property-Based Tests"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running Python property tests in Docker container..."
+	@rm -rf /tmp/audit-test && mkdir -p /tmp/audit-test && cp -r audit /tmp/audit-test/
+	@docker run --rm \
+		-v "/tmp/audit-test:/workspace" \
+		-w /workspace \
+		python:3.11-slim \
+		bash -c "pip install -q -r audit/requirements.txt && python -m pytest audit/tests/test_properties.py -v --no-cov" || \
+		(echo ""; echo "❌ Property tests failed"; exit 1)
+	@echo ""
+	@echo "✅ All property tests passed"
+
+# ==============================================================================
+# Production Deployment Commands
+# ==============================================================================
+
+setup-production:
+	@echo "=========================================="
+	@echo "Setting Up Production Credentials"
+	@echo "=========================================="
+	@echo ""
+	@./scripts/setup-production-credentials.sh
+
+test-production:
+	@echo "=========================================="
+	@echo "Testing Production Configuration"
+	@echo "=========================================="
+	@echo ""
+	@if [ -f "tests/test-production-credentials.sh" ]; then \
+		./tests/test-production-credentials.sh; \
+	else \
+		echo "⚠ Production test script not yet implemented"; \
+		echo "Will be created in task M0.5.5"; \
+	fi
+
+setup-ansible-vault:
+	@echo "=========================================="
+	@echo "Setting Up Ansible Vault (STIG Compliance)"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running: ./scripts/setup-ansible-vault.sh --setup-production"
+	@echo "   Purpose: Configure Ansible Vault for secure credential storage (STIG-ANSI-IA-000001)"
+	@./scripts/setup-ansible-vault.sh --setup-production
+
+# ==============================================================================
+# Web UI Commands
+# ==============================================================================
+
+ui:
+	@echo "=========================================="
+	@echo "Starting Ahab GUI"
+	@echo "=========================================="
+	@echo ""
+	@if [ ! -f ../ahab-gui/Makefile ]; then \
+		echo "❌ ahab-gui not found"; \
+		echo "Expected location: ../ahab-gui/"; \
+		exit 1; \
+	fi
+	@cd ../ahab-gui && $(MAKE) run
+
+ui-test:
+	@echo "=========================================="
+	@echo "Testing Ahab GUI"
+	@echo "=========================================="
+	@echo ""
+	@cd ../ahab-gui && $(MAKE) test
+
+# ==============================================================================
+# Inventory Management Commands
+# ==============================================================================
+
+inventory-list:
+	@echo "=========================================="
+	@echo "Inventory Environments"
+	@echo "=========================================="
+	@echo ""
+	@for env in dev prod workstation; do \
+		if [ -f "inventory/$$env/hosts.yml" ]; then \
+			echo "✓ $$env (configured)"; \
+			if grep -q "^$$env/hosts.yml$$" inventory/.gitignore 2>/dev/null; then \
+				echo "  └─ Protected from git"; \
+			else \
+				echo "  └─ ⚠️  Not in .gitignore"; \
+			fi; \
+		elif [ -f "inventory/$$env/hosts.yml.example" ]; then \
+			echo "○ $$env (example only)"; \
+		else \
+			echo "✗ $$env (not found)"; \
+		fi; \
+		echo ""; \
+	done
+	@echo "=========================================="
+
+inventory-test:
+	@if [ -z "$(ENV)" ]; then \
+		echo "==========================================";\
+		echo "Error: ENV parameter required";\
+		echo "==========================================";\
+		echo "";\
+		echo "Usage:";\
+		echo "  make inventory-test ENV=dev           # Test all hosts";\
+		echo "  make inventory-test ENV=dev HOST=web1 # Test specific host";\
+		echo "";\
+		exit 1; \
+	fi
+	@echo "=========================================="
+	@echo "Testing Inventory Connectivity"
+	@echo "=========================================="
+	@echo ""
+	@echo "Environment: $(ENV)"
+	@if [ -n "$(HOST)" ]; then \
+		echo "Host: $(HOST)"; \
+	else \
+		echo "Host: all"; \
+	fi
+	@echo ""
+	@if [ ! -f "inventory/$(ENV)/hosts.yml" ]; then \
+		echo "❌ Inventory file not found: inventory/$(ENV)/hosts.yml"; \
+		echo ""; \
+		echo "Create it with:"; \
+		echo "  cp inventory/$(ENV)/hosts.yml.example inventory/$(ENV)/hosts.yml"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@echo "→ Running ansible ping..."
+	@echo ""
+	@if [ -n "$(HOST)" ]; then \
+		ansible $(HOST) -i inventory/$(ENV)/hosts.yml -m ping; \
+	else \
+		ansible all -i inventory/$(ENV)/hosts.yml -m ping; \
+	fi
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Connectivity Test Complete"
+	@echo "=========================================="
+
+inventory-validate:
+	@if [ -z "$(ENV)" ]; then \
+		echo "==========================================";\
+		echo "Error: ENV parameter required";\
+		echo "==========================================";\
+		echo "";\
+		echo "Usage:";\
+		echo "  make inventory-validate ENV=dev";\
+		echo "";\
+		exit 1; \
+	fi
+	@echo "=========================================="
+	@echo "Validating Inventory"
+	@echo "=========================================="
+	@echo ""
+	@echo "Environment: $(ENV)"
+	@echo ""
+	@if [ ! -f "inventory/$(ENV)/hosts.yml" ]; then \
+		echo "❌ Inventory file not found: inventory/$(ENV)/hosts.yml"; \
+		echo ""; \
+		echo "Create it with:"; \
+		echo "  cp inventory/$(ENV)/hosts.yml.example inventory/$(ENV)/hosts.yml"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@echo "→ Validating YAML syntax..."
+	@echo ""
+	@if ansible-inventory -i inventory/$(ENV)/hosts.yml --list > /dev/null 2>&1; then \
+		echo "✓ YAML syntax valid"; \
+		echo ""; \
+		echo "→ Inventory structure:"; \
+		ansible-inventory -i inventory/$(ENV)/hosts.yml --graph; \
+		echo ""; \
+		echo "==========================================";\
+		echo "✅ Inventory Valid";\
+		echo "==========================================";\
+	else \
+		echo "❌ YAML syntax invalid"; \
+		echo ""; \
+		ansible-inventory -i inventory/$(ENV)/hosts.yml --list; \
+		echo ""; \
+		echo "==========================================";\
+		echo "❌ Validation Failed";\
+		echo "==========================================";\
+		exit 1; \
+	fi
+
+# ==============================================================================
+# Component Documentation Commands
+# ==============================================================================
+
+# Python Docker command for documentation scripts
+PYTHON_DOCS_DOCKER = docker run --rm -v $(PWD):/workspace -w /workspace python:3.11-slim
+
+docs-components-discover:
+	@echo "=========================================="
+	@echo "Discovering Open Source Components"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Installing documentation dependencies..."
+	@$(PYTHON_DOCS_DOCKER) sh -c "pip install -q -r requirements-docs.txt && python scripts/docs/components/discover.py"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Component Discovery Complete"
+	@echo "=========================================="
+
+docs-components-generate:
+	@echo "=========================================="
+	@echo "Generating Component Documentation"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Installing documentation dependencies..."
+	@$(PYTHON_DOCS_DOCKER) sh -c "pip install -q -r requirements-docs.txt && python scripts/docs/components/generate.py"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Documentation Generated"
+	@echo "=========================================="
+	@echo ""
+	@echo "Output: OPEN_SOURCE_COMPONENTS.md"
+
+docs-components-validate:
+	@echo "=========================================="
+	@echo "Validating Component Documentation"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Installing documentation dependencies..."
+	@$(PYTHON_DOCS_DOCKER) sh -c "pip install -q -r requirements-docs.txt && python scripts/docs/components/validate.py"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Validation Complete"
+	@echo "=========================================="
+
+docs-components-update:
+	@echo "=========================================="
+	@echo "Updating Component Documentation"
+	@echo "=========================================="
+	@echo ""
+	@$(MAKE) docs-components-discover
+	@echo ""
+	@$(MAKE) docs-components-generate
+	@echo ""
+	@$(MAKE) docs-components-validate
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Documentation Update Complete"
+	@echo "=========================================="
+
+docs-components-html:
+	@echo "=========================================="
+	@echo "Generating HTML Component Documentation"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Installing documentation dependencies..."
+	@$(PYTHON_DOCS_DOCKER) sh -c "pip install -q -r requirements-docs.txt && python scripts/docs/components/generate.py --format=html"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ HTML Documentation Generated"
+	@echo "=========================================="
+	@echo ""
+	@echo "Output: docs/components.html"
+
+# ==============================================================================
+# Docker STIG Compliance Commands
+# ==============================================================================
+
+audit-docker-stig:
+	@echo "=========================================="
+	@echo "Validating Docker STIG Compliance"
+	@echo "=========================================="
+	@echo ""
+	@./scripts/ci/validate-docker-stig.sh
+
+scan-docker-images:
+	@echo "=========================================="
+	@echo "Scanning Docker Images for Vulnerabilities"
+	@echo "=========================================="
+	@echo ""
+	@./scripts/ci/scan-docker-images.sh
+
+test-docker-stig:
+	@echo "=========================================="
+	@echo "Running Docker STIG Property Tests"
+	@echo "=========================================="
+	@echo ""
+	@./tests/property/test-docker-stig-compliance.sh
+
+# ==============================================================================
+# Network Switch Management Commands
+# ==============================================================================
+
+network-switches:
+	@if [ -z "$(ENV)" ]; then \
+		echo "==========================================";\
+		echo "Error: ENV parameter required";\
+		echo "==========================================";\
+		echo "";\
+		echo "Usage:";\
+		echo "  make network-switches ENV=dev     # Manage dev switches";\
+		echo "  make network-switches ENV=prod    # Manage prod switches";\
+		echo "";\
+		echo "Available operations:";\
+		echo "  make network-switches-version ENV=dev   # Show version only";\
+		echo "  make network-switches-test ENV=dev      # Test connectivity";\
+		echo "";\
+		exit 1; \
+	fi
+	@echo "=========================================="
+	@echo "Managing Network Switches"
+	@echo "=========================================="
+	@echo ""
+	@echo "Environment: $(ENV)"
+	@echo ""
+	@if [ ! -f "inventory/$(ENV)/network-switches.yml" ]; then \
+		echo "❌ Network switches inventory not found: inventory/$(ENV)/network-switches.yml"; \
+		echo ""; \
+		echo "Create it with:"; \
+		echo "  cp inventory/$(ENV)/network-switches.yml.example inventory/$(ENV)/network-switches.yml"; \
+		echo "  vim inventory/$(ENV)/network-switches.yml  # Update with your switch IPs"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@echo "→ Running: ansible-playbook playbooks/network-switches.yml -i inventory/$(ENV)/network-switches.yml"
+	@echo "   Purpose: Show version information and manage HP Aruba and Ruckus switches"
+	@echo ""
+	@ansible-playbook playbooks/network-switches.yml -i inventory/$(ENV)/network-switches.yml
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Network Switch Management Complete"
+	@echo "=========================================="
+
+network-switches-version:
+	@if [ -z "$(ENV)" ]; then \
+		echo "==========================================";\
+		echo "Error: ENV parameter required";\
+		echo "==========================================";\
+		echo "";\
+		echo "Usage:";\
+		echo "  make network-switches-version ENV=dev";\
+		echo "";\
+		exit 1; \
+	fi
+	@echo "=========================================="
+	@echo "Network Switch Version Information"
+	@echo "=========================================="
+	@echo ""
+	@echo "Environment: $(ENV)"
+	@echo ""
+	@if [ ! -f "inventory/$(ENV)/network-switches.yml" ]; then \
+		echo "❌ Network switches inventory not found: inventory/$(ENV)/network-switches.yml"; \
+		echo ""; \
+		echo "Create it with:"; \
+		echo "  cp inventory/$(ENV)/network-switches.yml.example inventory/$(ENV)/network-switches.yml"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@echo "→ Running: ansible-playbook playbooks/network-switches.yml -i inventory/$(ENV)/network-switches.yml --tags show_version"
+	@echo "   Purpose: Show version information for HP Aruba and Ruckus switches"
+	@echo ""
+	@ansible-playbook playbooks/network-switches.yml -i inventory/$(ENV)/network-switches.yml --tags show_version
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Version Information Retrieved"
+	@echo "=========================================="
+
+network-switches-test:
+	@if [ -z "$(ENV)" ]; then \
+		echo "==========================================";\
+		echo "Error: ENV parameter required";\
+		echo "==========================================";\
+		echo "";\
+		echo "Usage:";\
+		echo "  make network-switches-test ENV=dev";\
+		echo "";\
+		exit 1; \
+	fi
+	@echo "=========================================="
+	@echo "Testing Network Switch Connectivity"
+	@echo "=========================================="
+	@echo ""
+	@echo "Environment: $(ENV)"
+	@echo ""
+	@if [ ! -f "inventory/$(ENV)/network-switches.yml" ]; then \
+		echo "❌ Network switches inventory not found: inventory/$(ENV)/network-switches.yml"; \
+		echo ""; \
+		echo "Create it with:"; \
+		echo "  cp inventory/$(ENV)/network-switches.yml.example inventory/$(ENV)/network-switches.yml"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@echo "→ Running: ansible-playbook playbooks/network-switches.yml -i inventory/$(ENV)/network-switches.yml --tags connectivity,test"
+	@echo "   Purpose: Test connectivity to HP Aruba and Ruckus switches"
+	@echo ""
+	@ansible-playbook playbooks/network-switches.yml -i inventory/$(ENV)/network-switches.yml --tags connectivity,test
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Connectivity Test Complete"
+	@echo "=========================================="
+network-switches-setup-vault:
+	@echo "=========================================="
+	@echo "Network Switch Vault Setup"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running: Setting up encrypted credentials for network switches"
+	@echo "   Purpose: Create secure Ansible Vault for switch passwords (Zero Trust)"
+	@echo ""
+	@if [ ! -f ~/.ansible_vault_pass ]; then \
+		echo "Setting up vault password file..."; \
+		echo "→ Running: ./scripts/setup-ansible-vault.sh --create-vault"; \
+		echo "   Purpose: Create secure vault password file"; \
+		./scripts/setup-ansible-vault.sh --create-vault; \
+	else \
+		echo "✓ Vault password file exists: ~/.ansible_vault_pass"; \
+	fi
+	@echo ""
+	@if [ ! -f inventory/group_vars/network_switches/vault.yml ]; then \
+		echo "Creating switch credentials vault..."; \
+		echo "→ Running: mkdir -p inventory/group_vars/network_switches"; \
+		echo "   Purpose: Create directory structure for switch credentials"; \
+		mkdir -p inventory/group_vars/network_switches; \
+		echo "→ Running: cp vault.yml.example vault.yml"; \
+		echo "   Purpose: Create template for switch credentials"; \
+		cp inventory/group_vars/network_switches/vault.yml.example inventory/group_vars/network_switches/vault.yml; \
+		echo ""; \
+		echo "📝 Next steps:"; \
+		echo "1. Edit credentials: ansible-vault edit inventory/group_vars/network_switches/vault.yml --vault-password-file ~/.ansible_vault_pass"; \
+		echo "2. Replace CHANGE_ME values with real passwords"; \
+		echo "3. Test: make network-switches-test ENV=dev"; \
+		echo ""; \
+	else \
+		echo "✓ Switch credentials vault exists"; \
+		echo ""; \
+		echo "📝 To edit: ansible-vault edit inventory/group_vars/network_switches/vault.yml --vault-password-file ~/.ansible_vault_pass"; \
+		echo ""; \
+	fi
+	@echo "=========================================="
+	@echo "✅ Vault Setup Complete"
+	@echo "=========================================="
+	@echo ""
+# ==============================================================================
+# Secrets Management Commands
+# ==============================================================================
+
+.PHONY: secrets-setup secrets-test secrets-rotate secrets-validate secrets-backup secrets-repository-create
+
+secrets-setup:
+	@echo "=========================================="
+	@echo "Secrets Repository Setup"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running: Linking secrets repository to ahab"
+	@echo "   Purpose: Connect private ahab-secrets repository for secure credential storage"
+	@echo ""
+	@if [ -z "$(ENV)" ]; then \
+		echo "ERROR: ENV parameter required"; \
+		echo "Usage: make secrets-setup ENV=dev|prod"; \
+		exit 1; \
+	fi
+	@if [ ! -d "../ahab-secrets" ]; then \
+		echo "ERROR: ahab-secrets repository not found"; \
+		echo "Expected location: ../ahab-secrets"; \
+		echo ""; \
+		echo "To create repository structure:"; \
+		echo "  make secrets-repository-create"; \
+		echo ""; \
+		echo "To clone existing repository:"; \
+		echo "  cd .. && git clone https://github.com/waltdundore/ahab-secrets.git"; \
+		exit 1; \
+	fi
+	@echo "→ Running: mkdir -p inventory/group_vars/network_switches"
+	@echo "   Purpose: Create directory structure for network switch credentials"
+	@mkdir -p inventory/group_vars/network_switches
+	@echo "→ Running: ln -sf ../../../ahab-secrets/ansible/group_vars/network_switches/vault_$(ENV).yml inventory/group_vars/network_switches/vault.yml"
+	@echo "   Purpose: Link $(ENV) environment credentials to ahab inventory"
+	@ln -sf ../../../ahab-secrets/ansible/group_vars/network_switches/vault_$(ENV).yml inventory/group_vars/network_switches/vault.yml
+	@echo "✓ Secrets linked for environment: $(ENV)"
+	@echo ""
+	@echo "Next steps:"
+	@echo "1. Test access: make secrets-test"
+	@echo "2. Test connectivity: make network-switches-test ENV=$(ENV)"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Secrets Setup Complete"
+	@echo "=========================================="
+
+secrets-test:
+	@echo "=========================================="
+	@echo "Secrets Repository Test"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running: Testing secrets repository access"
+	@echo "   Purpose: Verify git-crypt unlock and Ansible Vault access"
+	@echo ""
+	@if [ ! -d "../ahab-secrets" ]; then \
+		echo "ERROR: ahab-secrets repository not found at ../ahab-secrets"; \
+		exit 1; \
+	fi
+	@if [ ! -f "../ahab-secrets/ansible/vault-password.txt" ]; then \
+		echo "ERROR: Vault password file not found"; \
+		echo "Expected: ../ahab-secrets/ansible/vault-password.txt"; \
+		echo "Run: cd ../ahab-secrets && ./scripts/setup-secrets.sh"; \
+		exit 1; \
+	fi
+	@echo "→ Running: ansible-vault view inventory/group_vars/network_switches/vault.yml --vault-password-file ../ahab-secrets/ansible/vault-password.txt"
+	@echo "   Purpose: Test Ansible Vault decryption with secrets repository password"
+	@if ansible-vault view inventory/group_vars/network_switches/vault.yml \
+		--vault-password-file ../ahab-secrets/ansible/vault-password.txt > /dev/null 2>&1; then \
+		echo "✓ Ansible Vault access verified"; \
+	else \
+		echo "ERROR: Cannot access Ansible Vault files"; \
+		echo "Check vault password file: ../ahab-secrets/ansible/vault-password.txt"; \
+		exit 1; \
+	fi
+	@echo "→ Running: cd ../ahab-secrets && git-crypt status"
+	@echo "   Purpose: Verify git-crypt encryption status"
+	@cd ../ahab-secrets && git-crypt status | head -5
+	@echo "✓ Git-crypt status verified"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Secrets Test Complete"
+	@echo "=========================================="
+
+secrets-rotate:
+	@echo "=========================================="
+	@echo "Credential Rotation"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running: Rotating credentials for $(SERVICE) in $(ENV) environment"
+	@echo "   Purpose: Generate new passwords and update vault (Zero Trust security)"
+	@echo ""
+	@if [ -z "$(ENV)" ] || [ -z "$(SERVICE)" ]; then \
+		echo "ERROR: ENV and SERVICE parameters required"; \
+		echo "Usage: make secrets-rotate ENV=dev|prod SERVICE=network_switches|databases|services"; \
+		echo ""; \
+		echo "Examples:"; \
+		echo "  make secrets-rotate ENV=dev SERVICE=network_switches"; \
+		echo "  make secrets-rotate ENV=prod SERVICE=databases"; \
+		exit 1; \
+	fi
+	@if [ ! -d "../ahab-secrets" ]; then \
+		echo "ERROR: ahab-secrets repository not found at ../ahab-secrets"; \
+		exit 1; \
+	fi
+	@echo "→ Running: cd ../ahab-secrets && ./scripts/rotate-credentials.sh $(SERVICE) $(ENV)"
+	@echo "   Purpose: Execute credential rotation script with new secure passwords"
+	@cd ../ahab-secrets && ./scripts/rotate-credentials.sh $(SERVICE) $(ENV)
+	@echo ""
+	@echo "IMPORTANT: Test new credentials before deploying!"
+	@echo "Test command: make network-switches-test ENV=$(ENV)"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Credential Rotation Complete"
+	@echo "=========================================="
+
+secrets-validate:
+	@echo "=========================================="
+	@echo "Secrets Validation"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running: Validating all secrets in repository"
+	@echo "   Purpose: Verify vault files, SSH keys, and encryption status (CIA Triad)"
+	@echo ""
+	@if [ ! -d "../ahab-secrets" ]; then \
+		echo "ERROR: ahab-secrets repository not found at ../ahab-secrets"; \
+		exit 1; \
+	fi
+	@echo "→ Running: cd ../ahab-secrets && ./scripts/validate-secrets.sh"
+	@echo "   Purpose: Run comprehensive validation of all secret files"
+	@cd ../ahab-secrets && ./scripts/validate-secrets.sh
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Secrets Validation Complete"
+	@echo "=========================================="
+
+secrets-backup:
+	@echo "=========================================="
+	@echo "Secrets Backup"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running: Creating encrypted backup of secrets repository"
+	@echo "   Purpose: Create secure backup for disaster recovery (Availability)"
+	@echo ""
+	@if [ ! -d "../ahab-secrets" ]; then \
+		echo "ERROR: ahab-secrets repository not found at ../ahab-secrets"; \
+		exit 1; \
+	fi
+	@echo "→ Running: cd ../ahab-secrets && ./scripts/backup-secrets.sh"
+	@echo "   Purpose: Create encrypted tar.gz backup with GPG encryption"
+	@cd ../ahab-secrets && ./scripts/backup-secrets.sh
+	@echo ""
+	@echo "IMPORTANT: Store backup files in secure location separate from repository!"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Secrets Backup Complete"
+	@echo "=========================================="
+
+secrets-repository-create:
+	@echo "=========================================="
+	@echo "Create Secrets Repository"
+	@echo "=========================================="
+	@echo ""
+	@echo "→ Running: Creating ahab-secrets repository structure"
+	@echo "   Purpose: Set up private repository for secure credential storage"
+	@echo ""
+	@echo "→ Running: ./scripts/setup-secrets-repository.sh"
+	@echo "   Purpose: Create complete directory structure, scripts, and examples"
+	@./scripts/setup-secrets-repository.sh
+	@echo ""
+	@echo "Next steps:"
+	@echo "1. cd ../ahab-secrets"
+	@echo "2. git-crypt init"
+	@echo "3. ./scripts/setup-secrets.sh"
+	@echo "4. Create GitHub repository (PRIVATE)"
+	@echo "5. git remote add origin https://github.com/waltdundore/ahab-secrets.git"
+	@echo "6. git push -u origin main"
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Repository Creation Complete"
+	@echo "=========================================="

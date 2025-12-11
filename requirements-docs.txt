@@ -1,0 +1,22 @@
+# Requirements for Open Source Attribution Documentation System
+# These dependencies are used to discover, document, and validate
+# all open-source components used in the Ahab project.
+
+# HTTP client for fetching metadata from PyPI and GitHub APIs
+requests>=2.31.0
+
+# Requirement parsing library for parsing requirements.txt files
+packaging>=23.0
+
+# Templating engine for generating markdown and HTML documentation
+Jinja2>=3.1.0
+
+# YAML parsing for component metadata files
+PyYAML>=6.0
+
+# Testing dependencies
+pytest>=7.4.0
+hypothesis>=6.0.0
+
+# Optional: HTML parsing for validation (can be added later if needed)
+# beautifulsoup4>=4.12.0

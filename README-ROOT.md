@@ -17,7 +17,7 @@
 
 [![Tests](https://img.shields.io/badge/tests-failing-red)](ahab/TESTING.md)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-lightgrey)](LICENSE)
-[![Status](https://img.shields.io/badge/status-critical--work--needed-red)](CHANGELOG.md)
+[![Status](https://img.shields.io/badge/status-alpha--development-orange)](CHANGELOG.md)
 [![GUI Available](https://img.shields.io/badge/GUI-available-blue)](https://github.com/waltdundore/ahab-gui)
 
 </div>
@@ -32,7 +32,7 @@
 
 ---
 
-## ⚠️ Important Disclaimer
+## ⚠️ Important Disclaimer - Alpha Development Version
 
 [![Sprint](https://img.shields.io/badge/sprint-3%20active-blue)](QUEUE.md#current-sprint)
 
@@ -40,18 +40,25 @@
 
 [![Milestones](https://img.shields.io/badge/milestones-0%2F20%20(0%25)-red)](PRIORITIES.md)
 
-**This project is AI-assisted and actively developed.** If you deploy this to production without reading and understanding the code, that's on you. We're building this to be production-ready, but we're not there yet.
+**🚨 THIS IS AN ALPHA VERSION - NOT FOR PRODUCTION USE 🚨**
+
+**Current Status: Active Development**
+- This is experimental software under heavy development
+- Features may change or break without notice
+- No security audit has been performed
+- Not recommended for production environments
+- Use only for learning, testing, and development
 
 **What you should know:**
 - This code is built using AI assistance and follows industry best practices
 - It's vetted and backed by the creator of /r/k12sysadmin on Reddit
-- We use it in our own environment and test everything we document
-- We're gaining confidence in it, but it needs security review before production use
-- This is another tool built specifically for K-12 school systems
+- We use it in our own development environment and test everything we document
+- We're building toward production readiness, but significant work remains
+- This is designed specifically for K-12 school systems and educational use
 
-**Our philosophy**: If this works great for our team, we hope your team can benefit too. But don't trust code you don't understand—read it, test it, learn from it. That's the whole point.
+**Our philosophy**: If this works great for our development team, we hope your team can learn from it too. But don't trust code you don't understand—read it, test it, learn from it. That's the whole point.
 
-**Bottom line**: Experimental status. Educational focus. Production aspirations. Your responsibility to verify.
+**Bottom line**: Alpha status. Educational focus. Development version. Your responsibility to verify. DO NOT USE IN PRODUCTION.
 
 ---
 
@@ -743,17 +750,19 @@ We don't release until tests pass. Our pipeline: Workstation → Raspberry Pi �
 - Apache module deployment
 - Testing framework
 
-### ⚠️ Not Ready Yet
+### ⚠️ Alpha Development Status
 
 [![Sprint](https://img.shields.io/badge/sprint-3%20active-blue)](QUEUE.md#current-sprint)
 
 [![Issues](https://img.shields.io/badge/issues-23%20open-red)](https://github.com/waltdundore/ahab/issues)
 
 [![Milestones](https://img.shields.io/badge/milestones-0%2F20%20(0%25)-red)](PRIORITIES.md)
-- No security audit
+- **Alpha version** - not production ready
+- No security audit performed
 - Limited module library
-- Experimental status
+- Active development - features may change
 - Documentation consolidation in progress
+- **DO NOT USE IN PRODUCTION**
 
 **Transparency**: We're building this openly. We document failures as well as successes. See [LESSONS_LEARNED.md](LESSONS_LEARNED.md).
 
@@ -988,9 +997,9 @@ See [LICENSE](LICENSE) file for full legal details.
 
 [![Milestones](https://img.shields.io/badge/milestones-0%2F20%20(0%25)-red)](PRIORITIES.md)
 
-⚠️ **Experimental / Educational** - Not production-ready. Needs security audit before production use.
+⚠️ **ALPHA VERSION - NOT FOR PRODUCTION** - This is experimental software under active development. No security audit has been performed. Use only for learning, testing, and development purposes.
 
-**Philosophy**: Don't trust code you don't understand. Look it up. Research it. Learn how it works. That's the point here.
+**Philosophy**: Don't trust code you don't understand. Look it up. Research it. Learn how it works. That's the point here. This is alpha software - expect changes, bugs, and incomplete features.
 
 ---
 

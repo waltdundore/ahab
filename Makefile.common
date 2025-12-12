@@ -43,9 +43,9 @@ endef
 
 # Common validation patterns
 define VALIDATE_HTML
-	@echo "→ Running: HTML validation"
-	@echo "   Purpose: Ensure HTML meets standards and accessibility requirements"
-	@./tests/test-html.sh || exit 1
+	@echo "→ Running: HTML validation (read-only)"
+	@echo "   Purpose: Ensure HTML meets standards and accessibility requirements WITHOUT modifying files"
+	@./tests/test-html-readonly.sh || exit 1
 endef
 
 define VALIDATE_CSS

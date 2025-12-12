@@ -401,3 +401,162 @@ cleanup_setup_artifacts() {
     
     check_pass "Cleaned up temporary setup files"
 }
+# ==============================================================================
+# Secrets Repository Integration Functions
+# ==============================================================================
+
+create_sanitized_examples() {
+    local files_to_migrate=("$@")
+    
+    echo "→ Creating sanitized example files"
+    
+    for file in "${files_to_migrate[@]}"; do
+        local example_file="${file}.example"
+        
+        if [ -f "$file" ] && [ ! -f "$example_file" ]; then
+            echo "  Creating sanitized example: $example_file"
+            
+            # Create sanitized version
+            cp "$file" "$example_file"
+            
+            # Replace real patterns with placeholders
+            sed -i.bak \
+                -e 's/xoxb-[0-9]\{10,\}-[0-9]\{10,\}-[A-Za-z0-9]\{24\}/PLACEHOLDER_SLACK_TOKEN_PATTERN/g' \
+                -e 's/https:\/\/hooks\.slack\.com\/services\/[A-Z0-9]\{9\}\/[A-Z0-9]\{9\}\/[A-Za-z0-9]\{24\}/https:\/\/hooks.slack.com\/services\/PLACEHOLDER\/WEBHOOK\/URL/g' \
+                -e 's/sk_live_[A-Za-z0-9]\{24\}/PLACEHOLDER_STRIPE_LIVE_KEY/g' \
+                -e 's/sk_test_[A-Za-z0-9]\{24\}/PLACEHOLDER_STRIPE_TEST_KEY/g' \
+                -e 's/pk_live_[A-Za-z0-9]\{24\}/PLACEHOLDER_STRIPE_PUBLIC_KEY/g' \
+                -e 's/pk_test_[A-Za-z0-9]\{24\}/PLACEHOLDER_STRIPE_PUBLIC_KEY/g' \
+                "$example_file"
+            
+            # Remove backup file
+            rm -f "${example_file}.bak"
+            
+            # Add header comment
+            local temp_file
+            temp_file=$(mktemp)
+            cat > "$temp_file" << 'EOF'
+#!/usr/bin/env bash
+# ==============================================================================
+# SANITIZED EXAMPLE FILE
+# ==============================================================================
+# This is a sanitized example with placeholder patterns.
+# 
+# To use real patterns for testing:
+# 1. Run: make setup-secrets (requires access to private ahab-secrets repo)
+# 2. Or manually replace PLACEHOLDER_* values with real patterns
+# 
+# See: docs/SECRETS_ARCHITECTURE.md for details
+# ==============================================================================
+
+EOF
+            cat "$example_file" >> "$temp_file"
+            mv "$temp_file" "$example_file"
+            
+            check_pass "Created $example_file"
+        fi
+    done
+}
+
+setup_git_submodule() {
+    local repo_url="$1"
+    local submodule_path="$2"
+    
+    echo "→ Setting up git submodule: $submodule_path"
+    
+    if [ -d "$submodule_path" ]; then
+        echo "  Submodule directory already exists, checking if it's a submodule..."
+        
+        if git submodule status "$submodule_path" >/dev/null 2>&1; then
+            check_pass "Submodule already configured: $submodule_path"
+            
+            # Update submodule
+            echo "  Updating submodule..."
+            git submodule update --init --recursive "$submodule_path"
+            return 0
+        else
+            echo "  Directory exists but is not a submodule, backing up..."
+            mv "$submodule_path" "${submodule_path}.backup.$(date +%s)"
+        fi
+    fi
+    
+    # Add as submodule
+    echo "  Adding as git submodule..."
+    if git submodule add "$repo_url" "$submodule_path"; then
+        check_pass "Added submodule: $submodule_path"
+    else
+        check_fail "Failed to add submodule"
+        return 1
+    fi
+    
+    # Initialize and update
+    echo "  Initializing submodule..."
+    git submodule update --init --recursive "$submodule_path"
+    
+    check_pass "Submodule setup complete: $submodule_path"
+}
+migrate_files_to_secrets_repo() {
+    local secrets_dir="$1"
+    local backup_dir="$2"
+    shift 2
+    local files_to_migrate=("$@")
+    
+    echo "→ Migrating files with real patterns to secrets repository"
+    
+    if [ ! -d "$secrets_dir" ]; then
+        echo "  ERROR: Secrets directory not found: $secrets_dir"
+        return 1
+    fi
+    
+    # Create backup
+    mkdir -p "$backup_dir"
+    
+    for file in "${files_to_migrate[@]}"; do
+        if [ -f "$file" ]; then
+            echo "  Migrating: $file"
+            
+            # Create backup
+            cp "$file" "$backup_dir/"
+            
+            # Create directory structure in secrets repo
+            local secrets_file="$secrets_dir/$file"
+            local secrets_file_dir
+            secrets_file_dir=$(dirname "$secrets_file")
+            mkdir -p "$secrets_file_dir"
+            
+            # Move file to secrets repo
+            mv "$file" "$secrets_file"
+            
+            check_pass "Moved $file to $secrets_file"
+        else
+            echo "  WARNING: File not found: $file"
+        fi
+    done
+}
+show_secrets_repo_usage() {
+    cat << 'EOF'
+Setup Secrets Repository Integration
+
+USAGE:
+    ./scripts/setup-secrets-repo.sh [command]
+
+COMMANDS:
+    setup       Set up complete secrets repository integration (default)
+    check       Check access to private secrets repository
+    migrate     Migrate files to secrets repository (requires setup first)
+    validate    Validate current setup
+    help        Show this help message
+
+EXAMPLES:
+    ./scripts/setup-secrets-repo.sh           # Full setup
+    ./scripts/setup-secrets-repo.sh check     # Check access only
+    ./scripts/setup-secrets-repo.sh validate  # Validate setup
+
+REQUIREMENTS:
+    - Access to private ahab-secrets repository
+    - Git configured with SSH keys or personal access token
+    - Run from ahab repository root directory
+
+For more information, see: docs/SECRETS_ARCHITECTURE.md
+EOF
+}

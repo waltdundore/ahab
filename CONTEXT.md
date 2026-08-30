@@ -1,6 +1,6 @@
 # Project: Ahab — Automated Host Administration & Build (v2 Platform)
 
-_Last updated: 2026-08-30 — v2 reset: working tree reset to platform skeleton on new `main` branch (v1 history preserved on `prod`, last commit a82d0de). Skeleton materialized and committed; no code yet by design. Canonical gate list: SPEC.md §6. Milestone status: §6 below._
+_Last updated: 2026-08-30 — v2 reset: working tree reset to platform skeleton on new `main` branch (v1 history preserved on `prod`, last commit a82d0de). Skeleton materialized and committed; no code yet by design. Canonical gate list: SPEC.md §6. Milestone status: §6 below. Independent M0 drift re-audit (spark-auditor) 2026-08-30: M0 re-verified green; drift items in SPEC.md §11; multi-model concurrency: §8._
 
 ## 1. Purpose
 Ahab v2 is a reusable Ansible host-automation + build platform ("ahab"). Given a target box (real machine or lab VM), ahab delivers:
@@ -49,3 +49,20 @@ Gate numbering is canonical — never renumber; append M7+ only.
 - **Predecessors** (superseded at M6, untouched before): `dundore-homelab/compose.yml` (the monolith itself), `dundore-homelab/roles/compose_monolith` (stack deployment), `shared/roles/{postgres,netbox,traefik,zabbix,verify_health,common,docker}` (compose-based role re-implementations), `domains/{dundore.net,whitecountyschools.net}/site.yml` (per-domain content entry points).
 - **dundore-homelab**: remains SSoT for fleet inventory, LLM cluster, DNS, and the three-tier state model. Ahab's `inventory/` is an ahab-scoped projection (boxes that run the monolith) and must stay consistent with the Naming Law machine table (template CONTEXT.md §5.1).
 - **geekend**: docs-only project (zero code, SPEC v0.3.0); its M4 module is infra-only until geekend application code exists.
+
+## 8. Multi-Model Concurrency (added 2026-08-30, spark-auditor)
+**Standing operating assumption**: more than one model/agent may be working in this tree at any moment — same machine, same branch (`main`), same working copy.
+
+How agents know who is changing what — three mechanisms:
+
+1. **Shared context files — in place** [verified 2026-08-30]. `CONTEXT.md` is the state of record (human tier); `todo.md` is the append-only, ID'd plan (plan tier). Both are committed, so every session re-reads the last recorded state at start.
+2. **fleet-state MCP agent protocol — exists and is live; NOT yet wired for this repo** [verified 2026-08-30]. `dundore-homelab/mcp/fleet_state/server.py` is a stdlib-only NDJSON-RPC stdio MCP server; 10 tools including the coordination set `agent_register`, `agent_heartbeat`, `agent_deregister`, `agent_status`, `declare_edit`, `release_edit`, `file_events`. Agents register, heartbeat (stale after 10 min), and DECLARE the paths they will touch; `declare_edit` reports conflicts against other active agents' declarations; `file_events` attributes recent edits to the declaring agent or 'undeclared'. Coordination state lives in `state/agents.json`, flock-serialized via `state/.lock`; a live registry probe on 2026-08-30 returned `[]` (no active agents).
+3. **One-writer-per-artifact trust law — normative** [verified 2026-08-30]. Template CONTEXT.md §6: Planner/Architect → Build (spark-builder) → Audit (spark-auditor) → Report; trust laws: (1) evidence for every claim, (2) three-file contract per change (plan, build record, audit record), (3) one writer per artifact, (4) reproducibility as oracle, (5) audit gates merge.
+
+**Answer to "are they using context to know who is changing what?"** — partially. The context-file tier and the trust laws are fully in place and normative [verified 2026-08-30], and the machine-tier agent protocol exists and is live for this workspace [verified 2026-08-30] — but it is **not yet pointed at this repo**: ahab has no `state/agents.json` and no MCP config wiring fleet-state here, the server's live coordination state sits in `dundore-homelab/state/`, and its repo-root autodetection (`todo.md` + `roles/`) does not match this layout (`base/roles/`) [verified 2026-08-30; gap recorded as SPEC.md §11 DRIFT-3, todo AH-008, owner M5]. Until it is wired, agents in this tree coordinate via the context files + one-writer law and must treat un-declared concurrent edits as a risk to check before editing.
+
+**Rules for agents working here**:
+- Read `CONTEXT.md` + `todo.md` before editing anything.
+- When the fleet-state MCP is available for this repo: `agent_register` at session start, `declare_edit` the paths you will touch before touching them, `release_edit` on completion, `agent_deregister` on exit.
+- Never rewrite, reformat, or delete append-only `todo.md` entries — append the next free `AH-###`.
+- One writer per artifact: never edit an artifact declared by another active agent; surface the conflict instead.

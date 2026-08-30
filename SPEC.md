@@ -89,7 +89,7 @@ A milestone passes only when its **hard audit executes green** (exit 0). No mile
 - **Goal**: retire v1 in place; establish the v2 skeleton + this contract.
 - **Scope**: new `main` branch from `prod` HEAD; v1 preserved untouched on `prod`; tree reset to §4 skeleton; `CONTEXT.md` + `SPEC.md` + `todo.md` + `README.md` + `.gitignore`.
 - **Hard audit**: `git status --porcelain` empty on `main`; `test -f SPEC.md && test -f CONTEXT.md` exit 0; `git check-ignore state/probe secrets/probe` exit 0; v1 intact — `git log prod --oneline -1` still `a82d0de`.
-- **Status**: [DONE 2026-08-30] — the reset commit on `main`.
+- **Status**: [DONE 2026-08-30] — the reset commit on `main`. Re-verified 2026-08-30, re-audited by spark-auditor — all four hard-audit commands executed green as written (evidence: §11).
 
 ### M1 — Base install loop
 - **Goal**: `make install <box>` turns a bare box (lab VM or real) into a reachable, docker-ready ahab target with the automation identity and base networking.
@@ -157,3 +157,30 @@ A milestone passes only when its **hard audit executes green** (exit 0). No mile
 - A gate is an executable hard audit; no audit, no gate pass.
 - One writer per artifact; plan → build → audit → record per the workspace trust laws.
 - This spec is updated at each milestone entry/exit. Milestone numbers are canonical — never renumber; extend with M7+ only.
+
+## 11. Drift Audit (spark-auditor, 2026-08-30)
+Independent re-verification by spark-auditor on 2026-08-30 against baseline `main` @ 65debda (the M0 reset commit). Scope: the M0 hard audit executed as written, the §4 layout rule, §2 workspace-scan evidence, cross-file consistency (CONTEXT.md §6, todo.md, README.md), and the workspace's multi-model coordination mechanisms. The auditor is independent of the project-manager who executed the M0 reset; every "verified" entry below was executed and observed on 2026-08-30.
+
+**Result**: M0's hard audit passes as written (4/4 commands green; M0 status line updated above). No drift in the M0 audit, §4 layout, §2 evidence, or milestone-status consistency. Three drift items found (DRIFT-1…3), each with a concrete realignment action and owner. No milestone status changes result from this audit.
+
+### 11.1 Drift table
+| # | SPEC/CONTEXT claim | Reality (command → observed output) | Verdict |
+| --- | --- | --- | --- |
+| 1 | M0: `git status --porcelain` empty on `main` | `git status --porcelain` → empty output, exit 0 | aligned |
+| 2 | M0: `test -f SPEC.md && test -f CONTEXT.md` exit 0 | exit 0 | aligned |
+| 3 | M0: `git check-ignore state/probe secrets/probe` exit 0 | both ignored → `.gitignore:2 state/*`, `.gitignore:6 secrets/*` | aligned |
+| 4 | M0: v1 intact — `git log prod --oneline -1` still `a82d0de` | `a82d0de Clean branch: Remove all fake secret patterns for GitHub publishing` | aligned |
+| 5 | §4: no file exists that is not named in the tree (or in `todo.md`) | `git ls-files` → exactly 15 files (5 root docs + `.gitignore` + 10 `.gitkeep`), all named in §4; working tree matches, no untracked files | aligned |
+| 6 | §2 scan evidence: `dundore-homelab/compose.yml` | EXISTS (mtime 2026-08-24) | aligned |
+| 7 | §2 scan evidence: `shared/roles/verify_health` | EXISTS (mtime 2026-07-18) | aligned |
+| 8 | §2 scan evidence: `domains/whitecountyschools.net/site.yml` | EXISTS (mtime 2026-07-15) | aligned |
+| 9 | CONTEXT.md §4 / §7 B5: v1 release gates = dundore + rpi5-03 per the fleet table | template CONTEXT.md §5.1 explicitly marks `arm3`/rpi5-03 as "ahab release gate"; the dundore/d701 half is corroborated by §7 B5 ("d701 + rpi5-03 as release gates") | aligned (rpi5-03 explicit; dundore half per B5) |
+| 10 | CONTEXT.md §6 milestone table == SPEC.md §6 statuses | row-by-row identical (M0 DONE 2026-08-30; M1–M6 all TODO with identical dependency lists) | aligned |
+| 11 | README.md claims (pointer stub; v1 on `prod`; CONTEXT.md §3 reference) | `prod` branch exists @ a82d0de; CONTEXT.md §3 is the reset record; README is pointers-only | aligned |
+| 12 | todo.md: each blocker B1–B5 has a path to resolution recorded | B1→AH-003, B4→AH-005, B5→AH-002 present; **B2 and B3 have no todo.md entry** | **drift** |
+| 13 | Standing reality: multiple models/agents may work in this tree; they should know who is changing what | coordination machinery exists and is live, but **not wired for this repo** (no local `state/agents.json`, no MCP config, repo-root autodetection mismatch — see CONTEXT.md §8) | **drift** |
+
+### 11.2 Drift items → realignment actions
+- **DRIFT-1 — B2 (Secrets SSoT) has no recorded path to resolution** [verified 2026-08-30]. §7 names B2 as needed by M2, but todo.md (AH-001–AH-005) carries no entry recording the B2 decision; only a partial piece ("secrets/ vault scaffold") sits in M1 scope. **Realignment**: todo.md AH-006 records the B2 decision (monolith common logins vault-sourced per L1–L8) at M2 entry. **Owner**: M2 entry (blocker B2).
+- **DRIFT-2 — B3 (DNS / Naming Law reconciliation) has no recorded path to resolution** [verified 2026-08-30]. No todo.md entry exists for B3 (needed by M4). **Realignment**: todo.md AH-007 records the B3 decision (module `ingress` declarations reconciled against `dundore-dnscontrol/dnsconfig.js` before import is allowed) at M4 entry. **Owner**: M4 entry (blocker B3).
+- **DRIFT-3 — multi-model coordination not wired for this repo** [verified 2026-08-30]. The fleet-state MCP (dundore-homelab `mcp/fleet_state/server.py`; 10 tools incl. `agent_register` / `agent_heartbeat` / `agent_status` / `declare_edit` / `release_edit` / `file_events`) exists and is live (agent-registry probe → `[]`), and the three-tier state model + one-writer-per-artifact trust law are normative (template CONTEXT.md §5.2/§6) — but ahab has no local `state/agents.json` or MCP wiring, and the server's repo-root autodetection (`todo.md` + `roles/`) does not match this layout (`base/roles/`), so the server cannot auto-locate this repo without an explicit `FLEET_STATE_REPO`. **Realignment**: wire the fleet-state agent protocol to this repo (local coordination state + explicit repo pointing) and record the outcome in todo.md. **Owner**: M5 (Fleet apply + state); non-blocking for M1–M4. Tracked as todo.md AH-008.

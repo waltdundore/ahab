@@ -25,6 +25,30 @@ Process laws (non-negotiable):
 3. **AUDITED ≠ done**: only spark-auditor grants AUDITED.
 4. Builder subagent receives fully-factored specs only; it must query the PM on any ambiguity. PM executes small tasks directly.
 
+## Portability Contract — the 3-tier repo split
+
+Portability law: a developer must only ever edit their **content repo**. Which
+files live where is decided by one test: *"does this file mention a hostname,
+secret, or org name?"* — if no, it belongs in ahab.
+
+| Tier | Repo example | Contents (exclusive) | Who edits |
+|---|---|---|---|
+| **1. Machinery** | `ahab` | all env-agnostic code: L0 bootstrap roles, core infra roles (docker, traefik, nfs, netbox, uptime-kuma, openbao, authentik), module system (`module.yml`, registry, compose resolver), `kuma_expect.sh`, Makefile templates, CI workflow templates, STANDARDS/BOOTSTRAP docs. **Zero org-specific values.** | PM only |
+| **2. Infrastructure + variables** | `dundore-homelab`, `whitecountyschools`, … | seed inventory + netbox config, `group_vars`/`host_vars` (the ONLY place env values exist), `ahab-site.yml` manifest, DNS zones (dnscontrol dirs), site-specific roles, vault refs | infra team |
+| **3. Content** | per-app/dev repos | application code, Dockerfiles, `.ahab/` deploy manifest (target site, domain, resources), tests. **Forbidden** from containing: inventory, credentials, hostnames, playbook paths | developers |
+
+Enforcement (M1/M6): a `repo-freshness`-style **split-contract lint** (homelab
+dev-branch `9f60777` is the seed) fails any PR that puts tier-2 values in tier 1
+or tier-1 code in tier 3.
+
+**Developer platform (M6, far future):** `make env` provisions a workspace from
+3 pinned repos (ahab + infra-repo + content-repo). The developer changes and
+publishes ONLY the content repo; publish fires a webhook → CI runner (Gitea
+Actions first — it runs on our own fleet; GitHub Actions mirror for public
+repos; Jenkins for heavy jobs) → lint/test → merge to protected branch →
+Jenkins posts confirmation back to the dev AND registers a kuma monitor for
+whatever it deployed (law: a service without a monitor does not exist).
+
 ## Milestones
 
 | # | Milestone | Status | Exit gate |
@@ -35,6 +59,7 @@ Process laws (non-negotiable):
 | M3 | NetBox inventory SSoT | blocked by M2 | seed→netbox switch; `enable: true`; AUDITED |
 | M4 | aitora.org plug-in | aitora repo local-only | repo pushed; zone in dnscontrol; L0 vagrant evidence |
 | M5 | whitecountyschools + athensarea plug-ins | not started | sites compose via manifests; AUDITED |
+| M6 | **Developer platform** (portable 3-tier, webhook CI, publish→validate→confirm) | BLOCKED BY M1+M2; far future | `make env` bootstraps ahab+infra+content workspace; content-repo push triggers webhook → lint/test/merge → Jenkins confirmation + auto kuma monitor; a developer lands a change touching ONLY their content repo; AUDITED |
 
 ## Live-probed facts (2026-09-09, this session)
 
@@ -75,3 +100,4 @@ Process laws (non-negotiable):
 1. M0 vagrant gate + monitoring_bootstrap scaffold (once files exist)
 2. Inventory flip `699e6bf` + DNS flip `d9c8465` pair-consistency vs naming law
 3. homelab dev-branch commits `143f265`/`9f60777` fitness for cherry-pick
+4. Split-contract lint (M6 seed): no org-specific values in ahab; no inventory/creds in content-tier repos

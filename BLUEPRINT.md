@@ -28,8 +28,17 @@ Process laws (non-negotiable):
    code, ground up — no manual steps are allowed to exist.
 1. **Ground-up**: vagrant gate → test → deploy; nothing physical untested.
 2. **Kuma-first**: bring up uptime-kuma; every subsequent item is verified BY kuma. Dev checks prod, prod checks dev, pi voter checks both and owns the only outbound alert. A service without a monitor does not exist.
-3. **AUDITED ≠ done**: only spark-auditor grants AUDITED.
-4. Builder subagent receives fully-factored specs only; it must query the PM on any ambiguity. PM executes small tasks directly.
+3. **Hospitality law (bootstrap UX)**: infrastructure exists for people, and the
+   bootstrap moment is first contact — it must land viscerally, not clinically.
+   Every interactive space an operator or visitor touches (runbooks, dashboards,
+   the kuma **public status page**, alert copy, CI output) is bound by
+   `ui-ux.md` — its scope law already says so. Validate the human: the runbook
+   speaks *to* them, names what they just accomplished, and tells them why each
+   gate protects *them*; an alert at 2am is a human talking to a human; RED on
+   the status page must read "we're on it," never silent and never blaming.
+   Rigor is how we love them; warmth is how they know.
+4. **AUDITED ≠ done**: only spark-auditor grants AUDITED.
+5. Builder subagent receives fully-factored specs only; it must query the PM on any ambiguity. PM executes small tasks directly.
 
 ## Portability Contract — the 3-tier repo split
 
@@ -103,6 +112,7 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 | D-11 | flame exposed raw on d701:5005 (docker-proxy), bypasses traefik | flame labels → traefik router flame.dundore.net, drop published port | TODO |
 | D-12 | **traefik broken end-to-end**: live /etc/traefik/traefik.yml has NO code home (repo template lacks dnsChallenge block — pure config drift); docker provider watch timeout (5-min cycle) → zero TLS routers → TRAEFIK DEFAULT CERT everywhere; namecheap LE env incomplete (no NAMECHEAP_API_TOKEN/REMOTEHOST); `api.insecure=true` dashboard on :8080; stale 53KB acme.json predates box swap | traefik module owns static config TEMPLATE (env from vault, token added, insecure dashboard off, provider watch fixed); converge + kuma monitors + openssl probe per cert | CODE TO WRITE (after L4 gate) |
 | D-13 | storage ASRock: no answer on .35 {80,5000,5005,8080} from inside LAN (2026-09-09); box down or IP stale | operator: power/console status → enters inventory as L1 fact | AWAIT OPERATOR |
+| D-14 | `ui-ux.md` is fleet-binding (hospitality law) but lives only in the aitora content repo | move to ahab control tier (e.g. `ahab/docs/UI-UX.md`) at M1; content repos cite it, never fork it | OPEN (M1) |
 
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
 relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
@@ -147,7 +157,7 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 
 | # | Milestone | Status | Exit gate |
 |---|-----------|--------|-----------|
-| M0 | **Monitoring lattice + ground truth** (CURRENT) | IN PROGRESS | Kill-switch drill: stop sshd on dev → prod kuma RED + pi voter alert; AUDITED |
+| M0 | **Monitoring lattice + ground truth** (CURRENT) | IN PROGRESS | Kill-switch drill: stop sshd on dev → prod kuma RED + pi voter alert; public status page live and ui-ux.md-reviewed (calm at a glance, honest when RED); alert copy reviewed as human-to-human; AUDITED |
 | M1 | ahab control skeleton | SPEC drafted | SPEC accepted, module registry rewritten, `origin/dev` hygiene commits merged |
 | M2 | Site plug-in wiring | blocked by M0 | submodules replace symlinks; DNS flip pushed from control node; d701 `/etc/hosts` law-compliant |
 | M3 | NetBox inventory SSoT | blocked by M2 | seed→netbox switch; `enable: true`; AUDITED |
@@ -200,3 +210,4 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 2. Inventory flip `699e6bf` + DNS flip `d9c8465` pair-consistency vs naming law
 3. homelab dev-branch commits `143f265`/`9f60777` fitness for cherry-pick
 4. Split-contract lint (M6 seed): no org-specific values in ahab; no inventory/creds in content-tier repos
+5. M0 UX pass (hospitality law): status page + alert copy + BOOTSTRAP.md tone reviewed against ui-ux.md by spark-auditor

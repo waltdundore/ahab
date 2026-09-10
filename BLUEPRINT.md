@@ -113,6 +113,7 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 | D-12 | **traefik broken end-to-end**: live /etc/traefik/traefik.yml has NO code home (repo template lacks dnsChallenge block — pure config drift); docker provider watch timeout (5-min cycle) → zero TLS routers → TRAEFIK DEFAULT CERT everywhere; namecheap LE env incomplete (no NAMECHEAP_API_TOKEN/REMOTEHOST); `api.insecure=true` dashboard on :8080; stale 53KB acme.json predates box swap | traefik module owns static config TEMPLATE (env from vault, token added, insecure dashboard off, provider watch fixed); converge + kuma monitors + openssl probe per cert | CODE TO WRITE (after L4 gate) |
 | D-13 | storage ASRock: no answer on .35 {80,5000,5005,8080} from inside LAN (2026-09-09); box down or IP stale | operator: power/console status → enters inventory as L1 fact | AWAIT OPERATOR |
 | D-14 | `ui-ux.md` is fleet-binding (hospitality law) but lives only in the aitora content repo | move to ahab control tier (e.g. `ahab/docs/UI-UX.md`) at M1; content repos cite it, never fork it | OPEN (M1) |
+| D-15 | Vagrantfile forked by machine: `development` = libvirt-only (`c2e7940`, was unpushed on d701's copy) vs `production` = VirtualBox + F-5 fossil-plant gate (`cf713ba`) — same file, merge collision certain at next dev↔prod merge | provider-per-host (host fact/env selects provider) or split stage-0 files; reconcile at next cross-branch merge | TODO |
 
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
 relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
@@ -182,18 +183,28 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 | dnsconfig flip (dev=.15/prod=.10, CNAMEs swapped) | LIVE-PROBED (check clean) **unaudited** | dnscontrol `d9c8465`; push pending |
 | aitora repo (ex-hf) local git | LIVE-PROBED | `203cddf`, 42 files |
 
+## Live-probed facts (2026-09-10, git-estate reconciliation)
+
+| Item | Status | Evidence |
+|---|---|---|
+| git three-way sync Mac ↔ origin ↔ d701 | LIVE-PROBED | homelab `production 7412033` / `development c2e7940` == origin == d701 repo; all prior stranded work pushed (`a445b19`, `c2e7940`) |
+| d701 repo can fetch GitHub | LIVE-PROBED | read-only deploy key (GitHub key id 162907344) on d701 `/etc/dundore-git/` (0700, root); fetch+prune GREEN. Push path stays via control node |
+| **sager still UNMANAGED** | LIVE-PROBED (re-probed) | repo key denied at 100.90.230.113 (`dundore-sager-1`); **sager's repo working state is UNKNOWN** — audit it the moment B-002 unlocks |
+| d701 was holding the only copies of two dev-branch commits + the 2026-08-19 student-safety stash | RESCUED | all now on origin; stash snapshot = branch `shelve/student-safety-law-20260819` (`dcb586b`); d701 `stash@{0}` safe to drop after review |
+| process note (name-law teeth) | — | tailscale device labels ≠ machine identity: `dundore-sager-1`/`d701` mapping misled this session's first pass; a `hostname` probe before any fleet write is the L1 fact — tailscale names are not authority |
+
 ## Blockers (priority order — highest first)
 
 | ID | Blocker | Why it stops progress | Unlock |
 |---|---|---|---|
 | B-001 | hub re-powered but services unverified | can't claim kuma/automation healthy | verify after B-002 unlock |
-| B-002 | **sager AND hub unmanaged — repo keys absent from authorized_keys on both** | dev leg of lattice, hub recovery, M0 step 1 all blocked | CONSOLE: inject `keys/service_id.pub` (+ ansible_id.pub) for ansible_user on sager and hub |
+| B-002 | **sager AND hub unmanaged — repo keys absent from authorized_keys on both** (re-probed 2026-09-10: sager `100.90.230.113` still denies `keys/service_id`; d701 managed — LIVE-PROBED, do not confuse the two) | dev leg of lattice, hub recovery, M0 step 1 all blocked; sager repo state unknowable | CONSOLE: inject `keys/service_id.pub` (+ ansible_id.pub) for ansible_user on sager and hub |
 | B-003 | dev kuma DOWN | no dev-checks-prod leg | after B-002: bootstrap-monitoring role |
 | B-004 | DNS flip unpushed | d701/sager names still resolve pre-flip; convergence unsafe | push from control node (Namecheap IP whitelist) after preview |
-| B-005 | git auth dead on laptop (gh 401, no ssh-agent) | cannot push any repo incl. aitora | user re-auth at this machine or push from control node |
+| B-005 | ~~git auth dead on laptop~~ CLOSED 2026-09-10: gh authed as waltdundore (repo+workflow scopes); 5 pushes GREEN from laptop incl. homelab `production`/`development` | was: cannot push any repo incl. aitora | — (if it re-dies: `gh auth status` is the probe) |
 | B-006 | no vault password on laptop | runtime ansible verify only possible on control node | run M0/M1 verifications there |
 | B-007 | pi fleet unverified | voter node for lattice unknown | ping sweep from control node |
-| B-008 | homelab has 9 open stashes | hidden drift vs branches | reconcile or delete; PM decision per stash |
+| B-008 | homelab has 9 open stashes — PARTIAL 2026-09-10: d701's student-safety stash preserved to origin (`shelve/student-safety-law-20260819`); remaining stashes located where? | hidden drift vs branches | reconcile or delete; PM decision per stash; locate remaining 8 (per-box `git stash list` sweep once B-002 unlocks) |
 | B-009 | d701 /etc/hosts stale (aliases + non-canonical name) | naming law violation; LE/cname scheme depends on it | base-role hostname enforcement after DNS push |
 | B-010 | spark-auditor has PASSed nothing in this program | no item can reach AUDITED | queue audits: M0 vagrant gate, inventory flip, dns flip |
 | B-011 | ahab license CC BY-NC-SA conflicts with dogfood law's "fully open source" | blocks M1 + any public adoption | relicense MIT/Apache-2.0 (PM recommends Apache-2.0 for patent grant) before M1 merge work |

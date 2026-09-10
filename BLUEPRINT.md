@@ -103,6 +103,42 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
 relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
 
+## Documentation Hierarchy — one authority per layer (TCP/IP style)
+
+Each doc owns exactly ONE altitude. Higher layers cite lower layers; copying a
+value/decision upward is a DRY violation (D-register applies to docs too).
+
+| Layer | Document | Owns | May NOT contain |
+|---|---|---|---|
+| 1 | **ahab/BLUEPRINT.md** | mission, laws, milestones, AUDITED ledger, blockers, D-register — the only "what's true / what's next" | config values, task chatter, history |
+| 2 | **repo SPEC.md** | design of that repo's layer (interfaces, contracts) | status, machine-specific facts |
+| 3 | **code** (roles/, playbooks/, dnsconfig.js, module.yml) | HOW — every setting's single home | — |
+| 4 | **evidence/** + audit reports | proof (test output, logs) | plans |
+| 5 | CONTEXT.md / todo.md / ledgers | **historical append-only, NOT authoritative** — demoted; todo.md becomes a generated view of the BLUEPRINT register, hand-editing it is banned | authority |
+
+## Infrastructure Layer Stack — build order (each layer gated by ITS test)
+
+```
+L1 physical   power, cables, hardware facts (operator-owned → REGISTERED as data)
+              test: ping/console
+L2 network    LAN, tailscale, DHCP reservations, router port-forwards (modeled!)
+              test: tailscale ping, dig from two vantage points
+L3 naming/DNS dundore-dnscontrol — SEPARATE REPO, separate layer, own test loop
+              test: dnscontrol preview diff == intent, then push, then dig
+L4 bootstrap  blank slate -> ansible_user/keys/baseline (vagrant gate FIRST)
+              test: ansible <host> -m ping + base-role verify
+L5 platform   docker, traefik, kuma lattice, NFS mount
+              test: kuma_expect.sh GREEN
+L6 services   netbox, auth, www, … then content repos (tier 3)
+              test: kuma monitor per service + CI
+```
+You may not build Ln+1 against an Ln that has not passed its own test — this is
+why "everything is down" is felt at L6 when the break was at L2/L3.
+
+**Change law:** *keep changing, keep testing — a change without its layer test
+executed (evidence filed) is not a change, it is damage.* Vagrant is the L4
+clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
+
 ## Milestones
 
 | # | Milestone | Status | Exit gate |

@@ -1,6 +1,7 @@
 # Ahab — Control Repository Specification
 
 **STATUS: DRAFT (pending user review)** · 2026-09-09 · Plan: `feature_ahab-control-repo-foundation_20260909_b993`
+**Doc layer 2 of the hierarchy in BLUEPRINT.md — design only; status/truth lives there, values live in code.**
 
 ## 1. Purpose
 

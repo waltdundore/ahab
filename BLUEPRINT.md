@@ -39,6 +39,42 @@ Process laws (non-negotiable):
    Rigor is how we love them; warmth is how they know.
 4. **AUDITED ≠ done**: only spark-auditor grants AUDITED.
 5. Builder subagent receives fully-factored specs only; it must query the PM on any ambiguity. PM executes small tasks directly.
+6. **GitOps law (adopted 2026-09-10)** — Git is the single source of truth for ALL
+   infrastructure; we treat every model/operator as a remote developer and
+   over-communicate through versioned artifacts
+   (canon: `dundore-homelab/docs/standards/gitops-2026-09-10.md`, verbatim article
+   alongside it — this section is ahab-specific adaptation; canon wins on conflict,
+   incl. 2026-09-10 rulings: trunk ∈ {prod, dev}, OpenBao = single source of
+   secrets, Gitea = forge of record):
+   - **Every change is a commit.** No state exists on a machine that was not
+     converged from a commit (extends Convergence Law). Commit messages and file
+     headers carry the *why*; every file must be readable cold by a stranger
+     (Purpose / Owner / Consumes / Affects header where context is lacking).
+   - **PR gates before merge:** yamllint + ansible-lint + `--syntax-check` +
+     `--check --diff` against vagrant staging. Merge is the deploy trigger.
+   - **Automated deployment:** merge to the promotion branch fires a webhook →
+     **AWX on asus-llm (hub)** is the GitOps controller — Projects (SCM,
+     update-on-launch), Job Templates with native GitHub webhook endpoints,
+     schedules for drift scans. Operator attested AWX is installed (docker)
+     2026-09-10; API probe from d701 found hub ALIVE but no AWX port exposed
+     → container startup/bind fix is part of B-001. Fallback runners: Gitea
+     Actions / Jenkins (M6). Host-side convergence uses the existing
+     `repo-git` ansible-pull primitive + `repo_freshness`. Hosts update
+     themselves from Git; nobody hand-pushes.
+   - **Drift detection is a scheduled scan** (`--check` mode) reporting to kuma —
+     law 2 applies: a drift scan without a monitor does not exist.
+   - **Secrets:** vault-encrypted files live in Git; the vault password lives
+     only at the D-06 canonical path (`/nas/secrets/ansible/vault_pass`).
+     Plaintext password literals are banned *even in examples* if plausible —
+     generators emit random material or explicit `REPLACE_ME_*` tokens.
+   - **Rollback = `git revert` + merge** (the pipeline does the rest); infra
+     releases are semantically tagged. Hotfix = `hotfix/*` branch, single
+     expedited approver, emergency rationale in the commit message.
+   - **Context economy:** each doc owns one altitude (doc hierarchy §Doc-layer
+     table is binding); thin entrypoints (`AGENTS.md`/README) link, never copy,
+     so each model tier sees only what its layer owns.
+   - **Symlink law:** symlinks are disposable local conveniences; anything that
+     must survive a fresh clone is a git submodule, never a symlink.
 
 ## Portability Contract — the 3-tier repo split
 
@@ -113,7 +149,12 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 | D-12 | **traefik broken end-to-end**: live /etc/traefik/traefik.yml has NO code home (repo template lacks dnsChallenge block — pure config drift); docker provider watch timeout (5-min cycle) → zero TLS routers → TRAEFIK DEFAULT CERT everywhere; namecheap LE env incomplete (no NAMECHEAP_API_TOKEN/REMOTEHOST); `api.insecure=true` dashboard on :8080; stale 53KB acme.json predates box swap | traefik module owns static config TEMPLATE (env from vault, token added, insecure dashboard off, provider watch fixed); converge + kuma monitors + openssl probe per cert | CODE TO WRITE (after L4 gate) |
 | D-13 | storage ASRock: no answer on .35 {80,5000,5005,8080} from inside LAN (2026-09-09); box down or IP stale | operator: power/console status → enters inventory as L1 fact | AWAIT OPERATOR |
 | D-14 | `ui-ux.md` is fleet-binding (hospitality law) but lives only in the aitora content repo | move to ahab control tier (e.g. `ahab/docs/UI-UX.md`) at M1; content repos cite it, never fork it | OPEN (M1) |
-| D-15 | Vagrantfile forked by machine: `development` = libvirt-only (`c2e7940`, was unpushed on d701's copy) vs `production` = VirtualBox + F-5 fossil-plant gate (`cf713ba`) — same file, merge collision certain at next dev↔prod merge | provider-per-host (host fact/env selects provider) or split stage-0 files; reconcile at next cross-branch merge | TODO |
+| D-15 | Vagrantfile forked by machine: `development` = libvirt-only (`c2e7940`, was unpushed on d701's copy) vs `production` = VirtualBox + F-5 fossil-plant gate (`cf713ba`) — same file, merge collision certain at next cross-branch merge | provider-per-host (host fact/env selects provider) or split stage-0 files; reconcile at next cross-branch merge | TODO |
+| D-16 | Repo estate is a **superset, not a fork**: `ansible-config`/`ansible-inventory` are byte-identical renames of `ahab-config`/`ahab-inventory` (same tree hash) — two names, one truth, drift guaranteed | declare ONE canonical name per repo (recommend the `ahab-*` pair, matching the fleet naming law); archive/redirect the `ansible-*` twins after git-history reconciliation so nothing is lost; `repo-git`/`bootstrap.sh` point only at canonical | TODO (B-013 unlock) |
+| D-17 | `ahab-module-docker` is a stale copy of `ahab-module-common` (identical except a config-lookup refactor); it ships **no** docker role. `ahab-modules` holds only `apache/` + committed `INITIALIZE.md`. `MODULE_REGISTRY.yml` names 8 non-existent `ahab-module-*` repos | module registry is the SSoT; delete phantom entries; retire per-module-repo fiction — directory-based modules live **inside ahab** (`modules/<name>/module.yml`, SPEC §3); consolidate common module into ahab, single `docker` module for real | TODO (M1) |
+| D-18 | Committed build cruft everywhere: 9 Makefile variants (`backup-broken`, `bak2`, `original`, `refactored-example`, `~HEAD`…), `Makefile~HEAD` in ahab-inventory, `INITIALIZE.md` in ahab-modules, 3 duplicate Makefiles symlinked across repos by bootstrap.sh | `make` targets are the single build entrypoint; remove all `Makefile.*` backups (they live in git history now — trust but verify: git has them); replace cross-repo Makefile duplication with one file + submodules, not symlinks | TODO |
+| D-19 | `ahab-secrets/scripts/setup-secrets.sh` embeds **realistic plaintext passwords** for dev AND prod (Aruba/Ruckus/SNMP) — violates GitOps-law secret clause | generator must emit `ansible-vault`-encrypted output or `openssl rand`-generated `REPLACE_ME` tokens; no plausible literal in any example, ever; spark-audit the whole secrets tree | TODO (B-014 unlock) |
+| D-20 | **hub AWX lives in shell-history, not code** (operator history 2026-09-10): source install of `ansible/awx` **`devel` branch** (unpinned — prior 24.3.1 broke on migrations and was rm'd), manual superuser/token creation via `awx-manage` (OAuth tokens passed through shell history = burned), UI hand-built (`make ui`, `docker cp`, `collectstatic` ×15 retry loops), `awx.dundore.net` ingress + DNS since vanished (dig empty from d701 2026-09-10) | codify bring-up as an ahab module/role on the hub: version-pinned checkout, compose env rendered from vault, idempotent migrate→superuser→token, UI from release assets not dev builds, ingress via traefik + dnscontrol record, kuma monitor (a controller without a monitor does not exist); old tokens treated as revoked | TODO (hub unlock B-002; playbook FIRST, vagrant-gated) |
 | D-16 | SELinux unaccounted in Ansible: file-level tasks (`copy`/`template`/shell-pastes) on enforcing Fedora leave wrong contexts — the failure is silent (no "bad ownership" line in `/var/log/secure`, just `preauth` close); sager's lockout twin (0-byte `authorized_keys` + near-miss labeling) is this exact class | selinux-aware modules (`ansible.posix.authorized_key`, `file`+`sefcontext`) or explicit `restorecon` on every managed path; context asserts in verify tasks | TODO (operator-raised 2026-09-10) |
 
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
@@ -165,7 +206,7 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 | M3 | NetBox inventory SSoT | blocked by M2 | seed→netbox switch; `enable: true`; AUDITED |
 | M4 | aitora.org plug-in | aitora repo local-only | repo pushed; zone in dnscontrol; L0 vagrant evidence |
 | M5 | whitecountyschools + athensarea plug-ins | not started | sites compose via manifests; AUDITED |
-| M6 | **Developer platform** (portable 3-tier, webhook CI, publish→validate→confirm) | BLOCKED BY M1+M2; far future | `make env` bootstraps ahab+infra+content workspace; content-repo push triggers webhook → lint/test/merge → Jenkins confirmation + auto kuma monitor; a developer lands a change touching ONLY their content repo; AUDITED |
+| M6 | **Developer platform** (portable 3-tier, webhook CI, publish→validate→confirm) | BLOCKED BY M1+M2; AWX-on-hub attested → webhook legs now buildable once B-002/B-014 unlock | `make env` bootstraps ahab+infra+content workspace; content-repo push triggers webhook → AWX Project update + Job Template lint/test/merge → confirmation + auto kuma monitor; a developer lands a change touching ONLY their content repo; AUDITED |
 
 ## Live-probed facts (2026-09-09, this session)
 
@@ -182,7 +223,7 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 | pi fleet | UNVERIFIED | no reachability from off-LAN laptop; needs control-node/console |
 | inventory flip d701=prod | LIVE-PROBED, static-verified, **unaudited** | homelab `699e6bf` |
 | dnsconfig flip (dev=.15/prod=.10, CNAMEs swapped) | LIVE-PROBED (check clean) **unaudited** | dnscontrol `d9c8465`; push pending |
-| aitora repo (ex-hf) local git | LIVE-PROBED | `203cddf`, 42 files |
+| aitora repo (ex-hf) | LIVE-PROBED | local `203cddf` 42 files; **also PUSHED** — origin/production confirmed via `git ls-remote` 2026-09-10 |
 
 ## Live-probed facts (2026-09-10, git-estate reconciliation)
 
@@ -193,12 +234,16 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 | **sager UNLOCKED + repo audited** | LIVE-PROBED (2026-09-10) | `ansible_user`+`keys/service_id` GREEN, `hostname`=dundore-sager. Root cause of lockout: 0-byte `authorized_keys` — the fleet key push NEVER landed (L-04 residue), fixed by root paste + `restorecon`. Repo held 2 only-copy commits (banking sprint W-22/W-24/W-03) → saved to origin `rescue/sager-production-banking` (`0ee9a96`); stashes EMPTY; wdundore has working GitHub SSH push from sager. Follow-up D-16 |
 | d701 was holding the only copies of two dev-branch commits + the 2026-08-19 student-safety stash | RESCUED | all now on origin; stash snapshot = branch `shelve/student-safety-law-20260819` (`dcb586b`); d701 `stash@{0}` safe to drop after review |
 | process note (name-law teeth) | — | tailscale device labels ≠ machine identity: `dundore-sager-1`/`d701` mapping misled this session's first pass; a `hostname` probe before any fleet write is the L1 fact — tailscale names are not authority |
+| **git estate full probe** (13 repos: `ls-remote` + shallow clones) | LIVE-PROBED | all 9 user-cited repos EXIST (SPEC §3 "fiction" claim was WRONG — corrected). Twins byte-identical: `ansible-config`≡`ahab-config` (tree `d9e9a6f`), `ansible-inventory`≡`ahab-inventory` (tree `a4ee60f`); `ahab-module-docker` = copy of `ahab-module-common` (2-file diff, contains no docker role); `ahab-modules` holds only `apache/module.yml` + committed `INITIALIZE.md` build-cruft; `MODULE_REGISTRY.yml` → 8 of 9 `ahab-module-*` repos MISSING (only `-docker` exists); `scripts` repo = 2023 fossil (own chrony.yml duplicates module-common) |
+| **aitora repo is PUSHED** | LIVE-PROBED | `waltdundore/aitora` origin/production exists (`git ls-remote`); M4 "repo local-only" is stale |
+| **ahab working-tree hygiene FAIL** | LIVE-PROBED | 9 Makefile variants committed (incl. `backup-broken`, `bak2`, `original`, `~HEAD` fossil in ahab-inventory); two divergent `ABOUT.md` copies; `.gitmodules` (modules→ahab-modules, config-roles→ahab-config) never initialized locally; `bootstrap.sh` clones superseded twin names; zero symlinks exist though bootstrap claims to make them; local `roles/` = 3 legacy roles vs homelab's 24 live |
+| hub AWX (GitOps controller candidate) | PARTIAL | operator attests AWX-in-docker installed & API-usable; probe from d701: hub 10.200.10.20 ALIVE, ports {22,9090} open, NO AWX web port → container down or localhost-bound; unlock = B-001/B-002 |
 
 ## Blockers (priority order — highest first)
 
 | ID | Blocker | Why it stops progress | Unlock |
 |---|---|---|---|
-| B-001 | hub re-powered but services unverified | can't claim kuma/automation healthy | verify after B-002 unlock |
+| B-001 | hub re-powered but services unverified (2026-09-10 probe: ALIVE, ports 22+9090 open, **AWX web not exposed** — see B-014) | can't claim kuma/automation healthy; GitOps controller offline | verify after B-002 unlock; bring AWX web to LAN + API smoke (B-014) |
 | B-002 | **sager CLOSED 2026-09-10 — unlocked & audited** (root-pasted `authorized_keys` + restorecon; `ansible_user`+`service_id` LIVE, hostname-probed) — **hub (asus-llm) still unmanaged** | was: dev leg + hub recovery blocked; hub leg remains | CONSOLE on hub only: inject `keys/service_id.pub` for ansible_user; proven recipe: `tee -a ~/.ssh/authorized_keys` + 700/600 + `restorecon` (see D-16) |
 | B-003 | dev kuma DOWN — **UNBLOCKED 2026-09-10** (sager now managed) | no dev-checks-prod leg | run `bootstrap-monitoring.yml --limit dundore-sager` (+ base-role converge first; watch D-16 on SELinux) |
 | B-004 | DNS flip unpushed | d701/sager names still resolve pre-flip; convergence unsafe | push from control node (Namecheap IP whitelist) after preview |
@@ -209,6 +254,8 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 | B-009 | d701 /etc/hosts stale (aliases + non-canonical name) | naming law violation; LE/cname scheme depends on it | base-role hostname enforcement after DNS push |
 | B-010 | spark-auditor has PASSed nothing in this program | no item can reach AUDITED | queue audits: M0 vagrant gate, inventory flip, dns flip |
 | B-011 | ahab license CC BY-NC-SA conflicts with dogfood law's "fully open source" | blocks M1 + any public adoption | relicense MIT/Apache-2.0 (PM recommends Apache-2.0 for patent grant) before M1 merge work |
+| B-013 | repo-estate canonical name undecided (D-16): `ahab-config`/`ahab-inventory` vs their byte-identical `ansible-*` twins | cannot point AWX Projects / `repo-git` / submodule URLs anywhere until "the one repo" is fixed; wrong choice = two SSoTs (GitOps-law violation at the repo layer) | PM decision (recommend `ahab-*`); then GitHub archive-of-lossless + README redirect on the twins; record decision HERE |
+| B-014 | no live AWX endpoint: dev-source install (`tools_awx_1`, devel-branch, unpinned — D-20) currently down; `awx.dundore.net` DNS+ingress vanished; OAuth tokens from shell-history burned | GitOps law's webhook→deploy→drift legs are unimplementable/untestable | bring AWX up **from codified bring-up, not history** (D-20): pin version, web on LAN or traefik+dnscontrol record, migrate→superuser→fresh vault-stored token, `/api/v2/ping` smoke, kuma monitor |
 
 ## Branch archaeology (2026-09-09)
 
@@ -223,3 +270,4 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 3. homelab dev-branch commits `143f265`/`9f60777` fitness for cherry-pick
 4. Split-contract lint (M6 seed): no org-specific values in ahab; no inventory/creds in content-tier repos
 5. M0 UX pass (hospitality law): status page + alert copy + BOOTSTRAP.md tone reviewed against ui-ux.md by spark-auditor
+6. GitOps-law conformance: PR-gate CI (yamllint+ansible-lint+syntax+`--check`), AWX Project/Job-Template/drift-schedule wiring, secret-scan clean (D-19), canonical-repo wiring post-D-16

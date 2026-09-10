@@ -95,10 +95,11 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 | D-03 | storage (ASRock NFS server) absent from ansible inventory entirely (L-17); mgmt port unknown to us | add to inventory once reachable; nfs role owns exports config | TODO (needs console/operator facts) |
 | D-04 | DNS: `ap` and `storage` both A→10.200.10.35 (documented conflict) | resolve actual IPs → single A + CNAME per naming law | TODO |
 | D-05 | /etc/hosts aliases on d701 (manual fossils); naming law = 1 name/IP | base-role replace+purge tasks (written today; vagrant gate pending) | CODE DONE, GATE PENDING |
-| D-06 | Vault password file: two variants on sager (5 vs 9 bytes) | verify both against encrypted files; single value → /nas; purge copies | TODO (secret-handling: operator runs) |
+| D-06 | ~~two vault variants~~ CONFIRMED same secret (operator 2026-09-09); canonical = /nas/secrets/ansible/vault_pass | resolver merged (37d6a90); move file to /nas when L5 NFS lands (D-02) | CODE DONE, WAIT L5 |
 | D-07 | ansible.cfg machine-specific paths (vault fixed today; check rest per repo) | portability lint in CI: reject absolute personal paths in repo configs | CODE PARTIAL |
 | D-08 | Prod kuma monitors itself; no off-box alert | monitoring_bootstrap lattice (M0) | IN PROGRESS |
-| D-09 | Public sites down post-flip (all 000 from WAN) — suspected router port-forward still aimed at old box .15 | NO manual router edit: model gateway config in repo (ahab module) or document as operator-owned with code-checked expectation | INVESTIGATE (no changes) |
+| D-09 | **CORRECTED**: NAT chain fully intact (ATT Global 80→Ruckus host8080→.10:80, 443→8443→.10:443, proven via operator tables + d701 egress == root A). True cause of WAN 000: **service CNAMEs resolve to PRIVATE A records — sites are LAN-only by design**, external visitors never worked | DECISION NEEDED: (a) declare LAN+tailnet-only (add tailnet DNS, close D-09), (b) public A records for exposed services via DDNS, or (c) publish via reverse-proxy off the NAS/box. PM recommends (a) now, (b) per-service when real users need it | DECISION PENDING |
+| D-10 | www homepage (tier content inside homelab) hardcodes legacy hostnames (`dundore-sager:5006`) | rewrite www links to canonical names; storage link (:8080) also depends on D-04 conflict being resolved | TODO |
 
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
 relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).

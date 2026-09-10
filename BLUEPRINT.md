@@ -20,6 +20,12 @@ ahab + whitecountyschools   = whitecountyschools.net
 ```
 
 Process laws (non-negotiable):
+0. **Dogfood law**: the whole stack — every prerequisite, every config — must
+   rebuild a **blank-slate bare-metal machine** from this code alone. Vagrant is
+   the clean-slate testbed that proves it: we run OUR OWN workflow on a virgin
+   box, so every gap in the prerequisites is something WE experience, and the
+   fix goes into code, not into a person's memory. Fully open source, infra-as-
+   code, ground up — no manual steps are allowed to exist.
 1. **Ground-up**: vagrant gate → test → deploy; nothing physical untested.
 2. **Kuma-first**: bring up uptime-kuma; every subsequent item is verified BY kuma. Dev checks prod, prod checks dev, pi voter checks both and owns the only outbound alert. A service without a monitor does not exist.
 3. **AUDITED ≠ done**: only spark-auditor grants AUDITED.
@@ -49,6 +55,35 @@ repos; Jenkins for heavy jobs) → lint/test → merge to protected branch →
 Jenkins posts confirmation back to the dev AND registers a kuma monitor for
 whatever it deployed (law: a service without a monitor does not exist).
 
+**Consequence of law 0 (license):** "fully open-sourced" requires an OSI-approved
+license. ahab is CC BY-NC-SA 4.0 (non-commercial ⇒ NOT open source). Relicensing
+to MIT/Apache-2.0 is now a **prerequisite of M1**, not an open question. (B-011)
+
+## Promotion Model — branches, OS map, gates
+
+`development` and `production` branches carry slightly different code BY DESIGN
+(env values differ), converging via merge. Promotion is one-way and gated:
+every jump right requires the stage before it GREEN in kuma, evidence attached.
+
+```
+ development branch
+   → vagrant debian13  (tests ARM/Debian code path)
+   → RPi test units    (arm1/arm2/armdev — TRULY TEST MACHINES, not dev/prod)
+   → vagrant fedora43  (tests x86/Fedora code path — d701 & sager OS)
+   → sager             (DEV box, fedora43) — push, verify kuma green
+   → merge development → production
+   → d701              (PROD box, fedora43) — push, verify kuma green
+ production branch
+```
+
+| Vagrant box | Tests code for | Role |
+|---|---|---|
+| debian13 | Raspberry Pi fleet (test units) | staging for ARM path |
+| fedora43 | dundore-sager (dev) → d701 (prod) | staging for x86 path |
+
+Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
+relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
+
 ## Milestones
 
 | # | Milestone | Status | Exit gate |
@@ -67,8 +102,11 @@ whatever it deployed (law: a service without a monitor does not exist).
 |---|---|---|
 | d701 = prod box | LIVE-PROBED | booted 23:58Z; kuma/traefik/postgres/openbao/flame/www Up; ssh OK via tailnet key `keys/service_id` |
 | prod kuma up but self-hosted (blind spot root cause) | LIVE-PROBED | docker ps + kuma logs on d701 |
-| hub (asus-llm 10.200.10.20) DOWN | LIVE-PROBED | kuma #4/#7/#15 EHOSTUNREACH from inside LAN; no tailnet entry |
-| dev kuma DOWN; sager unmanaged | LIVE-PROBED | #17 ECONNREFUSED .15:3001; ssh `ansible_user` denied w/ both repo keys |
+| hub (asus-llm 10.200.10.20) | RE-POWERED; services unverified | ping OK from d701; ssh key denied (unmanaged) |
+| dev kuma DOWN; **sager AND hub unmanaged** | LIVE-PROBED | both repo keys denied on both boxes (fleet key distribution failure, cf. L-04) |
+| **DNS flip PUSHED & LIVE** ✅ | LIVE-PROBED | dnscontrol `d9c8465` pushed via whitelisted IP; dig verifies d701→prod(.10), sager→dev(.15) |
+| d701 /etc/hosts | **FAILS naming law** | legacy hostname + `project.dundore.net` alias + 127.0.1.1 line; fix via base-role convergence, not manual |
+| d701 resolver | PASS | systemd-resolved→OpenDNS+MagicDNS; public zone carries private IPs |
 | pi fleet | UNVERIFIED | no reachability from off-LAN laptop; needs control-node/console |
 | inventory flip d701=prod | LIVE-PROBED, static-verified, **unaudited** | homelab `699e6bf` |
 | dnsconfig flip (dev=.15/prod=.10, CNAMEs swapped) | LIVE-PROBED (check clean) **unaudited** | dnscontrol `d9c8465`; push pending |
@@ -78,8 +116,8 @@ whatever it deployed (law: a service without a monitor does not exist).
 
 | ID | Blocker | Why it stops progress | Unlock |
 |---|---|---|---|
-| B-001 | hub (asus-llm) DOWN | it's a kuma target + automation hub; lattice can't go green | power/network check, redeploy via M0 protocol |
-| B-002 | sager (dev) unmanaged — key denied | dev leg of cross-check impossible; dev kuma unreachable | console → reinject `keys/ansible_id.pub` (note L-04 in homelab dev: historical key-path breakage already bit the fleet once) |
+| B-001 | hub re-powered but services unverified | can't claim kuma/automation healthy | verify after B-002 unlock |
+| B-002 | **sager AND hub unmanaged — repo keys absent from authorized_keys on both** | dev leg of lattice, hub recovery, M0 step 1 all blocked | CONSOLE: inject `keys/service_id.pub` (+ ansible_id.pub) for ansible_user on sager and hub |
 | B-003 | dev kuma DOWN | no dev-checks-prod leg | after B-002: bootstrap-monitoring role |
 | B-004 | DNS flip unpushed | d701/sager names still resolve pre-flip; convergence unsafe | push from control node (Namecheap IP whitelist) after preview |
 | B-005 | git auth dead on laptop (gh 401, no ssh-agent) | cannot push any repo incl. aitora | user re-auth at this machine or push from control node |
@@ -88,6 +126,7 @@ whatever it deployed (law: a service without a monitor does not exist).
 | B-008 | homelab has 9 open stashes | hidden drift vs branches | reconcile or delete; PM decision per stash |
 | B-009 | d701 /etc/hosts stale (aliases + non-canonical name) | naming law violation; LE/cname scheme depends on it | base-role hostname enforcement after DNS push |
 | B-010 | spark-auditor has PASSed nothing in this program | no item can reach AUDITED | queue audits: M0 vagrant gate, inventory flip, dns flip |
+| B-011 | ahab license CC BY-NC-SA conflicts with dogfood law's "fully open source" | blocks M1 + any public adoption | relicense MIT/Apache-2.0 (PM recommends Apache-2.0 for patent grant) before M1 merge work |
 
 ## Branch archaeology (2026-09-09)
 

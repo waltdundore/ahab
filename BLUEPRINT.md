@@ -81,6 +81,25 @@ every jump right requires the stage before it GREEN in kuma, evidence attached.
 | debian13 | Raspberry Pi fleet (test units) | staging for ARM path |
 | fedora43 | dundore-sager (dev) → d701 (prod) | staging for x86 path |
 
+## Convergence Law & DRY-Violation Register
+
+**Law**: every setting has exactly ONE home in code; state on machines is only
+ever produced by convergence, never by hand. Any discovered inconsistency
+follows: REGISTER → fix in code (vagrant-gated) → converge via playbook →
+spark-audit → close here. No manual fixes, no exceptions, even to "save time."
+
+| ID | Drift (one truth → the copies) | Code fix | Status |
+|---|---|---|---|
+| D-01 | Vault pass: `~/.config/ansible` vs `repo/secrets/.vault_pass` vs `/nas/secrets/ansible` | resolver in setup-control-node.yml (done, ungated); NAS mount real on all boxes (D-02) | CODE PARTIAL |
+| D-02 | `/nas` on d701 is a LOCAL DIR, not the NFS share from storage.dundore.net — "same path, two trees, one stale" (audit 2026-08-21) | nfs role mounts storage.dundore.net on every fleet node; assert mountpoint fstype=nfs4 | TODO |
+| D-03 | storage (ASRock NFS server) absent from ansible inventory entirely (L-17); mgmt port unknown to us | add to inventory once reachable; nfs role owns exports config | TODO (needs console/operator facts) |
+| D-04 | DNS: `ap` and `storage` both A→10.200.10.35 (documented conflict) | resolve actual IPs → single A + CNAME per naming law | TODO |
+| D-05 | /etc/hosts aliases on d701 (manual fossils); naming law = 1 name/IP | base-role replace+purge tasks (written today; vagrant gate pending) | CODE DONE, GATE PENDING |
+| D-06 | Vault password file: two variants on sager (5 vs 9 bytes) | verify both against encrypted files; single value → /nas; purge copies | TODO (secret-handling: operator runs) |
+| D-07 | ansible.cfg machine-specific paths (vault fixed today; check rest per repo) | portability lint in CI: reject absolute personal paths in repo configs | CODE PARTIAL |
+| D-08 | Prod kuma monitors itself; no off-box alert | monitoring_bootstrap lattice (M0) | IN PROGRESS |
+| D-09 | Public sites down post-flip (all 000 from WAN) — suspected router port-forward still aimed at old box .15 | NO manual router edit: model gateway config in repo (ahab module) or document as operator-owned with code-checked expectation | INVESTIGATE (no changes) |
+
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
 relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
 

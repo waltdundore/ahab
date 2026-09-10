@@ -1,5 +1,7 @@
 # Ahab — Control Repository Specification
 
+> Laws: GitOps canon = `dundore-homelab@prod:docs/standards/gitops-2026-09-10.md`; ahab adaptation = BLUEPRINT process law 6. Canon wins; never restate (DRY). Enforced by `bin/law-gate.sh` (in homelab).
+
 **STATUS: DRAFT (pending user review)** · 2026-09-09 · Plan: `feature_ahab-control-repo-foundation_20260909_b993`
 **Doc layer 2 of the hierarchy in BLUEPRINT.md — design only; status/truth lives there, values live in code.**
 

@@ -17,6 +17,15 @@ the PM's opencode config NOW and fail loudly until M0 (kuma lattice) / M3 (NetBo
 deliver live endpoints + OpenBao-issued creds. M0/M3 are therefore prerequisite
 context-channels for the whole program, not late-stage plumbing.
 
+**Sentry = the application error/trace channel** (adopted 2026-09-11): a third MCP
+context-channel, complementing Uptime-Kuma without replacing it — kuma answers "is it
+up," Sentry answers "why did it throw." Per the Framework/module law (§Portability
+Contract) Sentry is **ahab machinery**, never per-repo hand-wiring: ahab owns the single
+Sentry integration + the DSN-from-vault injection; each site module only *enables and
+parameterizes* it (supplies its vaulted DSN). The MCP server is scaffolded now and the
+org is empty by design until services run with a provisioned DSN; the machinery is
+vagrant-gated → see D-28.
+
 ## Mission & Composition Law
 
 Ahab = control repo; common code lives ONCE in ahab. Site repos contribute only
@@ -100,6 +109,27 @@ Process laws (non-negotiable):
 
 ## Portability Contract — the 3-tier repo split
 
+**Framework/module law (adopted 2026-09-11, operator ruling)** — ahab is the
+**shared infrastructure code** every site needs for its infrastructure: it owns
+ALL machinery, roles, templates, and logic, single-homed and env-agnostic. Every
+site (`dundore-homelab`, `geekend`, `whitecountyschools`, `aitora`, `athensarea`,
+…) is a **module** that plugs into that framework. A module's *entire* delta — the
+only thing it contributes — is:
+
+1. **Inventory** — which machines the site has;
+2. **Role assignment** — which roles (each defined once in ahab) every inventory
+   host runs, plus the variable values those roles need;
+3. **Secrets** — vault references only (secret values live in the vault, never in
+   the module).
+
+We abstract **only what is different** (those three) and keep everything else
+clean in ahab. Corollary — a module that carries its own copy of a role, script,
+template, or Makefile is a **defect**: the generic part must move up into ahab,
+leaving the module as pure deltas. This law is operationalized by the 3-tier
+table below; the "test" line is its heuristic. (This is why observability,
+monitoring, traefik, NFS, etc. are ahab machinery that a module merely *enables
+and parameterizes* — it never reimplements them.)
+
 Portability law: a developer must only ever edit their **content repo**. Which
 files live where is decided by one test: *"does this file mention a hostname,
 secret, or org name?"* — if no, it belongs in ahab.
@@ -182,7 +212,17 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 | D-22 | `host_vars/d701.yml` sets `uptime_kuma_domain: uptime.dundore.net` but `uptime` → **dev** (.15) in code+live — prod's kuma domain var targets the DEV box; breaks M0 "prod checks dev / dev checks prod" leg | prod kuma endpoint must get its own distinct name/IP (real prod kuma location still UNVERIFIED — B-002 hub/CONSOLE or profile-A check on d701); fix host_vars + monitor leg after that fact | TODO (needs d701 profile-A probe) |
 | D-23 | SELinux unaccounted in Ansible: file-level tasks (`copy`/`template`/shell-pastes) on enforcing Fedora leave wrong contexts — the failure is silent (no "bad ownership" line in `/var/log/secure`, just `preauth` close); sager's lockout twin (0-byte `authorized_keys` + near-miss labeling) is this exact class | selinux-aware modules (`ansible.posix.authorized_key`, `file`+`sefcontext`) or explicit `restorecon` on every managed path; context asserts in verify tasks | TODO (operator-raised 2026-09-10) |
 | D-24 | **DOWNGRADED 2026-09-11 (L3 container probe): the registrar edit never happened.** `dnscontrol preview` = **0 corrections** and authoritative NS (`@dns1.registrar-servers.com`) answers `gitea A 10.200.10.15` == code; SOA serial `1789082342` = the `711a389` push window, so no post-push edit is possible. The CNAME our conformance audit saw was a **stale intermediate-recursive answer past its 300s TTL** (audit dig never hit the authoritative NS; prime suspect sager's dead forwarder .10 — see D-25/D-08 class). Conformance-audit F1 is reclassified as a vantage/cache artifact; pending spark-auditor confirmation | nothing to reconcile in the zone; fix the *method* instead (audits dig authoritative NS, never a caching resolver) + keep D-21 service-name debt; D-21 stands | RECLASSIFIED (auditor confirm pending) |
+| D-26 | **www homepage (`dundore-homelab/www`) — the hospitality-law first-contact surface — has never been reviewed.** Findings 2026-09-11: **PII/credential-shaped data committed in index.html** (personal iCloud Numbers banking-spreadsheet URL incl. iCloud token path + `#Penfed_Bills_8026`; dermatology SSO link whose base64 `login_hint` decodes to firm/patient-login context); visitor-facing internal leakage (footer: “extracted from flame”, `todo.md W-20` citation = layer-5 in a customer surface); naming-law-violating links (raw IPs `192.168.1.254`, `192.168.1.75`; raw ports `d701:7080`, `storage:8080`; legacy `dundore-sager.dundore.net:5006` = D-10); mixed http:// on an https page; deploy route is NOT GitOps-clean (compose fragment spliced into the live monolith by `scripts/deploy-www-homepage.sh` = a drift mechanism) | rewrite links to canonical names (with D-10 pass); move personal/banking links out of the repo file (vault/1Password); footer = human-to-human, zero internal artifacts; spark-auditor ui-ux review = queue 5 MUST include www; replace splice-script route with module-owned template | TODO (filed 2026-09-11 operator prompt; audit queue 5 extended) |
+| D-27 | **Two different keys both named `ansible_id.pub`**: repo `keys/ansible_id.pub` (sha `df2c1890…`) ≠ vault `/nas/secrets/ansible/ansible_id.pub` (sha `cc0e1ff9…`); only the vault pair's private half exists on sager; d701 denies all sager identities ⇒ fleet has no single key truth (D-01/D-06/D-23 class — names lie, hashes are truth) | keypair has ONE home (vault = canonical store, repo tracks the matching pubkey copy); rot-scan check (law 9): sha256 equality vault↔repo for every managed pair + authorized_keys presence probe per reachable host — fail loudly | TODO (rot-scan v1 carries the check; key convergence role after) |
 | D-25 | **The lab-host NAT prerequisite lives in no code, so the vagrant gate has never run on sager.** Round-2 (2026-09-11) died at `roles/docker` with `urlopen error [Errno 101]` — guest has DHCP + route, gateway pings, guest→WAN fails. nft ruleset: `FORWARD policy drop` with **no virbr0 accept**, masquerade only for docker's 172.17/16 + 172.19/16, **nothing for 192.168.122.0/24**; firewalld (which Fedora's libvirt delegates rule-installation to) is **not running**, and libvirt's `default` net is **inactive in `qemu:///session`** — the URI vagrant actually uses (`make lab-reap` proved the orphan ran there). Round-1 evidence (2026-09-09) passed on a *VirtualBox* host, which is why this never bit before → law 0 violation: a blank-slate control node cannot run our own gate | converge the prerequisite from code: FORWARD-accept + MASQUERADE scoped to the lab net, `ip_forward` persisted, and the lab net active in the URI vagrant uses — new role/playbook, vagrant-gated, then `make lab-up` green | **UNBLOCKED 2026-09-11 — operator directive ("no more excuses… real-world testing") adopts PM narrow posture: dedicated nft table scoped to lab net + persisted `ip_forward` + `default` net active in `qemu:///session`; firewalld stays OFF; zero change to existing service exposure. 2026-09-11 re-probe: sudo -n OK; FORWARD policy drop; 7 ruleset lines mention 192.168.122 (builder classifies existing rules first); `default` net inactive @session; ip_forward=1 runtime. Builder dispatched (homelab `roles/lab_host` + converge playbook)** |
+| D-28 | **Sentry observability — demo projects pruned; machinery not yet built (filed 2026-09-11).** Org `walt-dundore` held 4 demo projects; `opencode`+`python` **soft-pruned** (DSNs deactivated, renamed `RETIRED-demo-*`) — permanent delete unavailable via MCP (no delete-project tool) → operator UI click. Only real code host = `banking_app` (`server.py` opt-in `send_default_pii=False`; `mcp_server.py` entrypoint wired to the app's existing `app/telemetry.py` 2026-09-11 — it previously swallowed exceptions unmonitored). `aitora` services (`catalog_api`, `inference`) exist but are **undeployed** (M4, no zone/DSN) | per Framework/module law Sentry is single-homed **ahab machinery**: one env-agnostic init + `SENTRY_DSN` injected from vault by the deploy role + a monitor per service; site modules only enable+parameterize. Machinery build is **vagrant-gated → blocked by D-25/A**. DSN custody: one vault path per service (`/nas/secrets/sentry/<service>.dsn`, 0600), never in repo. banking_app's app-local `init_sentry()` is legitimate tier-3 app code, not machinery duplication | TODO (role vagrant-gated on D-25; DSN provisioning at first deploy) |
+| D-29 | **Tier-1 inversion — the framework lives in the module (refactor-drift sweep 2026-09-11).** ahab `roles/` = apache/mysql/php LAMP-era only; `kuma_expect.sh`, `site.yml`, `ahab.conf` absent (43 tracked files cite the last one); `modules/` + `config-roles/` are uninitialized submodules; duplicate `%:` catch-alls make any typo exit 0 — while dundore-homelab single-homes the L0/L5 machinery every site needs (base, bootstrap, fedora-baseline, docker, nfs, traefik, uptime_kuma*, netbox, openbao, authentik, repo-git, state_watch, common, `bin/law-gate.sh`, `scripts/kuma_expect.sh`, `mcp/fleet_state`). Inverted at the other end too: aitora carries tier-1 roles + tier-3 apps fused; banking_app leaks hostnames/playbook paths into tier 3 | M1 **is** this lift: move the org-agnostic inventory (02 §"Tier-lift-up inventory") into ahab, leaving the module as inventory + host_vars + vault refs + `module.yml`; relicense first (B-011); add the inversion leg to split-contract lint (→ D-33/V3) so a role copy inside a module fails CI | TODO (M1; evidence `docs/audits/refactor-drift-2026-09-11/` 01 F-AH01/22, 02 F-HL18/25, 04 F-ST03, 05 F-BK01) |
+| D-30 | **Four convergence entry points, one of them lying (sweep 2026-09-11).** Root `main.yml` (play pinned to hub hostname), root `local.yml` (references roles `flame`/`gitea`/`github-runner` — none exist, so it dies at role resolution), `playbooks/provision.yml`, and the `repo-git` ansible-pull timer template — the last being law 6's real route, which **nothing installs** while `verify-baseline.yml:185-197` ASSERTS the timer exists. Ledger A-08 "pick one and delete the other" never executed. `roles/fedora-baseline` (14 files = the whole x86 OS path) is referenced by zero playbooks | one host-side route (repo-git + provision.yml); other three pruned or moved to named playbooks; **a verifier may assert only what convergence installs**; fedora-baseline gets an entry point or is archived | TODO (evidence 02 F-HL03/05/06/17) |
+| D-31 | **`context` repo is a live reverse map of the fleet (sweep 2026-09-11).** Its agent-facing `RULES.md`/`PROJECT_OVERVIEW.md` still teach d701=dev / sager=prod — inverted by the ratified flip — and hold a second, stale home for the fleet table (asus-llm "Jenkins & GitHub Runner" vs AWX hub); 50 of 56 tracked files are a verbatim awesome-copilot/gh-aw dump whose 35 workflows target trees this repo never had, 6 of them scheduled and write-back-capable; trunk is `production` + live `main`; the keep-both-sides consolidation silently deleted 6 root docs that `RULES.md` still orders agents to read | decide the repo's fate (agent-dump → strip `.github/`; fork → LICENSE/README/upstream); mark RULES/PROJECT_OVERVIEW `SUPERSEDED — historical` so no agent consumes them as truth; drop duplicated fleet tables, link homelab README §1; trunk rename rides Q-05 | TODO (evidence 06 F-CT01–05) |
+| D-32 | **Estate secret/PII chain (sweep 2026-09-11).** aitora tracks a live-format bearer token (`opencode.jsonc` — named as debt by its own template doc, never remediated) plus plaintext DSN/password literals in 5 files; `paperless/` holds 3 plaintext env files and inline weak DB passwords in the live compose guarding 70 personal PDFs (458M docs/logs/index, no backup or exclusion policy anywhere) while its vault symlink dangles (`/nas/secrets/paperless.secret` missing, `/nas` not a mount); banking_app keeps two real-finance SQLite files in the worktree (gitignored, history verified clean); www homepage PII stays D-26 | rotate/burn the token (**Q-10** — credential custody is the operator's), move every credential to vault/OpenBao per law 6, PII quarantine + backup+exclude policy **before** any estate-hygiene tooling touches the tree (**Q-11**), root `.gitignore` as interim shield while the phantom `.git` lives, relocate the SQLite worktree files | PARTIAL — Q-10/Q-11 AWAIT OPERATOR; code legs (vault refs, root .gitignore) proceed unblocked (evidence 04 F-ST01/02, 05 F-BK09, 07 F-ES07–10) |
+| D-33 | **No standing verifier for the three dominant drift classes (sweep 2026-09-11; law 9 gap).** 129 findings reduce chiefly to: references that do not resolve (~20), gates that cannot fire (~8), tier-contract violations (~8) — with no executable check for any of them, each regrows silently the moment the refactor moves code. Proof this is not theoretical: `ci.yml` has been YAML-invalid on trunk since it was written, no check noticed, and pass 1–2 of an audit read it as fixed **by eye** | build rot-scan v1 per `dundore-homelab/docs/audits/refactor-drift-2026-09-11/FEEDBACK-LOOP.md` **V1–V3** (static → NOT blocked by D-25): one `make rot-scan` entrypoint + playbook, a kuma monitor per check (law 2); V4–V8 land as D-02 / forge / lab-gate unlock | TODO (design filed; builder brief for V1–V3 queued) |
+| D-34 | **Inventory is not the fleet's map (fleet-blueprint probe 2026-09-11).** `storage` — which gates `/nas` for every node — appears in **zero** inventory files (`grep -c storage inventory/hosts` = 0, D-03 confirmed); the DGX Spark cluster that serves this program's own inference is known to ansible only as `gx10-741d`/`gx10-6ca0` with **no DNS record** (`spark1`/`spark-1` empty at the authoritative NS) while homelab CONTEXT §2 still asserts a `spark1.dundore.net:8000` endpoint; inventory pins `10.2.8.x` LAN IPs for boxes that are tailnet-only from here (timeout ≠ down); the hub is named bare `asus-llm` in inventory, which does not resolve from sager, so a live machine with a 200 on AWX reads as "unreachable" | every machine gets ONE canonical name in DNS + the same name in inventory (naming law, FQDN not bare host); sparks named + registered (L3 loop, then `make probe`); storage enters inventory on power-restore (D-13); tailnet-only hosts get `ansible_host` = tailnet IP or a documented jump; CONTEXT §2 endpoint claim re-verified or corrected | TODO (sparks naming = L3 loop, unblocked; storage rides D-13; inventory FQDN pass is a code fix, vagrant-gated) |
+| D-35 | **The fleet layer-matrix has no standing verifier (law 9 gap).** §Fleet Blueprint above is hand-probed: its truth expires the moment a box moves, and the program has repeatedly mistaken a stale row for a live one (d701 tailnet, dev-kuma-down, sager "unlocked") | one entrypoint `make fleet-status` aggregating `make probe` + `make identity` + `make state` + `tailscale status` + authoritative-NS dig into a single timestamped artifact, classified by failure message (identity / DNS / route / key-denied / down) rather than exit code; one kuma monitor per layer column (law 2); the artifact it writes becomes §Fleet Blueprint's evidence link | TODO (builder brief; static legs unblocked, ssh legs behind Q-07) |
 
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
 relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
@@ -222,6 +262,48 @@ why "everything is down" is felt at L6 when the break was at L2/L3.
 **Change law:** *keep changing, keep testing — a change without its layer test
 executed (evidence filed) is not a change, it is damage.* Vagrant is the L4
 clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
+
+## Fleet Blueprint — per-machine layer state
+
+**Owns:** one row per machine — its L1–L6 state and the gate that blocks it. **Does not own:**
+IPAM (NetBox, M3), the naming law and the human fleet table (homelab README §1), or code (roles).
+Vocabulary: `PROBED` (measured this pass) · `MANAGED` (ansible converges it) · `BLOCKED(<gate>)` ·
+`UNVERIFIED` · `DOWN`. Last probed **2026-09-11T21:28Z from dundore-sager** (hostname-probed; its
+tailscale label `dundore-sager-1` is a LEGACY label, not identity) → full matrix + raw output:
+`dundore-homelab/tests/evidence/fleet-blueprint-2026-09-11.md`. That timestamp is this table's expiry.
+
+| Machine | Role | L2 net | L3 name | L4 sshd | L5 converge | L6 serving | Gate |
+|---|---|---|---|---|---|---|---|
+| d701 | prod x86 | PROBED UP | PROBED `prod`/`d701`→.10 | OPEN | **BLOCKED(Q-07)** no identity file | UNVERIFIED | Q-07/D-27, B-002 |
+| dundore-sager | dev x86 + control node | PROBED UP | PROBED `dev`/`uptime`/`gitea`→.15 | OPEN | **BLOCKED(Q-07)** — fails **on itself** | MANAGED-ish: traefik/kuma(healthy)/gitea Up, 200s | Q-07, D-25/B-017 |
+| asus-llm (hub) | automation hub, AWX | PROBED UP | PROBED →.20 | OPEN | **BLOCKED** ×2 (bare name in inventory + no key) | **AWX :8043 → 200** | B-001/B-002, Q-07, D-34 |
+| storage | NFS server (gates `/nas` fleet-wide) | **DOWN** | PROBED →.35 (A/A with `ap` = D-04) | — | **not in inventory** | — | D-13, D-03, D-02/B-006 |
+| rpi5-01 / rpi5-02 / rpi4-02 | ARM test fleet | PROBED UP ×3 | resolve (FQDN) | OPEN ×3 | **FAIL** `Permission denied (publickey)` ×3 | UNVERIFIED | B-002 recipe, B-007, D-21 twins |
+| gx10-741d / gx10-6ca0 | **DGX Spark head/worker — serves this program's own inference** | LAN timeout; **tailnet peers** | **no DNS record at all** | unreachable | **FAIL** timeout (inventory pins unroutable LAN IPs) | vLLM serving (TP=2) | D-34, Q-07 |
+| wcss (wcss-hp) | whitecountyschools site box | LAN timeout; tailnet peer | zone twin (D-21) | — | FAIL timeout | — | M5, F-HL21, D-21 |
+
+### Four facts this view makes unavoidable
+
+1. **Nothing is manageable.** Zero inventory hosts pass L5 — including the control node probing
+   itself — for a single root cause: the fleet private key has no code home (Q-07), and its path has
+   **two** homes in config (`keys/service_id` relative, and `<repo>/../keys/…`). Until that lands,
+   no claim that any machine is *converged* is re-provable from this node; `make state` already
+   self-declares this blind spot. Law 0 is therefore unmet on the control node itself.
+2. **The tailnet carries no fleet servers.** Peers = 2 laptops, the 2 DGX sparks, the school box,
+   and this box (legacy label). So D-09's "LAN + tailnet only" posture and D-09a split-DNS are
+   unsatisfiable today, and any plan that reaches d701/hub over the tailnet is void — the 09-11
+   "d701 tailnet REGRESSED" row was not an incident, it is the normal state.
+3. **Inventory is not the fleet's map.** `storage` — the box that gates `/nas` for every node — is
+   absent from inventory (D-03), and the DGX cluster is registered only as `gx10-*` with **no DNS
+   record**, while homelab CONTEXT §2 asserts a `spark1.dundore.net:8000` endpoint that does not
+   resolve at the authoritative NS. The machinery running our agents is unnamed. → D-34.
+4. **L6 green while L5 red, on our own box.** Sager serves kuma and gitea at 200 yet cannot converge
+   itself — the layer stack's warning ("felt at L6, broken at L2/L4") measured on the control node.
+   **A service answering 200 is not evidence of a managed machine**, which is exactly why M0's exit
+   gate is a kill-switch drill and not a dashboard.
+
+**Standing-check obligation (law 9):** this table was hand-probed, so it rots the moment a box
+moves → D-35 (`make fleet-status` + a kuma monitor per layer column).
 
 ## Milestones
 
@@ -295,6 +377,14 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
    and what work continues meanwhile; then immediately continue an unblocked thread. Parking
    a question must never stall the program, and never silently widen scope instead.
 
+9. **Loop law (adopted 2026-09-11, operator ruling after the estate sweep)** — a standing promise
+   needs a standing check: every invariant asserted in code or docs (links alive, keypair hashes
+   equal vault↔repo↔authorized_keys, registry↔disk, mountpoint-is-a-mount, config-has-a-code-home,
+   branch-foldability measured by 3-dot diff, repo-freshness lint) gets an executable verifier that
+   RUNS ON A SCHEDULE and reports to kuma — a failure nobody can see is a second failure. The
+   rot-scan playbook + monitors are the vehicle; the lab gate itself is under check (a gate that has
+   never run is rot). Whack-a-mole of findings is the symptom; the missing loop is the defect.
+
 ## Branch archaeology (2026-09-09)
 
 - **homelab `origin/development` +2**: `143f265` pipeline-cruft removal + L-04 key-path comment fix; `9f60777` **repo-freshness role + deploy play (O-03)** — audit-relevant tooling, review for M1. Both need cherry-pick review into production.
@@ -312,7 +402,9 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 7. ~~GitHub CI gate integrity~~ **DONE 2026-09-11**: gate FAIL verdict + YAML root cause → docs/audits/2026-09-11-queue7-ci-gate.md + BLUEPRINT conformance → docs/audits/2026-09-11-blueprint-conformance.md
 8. M0 vagrant gate ROUND 2 — **BLOCKED 2026-09-11 by D-25/B-017** (lab-net NAT absent, guest→WAN dead; blank guest cannot install docker). L3 integrity leg **DONE** 2026-09-11: `make preview` via container = 0 corrections, authoritative NS == code → D-24 downgraded to cache artifact (auditor to confirm; also confirm the audit-method fix: dig authoritative NS, never a caching resolver)
 9. Cold-start/entrypoint conformance (plan `…_b618`): README-vs-reality defects in both repos — `bin/pipeline-run` cited but absent, `secrets/vault.yml` claimed tracked but `secrets/` absent, `ahab/README.md` never links BLUEPRINT.md and recommends a nonexistent `make ui`, dead `RELEASE_NOTES_v0.1.1.md` badge link, README §5 CI prose ≠ `ci.yml`. Auditor to re-run the cold-start pass after the wave-2 rewrite
-10. New `Makefile` command surface (homelab 14 targets + dnscontrol 3): lint-gate faithfulness to `ci.yml`, no weakened assertions, `lab-reap` CONFIRM gate, no `push` target by design. Evidence: homelab `tests/evidence/command-surface-2026-09-11.md`
+10. New `Makefile` command surface (homelab ~~14~~ **16** targets — count re-verified 2026-09-11 by `make help`, F-HL23; + dnscontrol 3): lint-gate faithfulness to `ci.yml`, no weakened assertions, `lab-reap` CONFIRM gate, no `push` target by design. Evidence: homelab `tests/evidence/command-surface-2026-09-11.md`
+11. **rot-scan v1 (V1–V3)** review once built — do a verifier's own job first: plant a dead reference and a fake branch trigger, require non-zero exit, then require zero on a genuinely clean tree (D-33; design `dundore-homelab/docs/audits/refactor-drift-2026-09-11/FEEDBACK-LOOP.md`)
+12. Refactor-prep drift sweep **DONE 2026-09-11** (7 finding files, 129 findings, 9 repos) → index `dundore-homelab/docs/audits/refactor-drift-2026-09-11/00-index.md`; the sweep audited *content*, so the register rows it produced (D-29…D-33) still need their own fix→vagrant-gate→audit loop; queue items 4/5/6 are the natural consumers of its findings
 
 ## Live-probed facts (2026-09-11, BLUEPRINT conformance audit)
 
@@ -332,3 +424,20 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 | storage.dundore.net from sager | DEAD (D-13 stands) | ping 100% loss; {2049,111,445,80} closed 2026-09-11 — NFS real-target convergence impossible until operator powers/restores box |
 | sager `/nas` mechanism | LIVE-PROBED | fstab entry exists (`_netdev`), findmnt empty, local tree (`config/data/secrets`) shadows mountpoint = D-02 mechanism confirmed; reconcile-before-mount obligation registered |
 | sager lab-net (D-25) | LIVE-PROBED | sudo -n passwordless OK; nft FORWARD policy drop (DOCKER-USER jump); 7 ruleset lines mention 192.168.122 (classification pending builder); libvirt `default` inactive @qemu:///session (autostart yes); ip_forward=1 runtime |
+| estate push-freshness + wave pushes | LIVE-PROBED + PUSHED (2026-09-11) | pre-push: ahab/homelab/dnscontrol were ahead 1/2/1 over origin@09-11 00:03 → pushed (`c4db736`/`e664a5c`/`f7dfa9a` incl. hygiene + lab_host role); aitora/banking/geekend/template in sync since 09-10; `context` trunk last pushed **2026-06-21 (“test”)** → main→production consolidated (3 modify/delete conflicts, keep-both-sides, zero data deleted) pushed `12153c4`; **root workspace repo `homelab-git-root` = phantom** (0 commits, remote “Repository not found”, would track `secrets` symlink → operator decision); `fast/` + `paperless/` are NOT git repos at all |
+| branch estate, 3-dot classification (2026-09-11) | PROBED | ahab `clean-1765477195`/`master`/`workstation`/`milestone-system-v1` provably folded → deletion blocked by Safety Net (operator runs: `git -C ahab push origin --delete clean-1765477195 master workstation milestone-system-v1`); every homelab branch incl. 2 open dependabot bumps (trunk still hono 4.13.2) carries branch-only content → NOT deletion candidates; ahab `production` (2024 lineage) has NO merge-base — 3-dot result was an artifact, kept as tombstone |
+| root workspace repo | RULED + operator action pending | operator: root is not a repo; verified 0 commits/0 stashes; `mv .git` blocked by Safety Net (git-metadata protection) → operator runs `rm -rf /home/wdundore/git/.git`; `secrets → /nas/secrets` symlink stays (correct design; portability = D-02) |
+| gh CLI on sager | AUTH PENDING | operator reported CLI authenticated 2026-09-11, but `gh auth status` as wdundore@sager = not logged in (no `~/.config/gh`, no GH_* env) — forge-side work parked per law 8: B-016 PR merge, B-015 branch protection, D-16 twin archive; unlock = interactive `gh auth login` on sager or PAT at `/nas/secrets/github/token` |
+| d701 console pubkey | READY (D-27 vault pair) | line for `ansible_user@dundore-sager` fleet key: `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOuSXHY79GBOOmoHRf5wyrxgnP/J684wmNSiOyMLy+By`; recipe (proven B-002/D-23): tee -a ~/.ssh/authorized_keys + 700/600 + `restorecon -R ~/.ssh` |
+| d701 SSH from sager — all identities | KEY-DENIED (refines 09-11 row) | ping 0.5ms LAN, sshd offers publickey; `wdundore`@ denied; `ansible_user`+service_id impossible (**private half absent on sager — repo tracks only .pub**), `ansible_user`+`/nas/secrets/ansible/ansible_id` denied ⇒ d701 `authorized_keys` holds none of sager’s public halves (D-23 class); d701 pull-compare leg impossible without CONSOLE; B-002 recipe is proven (tee + 700/600 + restorecon). Estimated d701 delta: homelab copy @ `production 7412033` (09-10) lacks today’s 5+ trunk commits incl. hygiene + lab_host role |
+
+## Live-probed facts (2026-09-11, refactor-prep drift sweep)
+
+| Item | Status | Evidence |
+|---|---|---|
+| refactor-prep drift sweep, 9 repos | **FILED** by spark-auditor instances 2026-09-11 (content audits — they grant no milestone status) | 7 finding files + index + FEEDBACK-LOOP = **129 findings** (52 FOCUS / 54 CLEANUP / 4 KEEP / 19 LEAVE, post-correction) @ ahab `c4db736`, homelab `e664a5c`, dnscontrol `f7dfa9a`, aitora `ecf02e6`, banking_app `b439367`, context `12153c4`, estate tree → `dundore-homelab/docs/audits/refactor-drift-2026-09-11/`; **all 9 files uncommitted** (no commit without operator approval; homelab worktree also carries another thread's D-25 delta) |
+| `ci.yml` validity on trunk | **INVALID at HEAD** (PM-side parser probe, independent of the auditor) | `yaml.safe_load` on `git show HEAD:.github/workflows/ci.yml` → "mapping values are not allowed here", **line 26 column 34** (unquoted `: ` in a step name) = the B-016 root cause, still live at `e664a5c`; fix `1e2d8f9` still unmerged → **eyeballing YAML is not verification** (an audit pass mis-cleared it by eye) |
+| F-ES02 root `.git/opencode` hazard | **CORRECTED by PM** (FOCUS → LEAVE) | `.git/opencode` is a 40-byte ASCII file holding one hash (`0bba7496…`) that resolves in **no** repo, and the same marker exists in every real repo's `.git`; opencode's actual state is `~/.local/share/opencode` (237M) ⇒ the pending `rm -rf /home/wdundore/git/.git` (row above) does **not** endanger opencode state — hazard withdrawn so the real estate hazards keep their weight |
+| estate hazards the refactor must respect | FILED → **D-32** (Q-10/Q-11 parked) | phantom root repo sits one `git add .` from committing `paperless/` 458M personal docs + 3 plaintext env files + inline weak compose DB passwords; `paperless/.env → /nas/secrets/paperless.secret` dangles (target missing, `/nas` not a mount); aitora tracks a live-format bearer token |
+| dispatch integrity (process law) | **DEFECT RECORDED** | a spark-auditor dispatch reported `Task cancelled` to the PM but **kept running client-side**, then rewrote `02-homelab.md` whole at 16:47 concurrently with its own re-dispatch (which appended F-HL19–26 rather than clobbering). No data lost — saved by the brief's incremental-save rule + one-file-one-owner. Standing rule: a cancelled task is not a stopped task; probe file mtime + agent heartbeat before re-dispatching anything that owns a file |
+

@@ -6,6 +6,17 @@ Updated by the project manager; only **spark-auditor** may set status `AUDITED`.
 Statuses: `UNVERIFIED` → `LIVE-PROBED` (PM, evidence linked) → `AUDITED` (spark-auditor PASS).
 Plan tool id: `feature_ahab-control-repo-foundation_20260909_b993` (execution detail only).
 
+## Truth Hierarchy (operator ruling 2026-09-11)
+
+**NetBox prod = the overall SSoT** (IPAM, inventory, assets — machines and their
+addresses). **Uptime-Kuma prod = the auditor SSoT** (ping/monitor/service-test evidence —
+extends kuma-first law 2: audits run against kuma, not against prose). **Git = SSoT for
+code/desired state only** — narrows GitOps law 1's scope. These roles are held by the
+services even while down: both MCP servers (`netbox`, `uptime-kuma`) are scaffolded into
+the PM's opencode config NOW and fail loudly until M0 (kuma lattice) / M3 (NetBox SSoT)
+deliver live endpoints + OpenBao-issued creds. M0/M3 are therefore prerequisite
+context-channels for the whole program, not late-stage plumbing.
+
 ## Mission & Composition Law
 
 Ahab = control repo; common code lives ONCE in ahab. Site repos contribute only
@@ -75,6 +86,17 @@ Process laws (non-negotiable):
      so each model tier sees only what its layer owns.
    - **Symlink law:** symlinks are disposable local conveniences; anything that
      must survive a fresh clone is a git submodule, never a symlink.
+7. **Gate law (adopted 2026-09-11, operator ruling)** — every change passes a
+   two-tier gate before landing on trunk:
+   - **Tier A — mechanical, every commit:** law-gate (conflict markers, secret
+     literals, branch law) + lint + syntax must be enforced by the FORGE, not by
+     discipline. Branch protection on trunk (`prod`/`dev`) refuses direct push
+     and refuses merge on red checks. Enforcement today = GitHub (teeth pending
+     B-015/B-016); Gitea inherits at initialization.
+   - **Tier B — spark-auditor, every milestone event:** no BLUEPRINT row moves
+     to `LIVE-PROBED`/`AUDITED`, and no SSoT status line changes, without a
+     filed spark-auditor verdict in `evidence/`. PM dispatches the auditor
+     **as part of the event** — audits are never deferred to a backlog.
 
 ## Portability Contract — the 3-tier repo split
 
@@ -155,7 +177,9 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 | D-18 | Committed build cruft everywhere: 9 Makefile variants (`backup-broken`, `bak2`, `original`, `refactored-example`, `~HEAD`…), `Makefile~HEAD` in ahab-inventory, `INITIALIZE.md` in ahab-modules, 3 duplicate Makefiles symlinked across repos by bootstrap.sh | `make` targets are the single build entrypoint; remove all `Makefile.*` backups (they live in git history now — trust but verify: git has them); replace cross-repo Makefile duplication with one file + submodules, not symlinks | TODO |
 | D-19 | `ahab-secrets/scripts/setup-secrets.sh` embeds **realistic plaintext passwords** for dev AND prod (Aruba/Ruckus/SNMP) — violates GitOps-law secret clause | generator must emit `ansible-vault`-encrypted output or `openssl rand`-generated `REPLACE_ME` tokens; no plausible literal in any example, ever; spark-audit the whole secrets tree | TODO (B-014 unlock) |
 | D-20 | **hub AWX lives in shell-history, not code** (operator history 2026-09-10): source install of `ansible/awx` **`devel` branch** (unpinned — prior 24.3.1 broke on migrations and was rm'd), manual superuser/token creation via `awx-manage` (OAuth tokens passed through shell history = burned), UI hand-built (`make ui`, `docker cp`, `collectstatic` ×15 retry loops), `awx.dundore.net` ingress + DNS since vanished (dig empty from d701 2026-09-10) | codify bring-up as an ahab module/role on the hub: version-pinned checkout, compose env rendered from vault, idempotent migrate→superuser→token, UI from release assets not dev builds, ingress via traefik + dnscontrol record, kuma monitor (a controller without a monitor does not exist); old tokens treated as revoked | TODO (hub unlock B-002; playbook FIRST, vagrant-gated) |
-| D-16 | SELinux unaccounted in Ansible: file-level tasks (`copy`/`template`/shell-pastes) on enforcing Fedora leave wrong contexts — the failure is silent (no "bad ownership" line in `/var/log/secure`, just `preauth` close); sager's lockout twin (0-byte `authorized_keys` + near-miss labeling) is this exact class | selinux-aware modules (`ansible.posix.authorized_key`, `file`+`sefcontext`) or explicit `restorecon` on every managed path; context asserts in verify tasks | TODO (operator-raised 2026-09-10) |
+| D-21 | DNS zone naming-law debt (audit 2026-09-11): service/alias **A** records (`uptime*`, `gitea`, `dev-gitea`, `traefik`, `authentik`, `flame`, `banking`, `rpi5-01-gitea`) and machine-alias A-twins (`hub`≡`asus-llm`, `arm1`≡`rpi5-01`, `arm2`≡`rpi5-02`) — ≥2 A per those machines, violates "one A per machine, rest CNAME" | dnscontrol rewrite pass: one A per machine + CNAMEs for every alias/service name; gate = `dnscontrol preview` diff == intent, then push, then dig (L3 loop) | TODO |
+| D-22 | `host_vars/d701.yml` sets `uptime_kuma_domain: uptime.dundore.net` but `uptime` → **dev** (.15) in code+live — prod's kuma domain var targets the DEV box; breaks M0 "prod checks dev / dev checks prod" leg | prod kuma endpoint must get its own distinct name/IP (real prod kuma location still UNVERIFIED — B-002 hub/CONSOLE or profile-A check on d701); fix host_vars + monitor leg after that fact | TODO (needs d701 profile-A probe) |
+| D-23 | SELinux unaccounted in Ansible: file-level tasks (`copy`/`template`/shell-pastes) on enforcing Fedora leave wrong contexts — the failure is silent (no "bad ownership" line in `/var/log/secure`, just `preauth` close); sager's lockout twin (0-byte `authorized_keys` + near-miss labeling) is this exact class | selinux-aware modules (`ansible.posix.authorized_key`, `file`+`sefcontext`) or explicit `restorecon` on every managed path; context asserts in verify tasks | TODO (operator-raised 2026-09-10) |
 
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
 relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
@@ -219,10 +243,10 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 | **DNS flip PUSHED & LIVE** ✅ | LIVE-PROBED | dnscontrol `d9c8465` pushed via whitelisted IP; dig verifies d701→prod(.10), sager→dev(.15) |
 | d701 /etc/hosts | **FAILS naming law** | legacy hostname + `project.dundore.net` alias + 127.0.1.1 line; fix via base-role convergence, not manual |
 | d701 resolver | PASS | systemd-resolved→OpenDNS+MagicDNS; public zone carries private IPs |
-| **M0 vagrant gate** | LIVE-PROBED (2026-09-09): blank fedora43 → kuma GREEN, idempotent; 7 bugs caught+fixed in code | homelab evidence tests/evidence/bootstrap-vagrant-2026-09-09.md |
+| **M0 vagrant gate** | **AUDITED** (spark-auditor PASS 2026-09-11, scoped: evidence genuineness + law-gate + syntax on current tree; dynamic guest-box claims and full M0 exit gate out of scope) | homelab tests/evidence/bootstrap-vagrant-2026-09-09.md + verdict docs/audits/2026-09-11-queue12.md |
 | pi fleet | UNVERIFIED | no reachability from off-LAN laptop; needs control-node/console |
-| inventory flip d701=prod | LIVE-PROBED, static-verified, **unaudited** | homelab `699e6bf` |
-| dnsconfig flip (dev=.15/prod=.10, CNAMEs swapped) | LIVE-PROBED (check clean) **unaudited** | dnscontrol `d9c8465`; push pending |
+| inventory flip d701=prod | **AUDITED (flip pair)** 2026-09-11: inventory↔DNS↔live triangle PASS; single-vantage (sager); zone naming-law debt → D-21 | homelab `699e6bf` + verdict docs/audits/2026-09-11-queue12.md |
+| dnsconfig flip (dev=.15/prod=.10) | **AUDITED (flip pair)** 2026-09-11: live dig PASS, code triangle PASS, pushed & live (`711a389`); naming-law debt → D-21; `dnscontrol preview` leg NOT-TESTABLE on sager (binary absent) | dnscontrol `d9c8465`+`711a389` + verdict docs/audits/2026-09-11-queue12.md |
 | aitora repo (ex-hf) | LIVE-PROBED | local `203cddf` 42 files; **also PUSHED** — origin/production confirmed via `git ls-remote` 2026-09-10 |
 
 ## Live-probed facts (2026-09-10, git-estate reconciliation)
@@ -244,18 +268,20 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 | ID | Blocker | Why it stops progress | Unlock |
 |---|---|---|---|
 | B-001 | hub re-powered but services unverified (2026-09-10 probe: ALIVE, ports 22+9090 open, **AWX web not exposed** — see B-014) | can't claim kuma/automation healthy; GitOps controller offline | verify after B-002 unlock; bring AWX web to LAN + API smoke (B-014) |
-| B-002 | **sager CLOSED 2026-09-10 — unlocked & audited** (root-pasted `authorized_keys` + restorecon; `ansible_user`+`service_id` LIVE, hostname-probed) — **hub (asus-llm) still unmanaged** | was: dev leg + hub recovery blocked; hub leg remains | CONSOLE on hub only: inject `keys/service_id.pub` for ansible_user; proven recipe: `tee -a ~/.ssh/authorized_keys` + 700/600 + `restorecon` (see D-16) |
-| B-003 | dev kuma DOWN — **UNBLOCKED 2026-09-10** (sager now managed) | no dev-checks-prod leg | run `bootstrap-monitoring.yml --limit dundore-sager` (+ base-role converge first; watch D-16 on SELinux) |
+| B-002 | **sager CLOSED 2026-09-10 — unlocked & audited** (root-pasted `authorized_keys` + restorecon; `ansible_user`+`service_id` LIVE, hostname-probed) — **hub (asus-llm) still unmanaged** | was: dev leg + hub recovery blocked; hub leg remains | CONSOLE on hub only: inject `keys/service_id.pub` for ansible_user; proven recipe: `tee -a ~/.ssh/authorized_keys` + 700/600 + `restorecon` (see D-23) |
+| B-003 | dev kuma DOWN — **UNBLOCKED 2026-09-10** (sager now managed) | no dev-checks-prod leg | run `bootstrap-monitoring.yml --limit dundore-sager` (+ base-role converge first; watch D-23 on SELinux) |
 | B-004 | DNS flip unpushed | d701/sager names still resolve pre-flip; convergence unsafe | push from control node (Namecheap IP whitelist) after preview |
 | B-005 | ~~git auth dead on laptop~~ CLOSED 2026-09-10: gh authed as waltdundore (repo+workflow scopes); 5 pushes GREEN from laptop incl. homelab `production`/`development` | was: cannot push any repo incl. aitora | — (if it re-dies: `gh auth status` is the probe) |
 | B-006 | no vault password on laptop | runtime ansible verify only possible on control node | run M0/M1 verifications there |
 | B-007 | pi fleet unverified | voter node for lattice unknown | ping sweep from control node |
 | B-008 | 9 stashes LOCATED 2026-09-10 — all on the **laptop** (dated 2026-08-11→2026-09-01, mostly `WIP on test` commits, one real: "local drift: opencode.json.j2"); d701's student-safety stash preserved to origin (`shelve/student-safety-law-20260819`); sager swept CLEAN (0 stashes) | hidden drift vs branches | PM decision per stash: the eight `test`-base WIPs are likely discardable; "opencode.json.j2 drift" + 2026-09-01 trio need review before drop |
 | B-009 | d701 /etc/hosts stale (aliases + non-canonical name) | naming law violation; LE/cname scheme depends on it | base-role hostname enforcement after DNS push |
-| B-010 | spark-auditor has PASSed nothing in this program | no item can reach AUDITED | queue audits: M0 vagrant gate, inventory flip, dns flip |
+| B-010 | ~~spark-auditor has PASSed nothing~~ **CLOSED 2026-09-11**: queue items 1–2 audited — vagrant gate PASS (scoped), flip pair PASS; verdicts in homelab docs/audits/2026-09-11-queue12.md | was: nothing could ever be AUDITED | — |
 | B-011 | ahab license CC BY-NC-SA conflicts with dogfood law's "fully open source" | blocks M1 + any public adoption | relicense MIT/Apache-2.0 (PM recommends Apache-2.0 for patent grant) before M1 merge work |
 | B-013 | repo-estate canonical name undecided (D-16): `ahab-config`/`ahab-inventory` vs their byte-identical `ansible-*` twins | cannot point AWX Projects / `repo-git` / submodule URLs anywhere until "the one repo" is fixed; wrong choice = two SSoTs (GitOps-law violation at the repo layer) | PM decision (recommend `ahab-*`); then GitHub archive-of-lossless + README redirect on the twins; record decision HERE |
 | B-014 | no live AWX endpoint: dev-source install (`tools_awx_1`, devel-branch, unpinned — D-20) currently down; `awx.dundore.net` DNS+ingress vanished; OAuth tokens from shell-history burned | GitOps law's webhook→deploy→drift legs are unimplementable/untestable | bring AWX up **from codified bring-up, not history** (D-20): pin version, web on LAN or traefik+dnscontrol record, migrate→superuser→fresh vault-stored token, `/api/v2/ping` smoke, kuma monitor |
+| B-015 | no trunk protection enforced on any repo; direct pushes to `prod` are possible and HAVE happened (conflict markers on homelab `prod`, `6b15085`) | law 7 Tier A is advisory until a forge refuses bad merges | GitHub branch protection on `prod`/`dev` estate-wide (needs gh auth on sager, or do from laptop); Gitea inherits at init |
+| B-016 | GitHub CI reports RED daily (operator). Static read of homelab `ci.yml`: push trigger only `dev` (trunk `prod` pushes never fire the gate), `service-health` leg gated on dead branch `development`; self-hosted runner liveness unknown; gh unauthenticated on sager blocks Actions API probe | a RED or never-triggered gate is not a Tier-A gate | audit queue item 7 → fix triggers via PR; authenticate gh; confirm runner |
 
 ## Branch archaeology (2026-09-09)
 
@@ -265,9 +291,10 @@ clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 - ahab master/workstation/milestone-system-v1 == prod (no hidden code). geekend feature/epic-001-lab +8 commits = current WIP (expected). dnscontrol production branch = merged.
 
 ## Audit queue (next spark-auditor runs)
-1. M0 vagrant gate + monitoring_bootstrap scaffold (once files exist)
-2. Inventory flip `699e6bf` + DNS flip `d9c8465` pair-consistency vs naming law
+1. ~~M0 vagrant gate~~ DONE 2026-09-11: PASS (scoped; dynamic claims transcript-only) → docs/audits/2026-09-11-queue12.md
+2. ~~Inventory/DNS flip pair~~ DONE 2026-09-11: flip triangle PASS; naming-law check FAIL → D-21/D-22 filed → docs/audits/2026-09-11-queue12.md
 3. homelab dev-branch commits `143f265`/`9f60777` fitness for cherry-pick
 4. Split-contract lint (M6 seed): no org-specific values in ahab; no inventory/creds in content-tier repos
 5. M0 UX pass (hospitality law): status page + alert copy + BOOTSTRAP.md tone reviewed against ui-ux.md by spark-auditor
 6. GitOps-law conformance: PR-gate CI (yamllint+ansible-lint+syntax+`--check`), AWX Project/Job-Template/drift-schedule wiring, secret-scan clean (D-19), canonical-repo wiring post-D-16
+7. GitHub CI gate integrity (B-016, operator-reported daily-RED): last N Actions runs + root cause; fix `ci.yml` triggers (trunk `prod` never fires push gate; `service-health` gated on dead `development` branch); self-hosted runner liveness. Runs first — every other queue item's Tier-A evidence depends on it.

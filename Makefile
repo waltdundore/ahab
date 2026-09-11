@@ -5,8 +5,7 @@
 # Core command: make install [modules...]
 # ==============================================================================
 
-# Include common functions and patterns
-include Makefile.common
+# Makefile.common removed per BLUEPRINT D-18 (single Makefile; helpers are no-ops)
 
 # Include safety system (optional - for advanced safety checks)
 -include docs/development/Makefile.safety

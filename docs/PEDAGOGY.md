@@ -22,6 +22,17 @@ Same ladder, both students: they both start cold, and SRE is learned the same
 way either way. Audience changes the **voice and packaging**, never the
 commands — the dogfood clause guarantees both students run exactly what we run.
 
+**Disclosure asymmetry (the dual-audience key).** A human grows *up the ladder
+across sessions* — their next lesson is the next rung. A model never arrives
+as a beginner and never as an expert: it is a **capable stranger** — high raw
+skill, zero memory — and it grows *within* the session by loading only the
+layer its task names. Progressive disclosure is therefore one law on two
+carriers: for a human the disclosure axis is **scroll depth**, for a model it
+is **context budget**. The mechanism is identical — one entry point, one
+question per page, depth exactly one deliberate click (or one linked file)
+away; live facts are *fetched* from the named channel, never inlined or
+recalled. Module design is graded on both axes at once (design tests 1–2).
+
 ## Apple's rules, translated (progressive disclosure = our law)
 
 1. **One job per screen.** Each page answers one question at the reader's

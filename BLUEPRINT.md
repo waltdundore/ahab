@@ -231,6 +231,7 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 | D-41 | **Three test/script assertions were green ONLY via the D-39 cheat vector** (exposed by the fix, 2026-09-11): `tests/property/test-inventory-make-commands.sh:239` asserts `make inventory-list` succeeds — no such target; `scripts/quick-test-os.sh:54` + `tests/integration/test-os-install-journey.sh:136` call `make verify-install` — no such target. They now fail LOUDLY, which is the fix working — but a verifier may assert only what the Makefile actually provides (D-30 law) | either implement the real targets (`inventory-list`, `verify-install`) or correct the assertions to existing rules; the lying-green suite must never return; rot-scan V-class: every `make <t>` cited in code/tests resolves to a rule (D-33) | TODO (next M7 unit; static, unblocked) |
 | D-42 | **Generated module docs teach the invalid dispatch form** (exposed by D-39 fix): `scripts/lib/module-common.sh:79`, `scripts/lib/module-creation.sh:380-386` heredocs, `scripts/create-module.sh:62`, `tests/integration/test-apache-docker.sh:311` emit/print `make install <name>` — real interface is `make install MODULES=<name>`; the positional form now correctly exits 2 | fix the generator heredocs to the valid `MODULES=` form (docs the machine WRITES are code, not prose — law 10 dogfood clause) | TODO (M7 wave 2; static) |
 | D-43 | **`make checkpoint` writes git commits** — `docs/development/Makefile.safety:26-27` (live via `-include` at `Makefile:11`) runs `git add -A && git commit`: an automated blanket-commit surface inside the build entrypoint = GitOps law 6 violation + accident amplifier (law 11: surface that can hide/destroy work) | remove the checkpoint target (history says commits are deliberate acts); audit the rest of Makefile.safety's 4 targets for git/side-effect behavior | TODO (small; next ahab-touching unit) |
+| D-44 | **Stall — the failure class with no verifier (operator probe 2026-09-11: "why exactly did you stop?").** PM deferred the M0 gate unit on INFERRED contention (dirty files visible) without measuring writer activity (`stat` mtime, fleet-state heartbeats — all stale, one command each) and without evaluating the pinned workaround (`git worktree add … HEAD`). Kin: cancelled task that kept running (no heartbeat probe first), fabricated `make` success (D-39). Common root: nothing verifies that queued work MOVES, and nothing distinguishes a measured stop from a manufactured one | (a) contract teeth: stops-need-receipts — SKILL rule 0c + law 11 clause (landed 2026-09-11): every deferral cites measurement command+output and the pinned workaround evaluated; receiptless stop = fabricated blocker; (b) standing check folded into rot-scan (D-33): `make queue-liveness` — every dispatched unit >24h without evidence file/heartbeat prints STALLED, kuma monitor (law 2) | CODE PARTIAL (receipts rule landed; queue-liveness leg queued behind rot-scan v1) |
 
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
 relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
@@ -440,7 +441,11 @@ moves → D-35 (`make fleet-status` + a kuma monitor per layer column).
     serves this legacy; when a trade-off appears, the learning surface wins.
 11. **Execution-trust law (operator ruling 2026-09-11)** — the operator speaks
     ONCE; the WORKFLOW proves it happened. "I shouldn't have to look behind
-    you — the workflow should handle that for me."
+    you — the workflow should handle that for me." A stop must carry a RECEIPT:
+    the measurement (command + output) that forced it and the pinned-state
+    workaround evaluated (worktree at HEAD, read-only partial, clean partial
+    delivery); deferral on unmeasured inference is itself a fabricated blocker
+    (D-44 — contention is a LOCATION question, worktree-at-HEAD always runs).
     - **Execute, don't bait.** When the brief, the laws, and the plan settle a
       choice, the agent acts. Pausing to ask a settled question, manufacturing
       a decision, or stalling to be a good conversationalist is a contract

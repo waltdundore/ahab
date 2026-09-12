@@ -19,8 +19,8 @@ more usefully — how you'll *feel* when you've finished it.
 | You are… | Start with | When you're done, you'll feel |
 |---|---|---|
 | **Curious** — deciding whether to trust this | this page, then [README](README.md) | clear-eyed about what it is, what it isn't, and whether it's alive |
-| **A new operator** — you'll run a fleet with it | [BOOTSTRAP runbook](../dundore-homelab/docs/BOOTSTRAP.md) | watched-over, not just monitored — proof in your own hands |
-| **A contributor** — you'll send a change | [ONBOARDING](../dundore-homelab/docs/ONBOARDING.md) → [DEVELOPMENT_RULES](DEVELOPMENT_RULES.md) | like a teammate, not a stranger guessing at tribal rules |
+| **A new operator** — you'll run a fleet with it | [BOOTSTRAP runbook](https://github.com/waltdundore/dundore-homelab/blob/prod/docs/BOOTSTRAP.md) | watched-over, not just monitored — proof in your own hands |
+| **A contributor** — you'll send a change | [ONBOARDING](https://github.com/waltdundore/dundore-homelab/blob/prod/docs/ONBOARDING.md) → [DEVELOPMENT_RULES](DEVELOPMENT_RULES.md) | like a teammate, not a stranger guessing at tribal rules |
 | **A site owner** — you'll plug your org in | [Portability Contract](BLUEPRINT.md#portability-contract--the-3-tier-repo-split) → your module repo | that your whole job is just *inventory + roles + secret refs* |
 | **An agent / model** — you operate from context | the [model ladder](#for-models-and-agents) below | grounded: one authoritative answer per question, history clearly marked as history |
 
@@ -104,7 +104,7 @@ Needing help is the design working, not you failing. Climb from the bottom:
    README that promises is just a claim. Docs here are checked like code.
 4. **Read the known unknowns.** Open questions and blockers are *filed on
    purpose* with owners in the D-register / B-register
-   ([BLUEPRINT](BLUEPRINT.md)) and [OPEN-QUESTIONS](../dundore-homelab/docs/OPEN-QUESTIONS.md).
+   ([BLUEPRINT](BLUEPRINT.md)) and [OPEN-QUESTIONS](https://github.com/waltdundore/dundore-homelab/blob/prod/docs/OPEN-QUESTIONS.md).
    If you're stuck on something hard, someone has probably already written down
    exactly where the frontier is.
 5. **Open an issue or discussion.** A human talking to a human, with the error
@@ -117,8 +117,9 @@ whole point of writing it down.
 
 ## For models and agents
 
-The same docs are your runtime context, so they're written for you on purpose.
-To stay grounded:
+The full machine-context contract is **[AGENTS.md](AGENTS.md)** — it lists the
+MCP channels that carry your live context (fleet-state, netbox, uptime-kuma,
+sentry, filesystem, context7). The essentials, to stay grounded:
 
 - **Read order:** this page → [GLOSSARY](docs/GLOSSARY.md) → the
   **Truth Hierarchy** + **Documentation Hierarchy** in
@@ -136,7 +137,17 @@ To stay grounded:
 
 ## One more thing
 
-This repository is a **teaching repo** — a teaching hospital for
+The method is the *how*; the surprise is the **what you get**. Ahab is also a
+complete, free, self-hostable **ops platform** — NetBox, Ansible, Traefik,
+Uptime-Kuma, OpenBao, DNS-as-code — wired so that **assigning one device a role
+builds its network, configures it, names it, starts watching it, and injects its
+secrets.** A high-school student can drive it; a Georgia Tech student learns
+real DevOps on it far more legibly than on a controller maze. That soul got lost
+somewhere, so it's written down now → **[docs/PLATFORM.md](docs/PLATFORM.md)**.
+
+## And the docs are tested like code
+
+This is a **teaching repo** — a teaching hospital for
 site-reliability work. That means the *documentation is a product*, held to the
 same bar as the code: it must meet you where you are, over-explain without
 overwhelming, and prove its claims.

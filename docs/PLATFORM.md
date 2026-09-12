@@ -16,6 +16,16 @@ also the easiest part to lose sight of, so it lives here, on purpose.
 
 ---
 
+## Start small — it grows with you
+
+**You don't have to run a fleet to use this.** One laptop, a single VM, a weekend
+proof-of-concept, a club site, a two-box non-profit — ahab is built to start
+*exactly* that small. It is **not a monolith** you have to buy into whole: every
+layer is a readable, replaceable file, and the whole aim of these docs is that
+once you see how the pieces fit, you can **refactor any of them.** This page
+shows how it all *can* fit together — adopt the slice you need today, leave the
+rest for later.
+
 ## The one move
 
 Standing up a service is meant to be almost embarrassingly small:
@@ -101,9 +111,11 @@ that path as premium as the platform itself is a standing goal, not a done one.
   optionally, for running things at scale — it is *not* required to learn or run
   the method. If your class is drowning in AWX config mazes, this is the legible
   alternative.)
-- **A homelabber or small organization** that wants a professional platform —
-  IPAM + CMDB + monitoring + secrets + GitOps — for $0 and a few machines you
-  already own. The enterprise tools, minus the enterprise tax and the lock-in.
+- **A homelabber, tinkerer, or small organization** — one machine or a handful,
+  a weekend PoC or a super-basic SMB deployment. You get a real platform (IPAM +
+  CMDB + monitoring + secrets + GitOps) for $0 and hardware you already own: the
+  professional tools, minus the enterprise tax and the lock-in. Start tiny; grow
+  only if you want to.
 - **An agent or model** operating the estate: one machine record, one program
   authority, every secret behind a reference. You can act correctly without
   tribal knowledge — your live context comes from the MCP channels

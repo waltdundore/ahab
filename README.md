@@ -9,6 +9,15 @@ repos (tier 3) carry only code. The placement test and the full contract are
 owned by [BLUEPRINT.md § Portability Contract](BLUEPRINT.md) — read them
 there, not here.
 
+## Start here
+
+**Newcomer?** The guided front door is **[START_HERE.md](START_HERE.md)** — pick
+your path (curious · operator · contributor · site owner · agent) and see the
+feeling each one gives you. Want the surprise of what this thing actually *does*?
+That's **[docs/PLATFORM.md](docs/PLATFORM.md)**. Hit an unfamiliar word? It's
+defined in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**. An agent getting live
+context? **[AGENTS.md](AGENTS.md)**.
+
 ## Read this next: BLUEPRINT.md
 
 **[BLUEPRINT.md](BLUEPRINT.md) is the layer-1 program authority**: mission,
@@ -53,6 +62,10 @@ vagrant-gate defect **D-25 / B-017**. This Makefile has **no `ui` target**
 
 | Question | Authority (read there) |
 |---|---|
+| I'm new — where do I start? | [START_HERE.md](START_HERE.md) |
+| What does this actually *do* (the platform)? | [docs/PLATFORM.md](docs/PLATFORM.md) |
+| What does this word mean? | [docs/GLOSSARY.md](docs/GLOSSARY.md) |
+| I'm an agent — how do I get live context? | [AGENTS.md](AGENTS.md) |
 | Mission, laws, milestones, blockers, drift | [BLUEPRINT.md](BLUEPRINT.md) |
 | This repo's design | [SPEC.md](SPEC.md) |
 | Which doc owns which altitude | [BLUEPRINT.md § Documentation Hierarchy](BLUEPRINT.md) |

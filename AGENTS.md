@@ -12,6 +12,34 @@ the moment it's true; a doc that points you at the live source stays true
 forever. This split is why the human docs can stay calm and premium instead of
 crammed with operational folklore.
 
+## The Delta law (law 12) — binding on every contribution (operator ruling 2026-09-12)
+
+The method in one line: **show an 8th-grader how to get from nothing to a
+working DevOps homelab, one step at a time, describing and testing as you go** —
+and it is all true because the same code builds everything and the network
+reports on itself. Two live channels make that possible; they are the program's
+eyes, ears, and mouth, and they have been ignored long enough:
+
+- **NetBox (interim: the fleet table / inventory) = DESIRED state = the
+  planner's voice.** Before a machine, address, role, or service changes, it
+  has a desired-state row. A change that cannot name its desired-state row is
+  a guess — file it, don't build it.
+- **Uptime-Kuma = CURRENT state = the auditor's answer.** No document or
+  report writes "X is up/down" from memory or a one-off probe: the claim earns
+  its place by having a **monitor**; no monitor exists → create it or file the
+  unit that does, and link it. A status without a monitor is a rumor.
+
+Docs show the delta being closed: *here is desired, here is current, here is
+the one change that moves current toward desired, here is the monitor proving
+it moved* — written so both the 8th-grade human and the next model session can
+follow it; they read the **same** code, table, and monitors.
+
+**A sweep is coming now (queue 15): every doc not aligned to this doctrine is
+archived** to `docs/archive/2026-09/` with a redirect banner. Before you write
+or edit any doc, ask: does it teach the next step, name its desired-state row
+and its current-state monitor (or flag the gap honestly), and prove its claims?
+If no — fix it or let it be archived. Never silently restore an archived file.
+
 ## Where live truth lives (call these, don't recall them)
 
 | Channel | Answer to | Status you must expect |

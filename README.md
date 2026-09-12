@@ -18,6 +18,9 @@ That's **[docs/PLATFORM.md](docs/PLATFORM.md)**. Hit an unfamiliar word? It's
 defined in **[docs/GLOSSARY.md](docs/GLOSSARY.md)**. An agent getting live
 context? **[AGENTS.md](AGENTS.md)**.
 
+Learning it step by step? The **[learning ladder](docs/learn/README.md)** walks
+Module 0 from an empty box to a rebuild you can prove.
+
 ## Read this next: BLUEPRINT.md
 
 **[BLUEPRINT.md](BLUEPRINT.md) is the layer-1 program authority**: mission,
@@ -38,9 +41,9 @@ tracked as blocker **B-011** in [BLUEPRINT.md](BLUEPRINT.md).
 ## What actually runs
 
 The `make` surface is the entrypoint (`make help`). Each target below has a
-real rule in the [Makefile](Makefile) (verified 2026-09-11 — note the Makefile
-also carries a catch-all `%:` rule, so `make <anything>` exits 0 no matter
-what; target truth = rule list, not exit code):
+real rule in the [Makefile](Makefile) (verified 2026-09-11 — and unknown
+targets now **fail loudly**: `make no-such-target` exits 2, so a typo can
+never fake success; a fixed catch-all used to let it — see **D-39**):
 
 ```bash
 make check-prerequisites   # verify required tools

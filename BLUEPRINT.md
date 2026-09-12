@@ -426,7 +426,9 @@ moves → D-35 (`make fleet-status` + a kuma monitor per layer column).
     first service → first monitor → RAFT consensus (quorum, leader election,
     log replication — taught by the pi-voter lattice itself: one node's claim
     is a claim, a majority's is truth) — and every module ends with a runnable
-    proof. Two legitimate students at every door: the one who fell in love
+    proof. The learning design is spec'd in `docs/PEDAGOGY.md` (two students,
+    one ladder — human and model; Apple-style progressive disclosure is law).
+    Two legitimate students at every door: the one who fell in love
     with the work and wants the whole stack, and the CIS-101 student who needs
     their Apache server to work *tonight*. Starting at bootstrap is not a
     hindrance — it is the training, paid forward. Nobody does this: honest

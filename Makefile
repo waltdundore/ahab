@@ -117,10 +117,6 @@ install:
 	@echo ""
 	@echo "✅ Ready - Access: vagrant ssh"
 
-# Allow module names as targets (prevents "No rule to make target" errors)
-%:
-	@:
-
 status:
 	$(call SHOW_SECTION,System Status)
 	@echo "→ Running: vagrant status"
@@ -414,6 +410,10 @@ test-security-sanitized:
 		exit 1; \
 	fi
 
-# Handle branch names as arguments to publish command
-%:
-	@:
+# D-39 / BLUEPRINT law 11: loud-failing catch-all (replaces the two silent
+# `%: @:` no-ops that once let ANY unknown target "succeed" — a cheat vector:
+# a model ran `make <anything>` and reported fabricated success). One
+# authoritative rule, at the END of the file; real targets above always win.
+# Module installs dispatch via `make install MODULES=<names>`, never via
+# positional target words — a bare word here is a typo and must exit non-zero.
+%: ; @echo "make: no such target: $@ — run 'make help' for real targets" >&2; exit 2

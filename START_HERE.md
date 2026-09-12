@@ -28,6 +28,10 @@ Lost on a word — *lattice, gate, tier-1, kuma-first, convergence, D-register*?
 That's not your fault. Every term is defined in the
 [**GLOSSARY**](docs/GLOSSARY.md). It's there so you never have to nod along.
 
+Want to *learn* the method hands-on rather than read about it? The guided
+curriculum starts at the [**learning ladder**](docs/learn/README.md) — Module 0
+takes an empty box to a rebuild you can prove.
+
 ---
 
 ## What this is, in ninety seconds

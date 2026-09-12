@@ -225,6 +225,9 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 | D-35 | **The fleet layer-matrix has no standing verifier (law 9 gap).** §Fleet Blueprint above is hand-probed: its truth expires the moment a box moves, and the program has repeatedly mistaken a stale row for a live one (d701 tailnet, dev-kuma-down, sager "unlocked") | one entrypoint `make fleet-status` aggregating `make probe` + `make identity` + `make state` + `tailscale status` + authoritative-NS dig into a single timestamped artifact, classified by failure message (identity / DNS / route / key-denied / down) rather than exit code; one kuma monitor per layer column (law 2); the artifact it writes becomes §Fleet Blueprint's evidence link | TODO (builder brief; static legs unblocked, ssh legs behind Q-07) |
 | D-36 | **DNS flip moved names without their serving prerequisite — zone↔router conformance has no verifier (incident 2026-09-11: operator could not reach dev Kuma).** N-09 flip moved `uptime-dev`/`dev-uptime` A records .10→.15 verified by dig (record == intent ✓) — but the dev box's traefik serves only `Host(uptime.dundore.net)`, so names landing on a box with no matching router answer traefik default **404**; prod still runs the fossil `Host(uptime-dev)` rule (forced-Host probe → .10 = 200, LIVE-PROBED 2026-09-11). Both mismatch halves live; flip evidence claimed "0 corrections" while orphaning 2 names: L3 changed without its L5/L6 counterpart, and no standing check connects a zone name to the router that must serve it (law 9 gap, D-33 class) | (a) router rules serve every zone name targeting their box — dev `kuma_traefik_labels` gains alias Host matches; (b) deploy-time assert in `monitoring_bootstrap`: post-start, probe each declared hostname through traefik, fail on 404 (a container named for its box may not be unroutable); (c) standing verifier `make name-audit`: every active zone name → authoritative dig → HTTPS probe → classify OK / 404-missing-router / down / NXDOMAIN, timestamped artifact + kuma monitor (law 2), proven by planted dead name. Zone alias hygiene (A→CNAME) stays D-21, operator-gated push; prod fossil router + `uptime_kuma_domain` stays D-22 (profile-A on .10) | TODO (builder brief dispatched 2026-09-11) |
 | D-37 | **Agents reach for a hostname SSoT that is down — interim custody chain decided, table not yet built (operator prompt 2026-09-11).** The truth-hierarchy ruling seats inventory in NetBox (M3, never deployed), and agents/LLMs keep trying to resolve hosts there (netbox MCP fails by design; `inventory/netbox.yml` carries an aspirational "SSoT: All host data sourced from Netbox" header + `strict: true` — dormant today (`--list` exit 0) but enabling it without NetBox deletes the whole inventory). Meanwhile hostname facts are hand-copied across ≥3 homes (`inventory/hosts`, `dnsconfig.js`, tailscale labels) — the same root as D-34/D-21/D-36/D-04. AWX is LIVE on hub and "fills roles NetBox will handle later" — true for its **query/execution** roles, false for its **authoring** role: hand-keyed AWX inventory = state outside Git = Convergence-Law violation, D-20's exact fossil class | one canonical fleet table `inventory/fleet.yml` (tier-2): machine records (canonical name/IP/role/site/ssh-route) + service map (name → machine → serving router); generators render `inventory/hosts` + `dnsconfig.js` FROM the table, and every verifier (probe/identity/name-audit/fleet-status) reads it; agent lookup = `make lookup NAME=x` (one sanctioned answer channel). **AWX = GitOps transport + query replica: Project SCM-synced from Git, update-on-launch, inventory never hand-authored; scheduler runs drift/name-audit legs to kuma.** At M3: deploy NetBox, seed FROM the table, then flip ONE seam — the table's writer becomes NetBox-derived; consumers (ansible, dnscontrol, verifiers, MCP) unchanged. Truth-hierarchy ruling stands: NetBox remains SSoT-of-record, Git table = interim custody + seed. `netbox.yml` header corrected to "dormant until M3 — do not enable without endpoint" | TODO (table + generators = builder brief queued after D-36; AWX codification rides D-20, optional track per operator ruling) |
+| D-38 | **The front door lied (2025-12 time capsule) — and its fix never reached the register.** Cold navigation 2026-09-11 proved it (`b100faa` commit body): `make install apache` (no such role), 404 links (`TROUBLESHOOTING.md`, `README-STUDENTS.md`), a false "Tests: ✅ Passing" badge. That same commit body promised "BLUEPRINT law 10 + D-38/39/40 (next commit)" — the commit never shipped, so `START_HERE.md` today cites a row that does not exist: a dangling reference inside our own teaching surface (D-33 class, irony registered) | front door rebuilt (`b100faa`+`4ef32cd`); this row restored (2026-09-11); standing doc-verifier (dead-link + command-existence + badge-provenance) lands under D-40/M7 | ROW RESTORED; verifier pending M7 |
+| D-39 | **Makefile `%:` catch-alls exit 0 on typos** (ahab + variants) — every unknown target "succeeds"; newcomers and agents believe commands ran (D-29 recorded it as hygiene; promoted because it is a UX lie — law 10 says the surface is lying to a student) | drop catch-alls / add explicit error rule (`%: ; @echo "no such target: $@"; exit 2`); gate: `make no-such-target` exits non-zero | TODO (M7 wave 1; static, unblocked) |
+| D-40 | **Documentation is a product with no QA and no program home.** The knowledge base (every human-facing doc across the estate) has never been systematically audited, and no verifier checks what docs claim (links, commands, badges, audience fit). The abandonment pattern is itself the drift: `b100faa` fixed the front door, its follow-up died unwritten in a commit message — exactly the abandonment M7 exists to end. Operator doctrine 2026-09-11: audit + refactor every doc in place; customer experience and operator interface are ONE surface | M7 program: inventory every human-facing doc → mechanical gates (link/command/badge checks in rot-scan, law 9) → refactor waves (law 10 three pillars, 8th-grade bar) → spark-auditor pillar review; kuma monitor (law 2) | TODO (M7; builder unit 1 — doc-surface inventory + mechanical audit — dispatched 2026-09-11) |
 
 Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
 relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
@@ -318,6 +321,8 @@ moves → D-35 (`make fleet-status` + a kuma monitor per layer column).
 | M4 | aitora.org plug-in | repo **PUSHED** (origin `prod` @ `ecf02e6`, verified 2026-09-11) → zone + L0 legs remain | zone in dnscontrol; L0 vagrant evidence |
 | M5 | whitecountyschools + athensarea plug-ins | not started | sites compose via manifests; AUDITED |
 | M6 | **Developer platform** (portable 3-tier, webhook CI, publish→validate→confirm) | BLOCKED BY M1+M2; AWX-on-hub attested → webhook legs now buildable once B-002/B-014 unlock | `make env` bootstraps ahab+infra+content workspace; content-repo push triggers webhook → AWX Project update + Job Template lint/test/merge → confirmation + auto kuma monitor; a developer lands a change touching ONLY their content repo; AUDITED |
+| M7 | **Students-first knowledge base** (documentation refactor program, opened 2026-09-11; wave 0 = front door rebuilt `b100faa`+`4ef32cd`, doctrine now law 10) | IN PROGRESS (doctrine + D-38/39/40 + curriculum/legacy clauses written 2026-09-11; plan `docs_students-first-documentation-refactor-m7_20260911_627c`; unit 1 doc-surface inventory dispatched) | Every tracked human-facing doc: zero dead links, every cited command resolves to a real make rule, no assertion without a verifier, 8th-grade CS audience bar; spark-auditor three-pillar PASS (folds queue 5); verifiers standing + kuma monitors (laws 9+2) |
+| M8 | **Template cartridge** (operator ruling 2026-09-11, order clause included) — the law-10 Nintendo cartridge: an educational site-module plug-in teaching the ENTIRE setup procedure, plus the **recommended-tools layer**: opencode + the MCP server fleet with install converged to code and a parameterized `opencode.jsonc` template (secrets via vault/env, never in repo). Seed material exists: `template/` repo (Gate-1 skeleton) + homelab's `opencode.json.j2` config distribution (L-15/L-29, B-008 stash review pending) — but template/SPEC.md's "workspace instance" model (clone base + SHA-pinned content submodules) MUST be reconciled to the 3-tier cartridge model first (D-17/D-29 family) | **PARKED BY DESIGN — must NOT ship early** (operator ruling: ships only after the full procedure has actually run correctly, in order, with M0–M6 evidence, documented (M7) and repeatable (law 0 vagrant proof); the tool layer rides M6's `make env`) | A newcomer plugs the cartridge into ahab on a blank-slate machine, follows ONLY its README, stands up a working site + agent tool layer, and produces clean vagrant evidence — without asking a human |
 
 ## Live-probed facts (2026-09-09, this session)
 
@@ -387,6 +392,46 @@ moves → D-35 (`make fleet-status` + a kuma monitor per layer column).
    rot-scan playbook + monitors are the vehicle; the lab gate itself is under check (a gate that has
    never run is rot). Whack-a-mole of findings is the symptom; the missing loop is the defect.
 
+10. **Students-first law (operator ruling 2026-09-11; reinstates the legacy
+    `DEVELOPMENT_RULES.md` value system at layer 1 — "that soul got lost
+    somewhere, so it's written down now")** — the entire philosophy, three
+    words: **STUDENTS FIRST**. The documentation IS the product: the customer
+    experience and the operator interface are the same surface, and we never
+    again let the learning surface rot while the machinery advances. Every
+    human-facing artifact (entrypoints, knowledge base, runbooks, dashboards,
+    alert copy, CI output) is audited and refactored in place against three
+    pillars:
+    - **Student Achievement** — the user can use the product effectively.
+      Audience bar: an **8th-grade CS student** follows it. If they cannot, the
+      surface is defective — never the student.
+    - **Organizational Effectiveness** — efficient? elegant? conventional?
+      Better than anything Apple would ship: the premium experience is the
+      baseline, not an upsell ("one more thing" is a deliverable).
+    - **Relationships and Perceptions** — the customer is our biggest advocate;
+      taking care of them is the mission, and marketing is part of caring, so
+      marketing tells the truth (a fake green badge is a pillar violation,
+      not a typo).
+    **Dogfood clause** (teeth on laws 0+6): we use exactly what they use —
+    infrastructure happens through `make` targets and Ansible convergence,
+    never ad-hoc scripts; a hand-run step is a defect to converge, not a
+    routine to repeat. **Cartridge clause:** every module is a Nintendo
+    cartridge — self-contained, plugs into ahab, carries its own prerequisites;
+    what you plug in is all you need.
+    **Curriculum clause (operator ruling 2026-09-11):** the knowledge base is
+    a *sequenced learning path*, not an alphabetical reference. Module 0
+    starts at the bootstrap — bare metal → tools (vagrant, docker) → testbed →
+    first service → first monitor — and every module ends with a runnable
+    proof. Two legitimate students at every door: the one who fell in love
+    with the work and wants the whole stack, and the CIS-101 student who needs
+    their Apache server to work *tonight*. Starting at bootstrap is not a
+    hindrance — it is the training, paid forward. Nobody does this: honest
+    infrastructure that doubles as a school. That is the moat.
+    **Legacy clause (the why — operator statement 2026-09-11):** the operator's
+    grandchildren will one day learn to run their own code on this software and
+    teach the next model with it. Humans train agents; agents carry the docs;
+    the fleet hosts its own models — symbiotic by design. Every pillar above
+    serves this legacy; when a trade-off appears, the learning surface wins.
+
 ## Branch archaeology (2026-09-09)
 
 - **homelab `origin/development` +2**: `143f265` pipeline-cruft removal + L-04 key-path comment fix; `9f60777` **repo-freshness role + deploy play (O-03)** — audit-relevant tooling, review for M1. Both need cherry-pick review into production.
@@ -407,6 +452,7 @@ moves → D-35 (`make fleet-status` + a kuma monitor per layer column).
 10. New `Makefile` command surface (homelab ~~14~~ **16** targets — count re-verified 2026-09-11 by `make help`, F-HL23; + dnscontrol 3): lint-gate faithfulness to `ci.yml`, no weakened assertions, `lab-reap` CONFIRM gate, no `push` target by design. Evidence: homelab `tests/evidence/command-surface-2026-09-11.md`
 11. **rot-scan v1 (V1–V3)** review once built — do a verifier's own job first: plant a dead reference and a fake branch trigger, require non-zero exit, then require zero on a genuinely clean tree (D-33; design `dundore-homelab/docs/audits/refactor-drift-2026-09-11/FEEDBACK-LOOP.md`)
 12. Refactor-prep drift sweep **DONE 2026-09-11** (7 finding files, 129 findings, 9 repos) → index `dundore-homelab/docs/audits/refactor-drift-2026-09-11/00-index.md`; the sweep audited *content*, so the register rows it produced (D-29…D-33) still need their own fix→vagrant-gate→audit loop; queue items 4/5/6 are the natural consumers of its findings
+13. **M7 wave review** (opened 2026-09-11) — once doc-surface inventory + wave 1 land: three-pillar + 8th-grade bar on the refactored doc set (folds queue 5's ui-ux pass in); plus test-of-the-test — plant a dead link and a fake command citation, require the doc verifier to exit non-zero, then zero on a clean tree
 
 ## Live-probed facts (2026-09-11, BLUEPRINT conformance audit)
 

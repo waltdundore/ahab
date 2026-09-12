@@ -72,7 +72,7 @@ vagrant-gate defect **D-25 / B-017**. This Makefile has **no `ui` target**
 | Testing | [TESTING.md](TESTING.md) |
 | Module system | [docs/MODULE_ARCHITECTURE.md](docs/MODULE_ARCHITECTURE.md) |
 | Dev rules, git workflow | [DEVELOPMENT_RULES.md](DEVELOPMENT_RULES.md), [BRANCHING_STRATEGY.md](BRANCHING_STRATEGY.md) |
-| Educational-standards material | [GEORGIA_STANDARDS_VERIFICATION.md](GEORGIA_STANDARDS_VERIFICATION.md), [standards-registry.yml](standards-registry.yml), [feature-standards-map.yml](feature-standards-map.yml) |
+| Educational-standards material (archived 2026-09: teaches the retired doc set) | [docs/archive/2026-09/GEORGIA_STANDARDS_VERIFICATION.md](docs/archive/2026-09/GEORGIA_STANDARDS_VERIFICATION.md), [standards-registry.yml](standards-registry.yml), [feature-standards-map.yml](feature-standards-map.yml) |
 | The previous README (everything removed) | [docs/FROZEN.md](docs/FROZEN.md) |
 
 ## State of this repo (acknowledged debt, not fixed here)

@@ -113,6 +113,122 @@ Process laws (non-negotiable):
      filed spark-auditor verdict in `evidence/`. PM dispatches the auditor
      **as part of the event** — audits are never deferred to a backlog.
 
+
+8. **Question law (adopted 2026-09-11, operator ruling)** — a decision the PM cannot
+   make (security posture, irreversible data, public DNS / prod-affecting, credential
+   custody) is **parked, never idled on**: file it in `dundore-homelab/docs/OPEN-QUESTIONS.md`
+   (sole home for pending questions) with what it blocks, the options, a PM recommendation,
+   and what work continues meanwhile; then immediately continue an unblocked thread. Parking
+   a question must never stall the program, and never silently widen scope instead.
+
+9. **Loop law (adopted 2026-09-11, operator ruling after the estate sweep)** — a standing promise
+   needs a standing check: every invariant asserted in code or docs (links alive, keypair hashes
+   equal vault↔repo↔authorized_keys, registry↔disk, mountpoint-is-a-mount, config-has-a-code-home,
+   branch-foldability measured by 3-dot diff, repo-freshness lint) gets an executable verifier that
+   RUNS ON A SCHEDULE and reports to kuma — a failure nobody can see is a second failure. The
+   rot-scan playbook + monitors are the vehicle; the lab gate itself is under check (a gate that has
+   never run is rot). Whack-a-mole of findings is the symptom; the missing loop is the defect.
+
+10. **Students-first law (operator ruling 2026-09-11; reinstates the legacy
+    `DEVELOPMENT_RULES.md` value system at layer 1 — "that soul got lost
+    somewhere, so it's written down now")** — the entire philosophy, three
+    words: **STUDENTS FIRST**. The documentation IS the product: the customer
+    experience and the operator interface are the same surface, and we never
+    again let the learning surface rot while the machinery advances. Every
+    human-facing artifact (entrypoints, knowledge base, runbooks, dashboards,
+    alert copy, CI output) is audited and refactored in place against three
+    pillars:
+    - **Student Achievement** — the user can use the product effectively.
+      Audience bar: an **8th-grade CS student** follows it. If they cannot, the
+      surface is defective — never the student.
+    - **Organizational Effectiveness** — efficient? elegant? conventional?
+      Better than anything Apple would ship: the premium experience is the
+      baseline, not an upsell ("one more thing" is a deliverable).
+    - **Relationships and Perceptions** — the customer is our biggest advocate;
+      taking care of them is the mission, and marketing is part of caring, so
+      marketing tells the truth (a fake green badge is a pillar violation,
+      not a typo).
+    **Dogfood clause** (teeth on laws 0+6): we use exactly what they use —
+    infrastructure happens through `make` targets and Ansible convergence,
+    never ad-hoc scripts; a hand-run step is a defect to converge, not a
+    routine to repeat. **Cartridge clause:** every module is a Nintendo
+    cartridge — self-contained, plugs into ahab, carries its own prerequisites;
+    what you plug in is all you need.
+    **Curriculum clause (operator ruling 2026-09-11):** the knowledge base is
+    a *sequenced learning path*, not an alphabetical reference. Module 0
+    starts at the bootstrap — bare metal → tools (vagrant, docker) → testbed →
+    first service → first monitor → RAFT consensus (quorum, leader election,
+    log replication — taught by the pi-voter lattice itself: one node's claim
+    is a claim, a majority's is truth) — and every module ends with a runnable
+    proof. The learning design is spec'd in `docs/PEDAGOGY.md` (two students,
+    one ladder — human and model; Apple-style progressive disclosure is law).
+    Two legitimate students at every door: the one who fell in love
+    with the work and wants the whole stack, and the CIS-101 student who needs
+    their Apache server to work *tonight*. Starting at bootstrap is not a
+    hindrance — it is the training, paid forward. Nobody does this: honest
+    infrastructure that doubles as a school. That is the moat.
+    **Legacy clause (the why — operator statement 2026-09-11):** the operator's
+    grandchildren will one day learn to run their own code on this software and
+    teach the next model with it. Humans train agents; agents carry the docs;
+    the fleet hosts its own models — symbiotic by design. Every pillar above
+    serves this legacy; when a trade-off appears, the learning surface wins.
+11. **Execution-trust law (operator ruling 2026-09-11)** — the operator speaks
+    ONCE; the WORKFLOW proves it happened. "I shouldn't have to look behind
+    you — the workflow should handle that for me." A stop must carry a RECEIPT:
+    the measurement (command + output) that forced it and the pinned-state
+    workaround evaluated (worktree at HEAD, read-only partial, clean partial
+    delivery); deferral on unmeasured inference is itself a fabricated blocker
+    (D-44 — contention is a LOCATION question, worktree-at-HEAD always runs).
+    - **Execute, don't bait.** When the brief, the laws, and the plan settle a
+      choice, the agent acts. Pausing to ask a settled question, manufacturing
+      a decision, or stalling to be a good conversationalist is a contract
+      violation as serious as overreach. A REAL blocker is reported once, with
+      the exact error and the ≤2 attempts made, then work continues on an
+      unblocked thread (law 8 discipline).
+    - **Trust lives in machinery, not in reports.** Compliance is proven by
+      the forge and the loop — CI on push, webhook → controller flow, kuma
+      monitors, rot-scan — never by an agent's own claim. B-015/B-016 are
+      therefore trust infrastructure, not hygiene: while the Tier-A gate
+      cannot fire, every green report is unverified prose.
+    - **A surface that permits fake work is defective.** The `%:` catch-all
+      (D-39) is the named precedent: it let a model run `make <anything>` and
+      report success. Any surface where an unimplemented thing can look
+      successful is a lie waiting to happen — it must exit non-zero, and the
+      standing check for that class of lie is a verifier, not a promise
+      (law 9). SRE is taught here by doing it this way, in the open.
+12. **Delta law — the planner's voice and the auditor's voice (operator ruling
+    2026-09-12; the design philosophy in one sentence: *show an 8th-grader how to
+    go from scratch to a working DevOps homelab, one step at a time, describing
+    and testing as you go, and it is all true because the same code builds it and
+    the network reports on itself.*)** — we have many blockers, so we build what
+    we can and **iterate it into truth** by holding two live channels open and
+    working the gap between them:
+    - **NetBox = DESIRED state = the planner's voice.** Every machine, address,
+      role, and relationship the fleet is *meant* to have lives here first (M3;
+      interim custody = `inventory/fleet.yml`, D-37). A plan that cannot name its
+      NetBox/fleet-table row is not a plan — it is a guess. The planner SPEAKS by
+      writing desired state; nothing is built against a fact that has no desired-state home.
+    - **Uptime-Kuma = CURRENT state = the auditor's answer.** What the fleet
+      *actually is doing right now* lives here — not in a prose status the PM
+      hand-wrote. The auditor does not trust a claim; it **creates a monitor that
+      tests the claim**, then reads monitors later for the truth (kuma-first law 2
+      + loop law 9). A fact with no monitor is unverified; a PM "status" with no
+      monitor is a rumor.
+    - **Eyes, ears, and mouth — never optional.** NetBox and Kuma are the program's
+      eyes (desired), ears (current), and mouth (the status page / plan it speaks
+      back). They have been scaffolded-but-ignored; that ends now — M0 (Kuma) and
+      M3 (NetBox) are the *first* context channels, and every audit reads Kuma and
+      every plan reads the fleet table / NetBox. Prose status tables are a cache of
+      these two, never a substitute (the moment they disagree, the prose is the defect).
+    - **The whole thing is for the human.** Document for the human and design for
+      the human (law 10); the LLM consumes the *same* code, the *same* fleet table,
+      the *same* monitors — one source of truth serving both students. The
+      documentation shows the delta being closed step by step: *here is desired,
+      here is current, here is the one change that moves current toward desired,
+      and here is the monitor that proves it moved.* That loop IS the curriculum,
+      the method, and the product at once.
+
+
 ## Portability Contract — the 3-tier repo split
 
 **Framework/module law (adopted 2026-09-11, operator ruling)** — ahab is the
@@ -252,11 +368,11 @@ value/decision upward is a DRY violation (D-register applies to docs too).
 
 | Layer | Document | Owns | May NOT contain |
 |---|---|---|---|
-| 1 | **ahab/BLUEPRINT.md** | mission, laws, milestones, AUDITED ledger, blockers, D-register — the only "what's true / what's next" | config values, task chatter, history |
+| 1 | **ahab/BLUEPRINT.md** | mission, laws, milestones, AUDITED ledger, blockers, D-register — the only "what's true / what's next" | config values, task chatter, history, **dated probe/state tables (→ docs/state/, layer 5)** |
 | 2 | **repo SPEC.md** | design of that repo's layer (interfaces, contracts) | status, machine-specific facts |
 | 3 | **code** (roles/, playbooks/, dnsconfig.js, module.yml) | HOW — every setting's single home | — |
 | 4 | **evidence/** + audit reports | proof (test output, logs) | plans |
-| 5 | CONTEXT.md / todo.md / ledgers | **historical append-only, NOT authoritative** — demoted; todo.md becomes a generated view of the BLUEPRINT register, hand-editing it is banned | authority |
+| 5 | CONTEXT.md / todo.md / ledgers / **ahab `docs/state/`** | **historical append-only, NOT authoritative** — demoted; todo.md becomes a generated view of the BLUEPRINT register, hand-editing it is banned | authority |
 
 ## Infrastructure Layer Stack — build order (each layer gated by ITS test)
 
@@ -281,47 +397,15 @@ why "everything is down" is felt at L6 when the break was at L2/L3.
 executed (evidence filed) is not a change, it is damage.* Vagrant is the L4
 clean-slate proving ground; dundore-dnscontrol is the L3 proving ground.
 
-## Fleet Blueprint — per-machine layer state
+## Where state lives (law 12 — query it, never transcribe it)
 
-**Owns:** one row per machine — its L1–L6 state and the gate that blocks it. **Does not own:**
-IPAM (NetBox, M3), the naming law and the human fleet table (homelab README §1), or code (roles).
-Vocabulary: `PROBED` (measured this pass) · `MANAGED` (ansible converges it) · `BLOCKED(<gate>)` ·
-`UNVERIFIED` · `DOWN`. Last probed **2026-09-11T21:28Z from dundore-sager** (hostname-probed; its
-tailscale label `dundore-sager-1` is a LEGACY label, not identity) → full matrix + raw output:
-`dundore-homelab/tests/evidence/fleet-blueprint-2026-09-11.md`. That timestamp is this table's expiry.
-
-| Machine | Role | L2 net | L3 name | L4 sshd | L5 converge | L6 serving | Gate |
-|---|---|---|---|---|---|---|---|
-| d701 | prod x86 | PROBED UP | PROBED `prod`/`d701`→.10 | OPEN | **BLOCKED(Q-07)** no identity file | UNVERIFIED | Q-07/D-27, B-002 |
-| dundore-sager | dev x86 + control node | PROBED UP | PROBED `dev`/`uptime`/`gitea`→.15 | OPEN | **BLOCKED(Q-07)** — fails **on itself** | MANAGED-ish: traefik/kuma(healthy)/gitea Up, 200s | Q-07, D-25/B-017 |
-| asus-llm (hub) | automation hub, AWX | PROBED UP | PROBED →.20 | OPEN | **BLOCKED** ×2 (bare name in inventory + no key) | **AWX :8043 → 200** | B-001/B-002, Q-07, D-34 |
-| storage | NFS server (gates `/nas` fleet-wide) | **DOWN** | PROBED →.35 (A/A with `ap` = D-04) | — | **not in inventory** | — | D-13, D-03, D-02/B-006 |
-| rpi5-01 / rpi5-02 / rpi4-02 | ARM test fleet | PROBED UP ×3 | resolve (FQDN) | OPEN ×3 | **FAIL** `Permission denied (publickey)` ×3 | UNVERIFIED | B-002 recipe, B-007, D-21 twins |
-| gx10-741d / gx10-6ca0 | **DGX Spark head/worker — serves this program's own inference** | LAN timeout; **tailnet peers** | **no DNS record at all** | unreachable | **FAIL** timeout (inventory pins unroutable LAN IPs) | vLLM serving (TP=2) | D-34, Q-07 |
-| wcss (wcss-hp) | whitecountyschools site box | LAN timeout; tailnet peer | zone twin (D-21) | — | FAIL timeout | — | M5, F-HL21, D-21 |
-
-### Four facts this view makes unavoidable
-
-1. **Nothing is manageable.** Zero inventory hosts pass L5 — including the control node probing
-   itself — for a single root cause: the fleet private key has no code home (Q-07), and its path has
-   **two** homes in config (`keys/service_id` relative, and `<repo>/../keys/…`). Until that lands,
-   no claim that any machine is *converged* is re-provable from this node; `make state` already
-   self-declares this blind spot. Law 0 is therefore unmet on the control node itself.
-2. **The tailnet carries no fleet servers.** Peers = 2 laptops, the 2 DGX sparks, the school box,
-   and this box (legacy label). So D-09's "LAN + tailnet only" posture and D-09a split-DNS are
-   unsatisfiable today, and any plan that reaches d701/hub over the tailnet is void — the 09-11
-   "d701 tailnet REGRESSED" row was not an incident, it is the normal state.
-3. **Inventory is not the fleet's map.** `storage` — the box that gates `/nas` for every node — is
-   absent from inventory (D-03), and the DGX cluster is registered only as `gx10-*` with **no DNS
-   record**, while homelab CONTEXT §2 asserts a `spark1.dundore.net:8000` endpoint that does not
-   resolve at the authoritative NS. The machinery running our agents is unnamed. → D-34.
-4. **L6 green while L5 red, on our own box.** Sager serves kuma and gitea at 200 yet cannot converge
-   itself — the layer stack's warning ("felt at L6, broken at L2/L4") measured on the control node.
-   **A service answering 200 is not evidence of a managed machine**, which is exactly why M0's exit
-   gate is a kill-switch drill and not a dashboard.
-
-**Standing-check obligation (law 9):** this table was hand-probed, so it rots the moment a box
-moves → D-35 (`make fleet-status` + a kuma monitor per layer column).
+LIVE state is **queried**, never copied into this file: **fleet-state MCP**
+(repo/git/agent/lab state), **uptime-kuma MCP** (current state = the auditor's
+answer), **netbox MCP** (desired state = the planner's voice; interim custody =
+homelab `inventory/` + `fleet.yml` until M3). On 2026-09-12 the dated probe
+tables, the expired fleet matrix, branch archaeology, and closed blockers moved
+out of this file to [docs/state/PROBED-2026-09.md](docs/state/PROBED-2026-09.md)
+(layer-5 history). When prose and a channel disagree, the prose is the defect.
 
 ## Milestones
 
@@ -337,179 +421,22 @@ moves → D-35 (`make fleet-status` + a kuma monitor per layer column).
 | M7 | **Students-first knowledge base** (documentation refactor program, opened 2026-09-11; wave 0 = front door rebuilt `b100faa`+`4ef32cd`, doctrine now law 10) | IN PROGRESS — waves 0–2 LANDED, verifier + auditor gate outstanding. Done: doctrine + D-38/39/40/45 + curriculum/legacy clauses + `PEDAGOGY.md`; wave 1 fossil archive `1cbeef6`; unit-1 doc-surface inventory **DONE** `efd6082` (210 docs, 204 mechanical findings); wave 2 **Module 0 curriculum shipped** `9d1ee6a` (ladder index + rungs 1–3, every `make` rule verified to resolve — D-41 satisfied). NOT done: doc verifier standing (`make rot-scan` V-leg, D-33/D-40) + spark-auditor three-pillar pass (queue 13). plan `docs_students-first-documentation-refactor-m7_20260911_627c` | Every tracked human-facing doc: zero dead links, every cited command resolves to a real make rule, no assertion without a verifier, 8th-grade CS audience bar; spark-auditor three-pillar PASS (folds queue 5); verifiers standing + kuma monitors (laws 9+2) |
 | M8 | **Template cartridge** (operator ruling 2026-09-11, order clause included) — the law-10 Nintendo cartridge: an educational site-module plug-in teaching the ENTIRE setup procedure, plus the **recommended-tools layer**: opencode + the MCP server fleet with install converged to code and a parameterized `opencode.jsonc` template (secrets via vault/env, never in repo). Seed material exists: `template/` repo (Gate-1 skeleton) + homelab's `opencode.json.j2` config distribution (L-15/L-29, B-008 stash review pending) — but template/SPEC.md's "workspace instance" model (clone base + SHA-pinned content submodules) MUST be reconciled to the 3-tier cartridge model first (D-17/D-29 family) | **PARKED BY DESIGN — must NOT ship early** (operator ruling: ships only after the full procedure has actually run correctly, in order, with M0–M6 evidence, documented (M7) and repeatable (law 0 vagrant proof); the tool layer rides M6's `make env`) | A newcomer plugs the cartridge into ahab on a blank-slate machine, follows ONLY its README, stands up a working site + agent tool layer, and produces clean vagrant evidence — without asking a human |
 
-## Live-probed facts (2026-09-09, this session)
-
-| Item | Status | Evidence |
-|---|---|---|
-| d701 = prod box | LIVE-PROBED (2026-09-09); tailnet leg REGRESSED (2026-09-11: ping-UP, absent from tailscale status, ssh key-denied from sager) | booted 23:58Z; kuma/traefik/postgres/openbao/flame/www Up; ssh via tailnet key `keys/service_id` (stale leg — see 2026-09-11 table) |
-| prod kuma up but self-hosted (blind spot root cause) | LIVE-PROBED | docker ps + kuma logs on d701 |
-| hub (asus-llm 10.200.10.20) | RE-POWERED; services unverified | ping OK from d701; ssh key denied (unmanaged) |
-| dev kuma DOWN; sager AND hub unmanaged | **SUPERSEDED 2026-09-11** (conformance audit: FALSE) | sager managed (audits execute on it); dev Kuma **UP**: uptime.dundore.net/dashboard = 200 via traefik. Hub leg remains: unmanaged |
-| **DNS flip PUSHED & LIVE** ✅ | LIVE-PROBED | dnscontrol `d9c8465` pushed via whitelisted IP; dig verifies d701→prod(.10), sager→dev(.15) |
-| d701 /etc/hosts | **FAILS naming law** | legacy hostname + `project.dundore.net` alias + 127.0.1.1 line; fix via base-role convergence, not manual |
-| d701 resolver | PASS | systemd-resolved→OpenDNS+MagicDNS; public zone carries private IPs |
-| **M0 vagrant gate** | **AUDITED** (spark-auditor PASS 2026-09-11, scoped: evidence genuineness + law-gate + syntax on current tree; dynamic guest-box claims and full M0 exit gate out of scope) | homelab tests/evidence/bootstrap-vagrant-2026-09-09.md + verdict docs/audits/2026-09-11-queue12.md |
-| pi fleet | **REACHABLE** (2026-09-11 control-node sweep from sager) | arm1/arm2/armdev/rpi5-01/rpi5-02 all ping-UP; identity/health/voter-role UNVERIFIED (next: ssh+hostname probe per fleet-key pass) |
-| inventory flip d701=prod | **AUDITED (flip pair)** 2026-09-11: inventory↔DNS↔live triangle PASS; single-vantage (sager); zone naming-law debt → D-21 | homelab `699e6bf` + verdict docs/audits/2026-09-11-queue12.md |
-| dnsconfig flip (dev=.15/prod=.10) | **AUDITED (flip pair)** 2026-09-11: live dig PASS, code triangle PASS, pushed & live (`711a389`); naming-law debt → D-21; `dnscontrol preview` leg NOT-TESTABLE on sager (binary absent) | dnscontrol `d9c8465`+`711a389` + verdict docs/audits/2026-09-11-queue12.md |
-| aitora repo (ex-hf) | LIVE-PROBED | also PUSHED — branch `prod` @ `ecf02e6` (local==origin HEAD; trunk renamed production→prod per branch law, origin/production gone) |
-
-## Live-probed facts (2026-09-10, git-estate reconciliation)
-
-| Item | Status | Evidence |
-|---|---|---|
-| git three-way sync Mac ↔ origin ↔ d701 | LIVE-PROBED | homelab `production 7412033` / `development c2e7940` == origin == d701 repo; all prior stranded work pushed (`a445b19`, `c2e7940`) |
-| d701 repo can fetch GitHub | LIVE-PROBED | read-only deploy key (GitHub key id 162907344) on d701 `/etc/dundore-git/` (0700, root); fetch+prune GREEN. Push path stays via control node |
-| **sager UNLOCKED + repo audited** | LIVE-PROBED (2026-09-10) | `ansible_user`+`keys/service_id` GREEN, `hostname`=dundore-sager. Root cause of lockout: 0-byte `authorized_keys` — the fleet key push NEVER landed (L-04 residue), fixed by root paste + `restorecon`. Repo held 2 only-copy commits (banking sprint W-22/W-24/W-03) → saved to origin `rescue/sager-production-banking` (`0ee9a96`); stashes EMPTY; wdundore has working GitHub SSH push from sager. Follow-up D-16 |
-| d701 was holding the only copies of two dev-branch commits + the 2026-08-19 student-safety stash | RESCUED | all now on origin; stash snapshot = branch `shelve/student-safety-law-20260819` (`dcb586b`); d701 `stash@{0}` safe to drop after review |
-| process note (name-law teeth) | — | tailscale device labels ≠ machine identity: `dundore-sager-1`/`d701` mapping misled this session's first pass; a `hostname` probe before any fleet write is the L1 fact — tailscale names are not authority |
-| **git estate full probe** (13 repos: `ls-remote` + shallow clones) | LIVE-PROBED | all 9 user-cited repos EXIST (SPEC §3 "fiction" claim was WRONG — corrected). Twins byte-identical: `ansible-config`≡`ahab-config` (tree `d9e9a6f`), `ansible-inventory`≡`ahab-inventory` (tree `a4ee60f`); `ahab-module-docker` = copy of `ahab-module-common` (2-file diff, contains no docker role); `ahab-modules` holds only `apache/module.yml` + committed `INITIALIZE.md` build-cruft; `MODULE_REGISTRY.yml` → 8 of 9 `ahab-module-*` repos MISSING (only `-docker` exists); `scripts` repo = 2023 fossil (own chrony.yml duplicates module-common) |
-| **aitora repo is PUSHED** | LIVE-PROBED | `waltdundore/aitora` HEAD=`refs/heads/prod` @ `ecf02e6`; ref `production` no longer exists (branch-law rename) |
-| **ahab working-tree hygiene FAIL** | LIVE-PROBED | 9 Makefile variants committed (incl. `backup-broken`, `bak2`, `original`, `~HEAD` fossil in ahab-inventory); two divergent `ABOUT.md` copies; `.gitmodules` (modules→ahab-modules, config-roles→ahab-config) never initialized locally; `bootstrap.sh` clones superseded twin names; zero symlinks exist though bootstrap claims to make them; local `roles/` = 3 legacy roles vs homelab's 24 live |
-| hub AWX (GitOps controller candidate) | **LIVE (was FALSE)** | 2026-09-11: `https://10.200.10.20:8043/api/v2/ping/` → 200 `{"version":"24.6.2.dev881+gf1a3e13df","active_node":"awx-1","heartbeat":"2026-09-11T02:50Z"}` — web IS exposed on LAN; D-20 unpinned devel-build confirmed. Remainder: uncodified, no DNS/ingress/monitor, ssh unmanaged |
-
 ## Blockers (priority order — highest first)
 
 | ID | Blocker | Why it stops progress | Unlock |
 |---|---|---|---|
 | B-001 | hub .20 UP; ports {22,9090,8043}; **AWX web IS exposed on LAN :8043** — /api/v2/ping GREEN 24.6.2.dev881 (2026-09-11; "not exposed" FALSE) | other hub services still unverified | CONSOLE (B-002 recipe) for ssh-managed hub; then service inventory |
 | B-002 | **sager CLOSED 2026-09-10 — unlocked & audited** (root-pasted `authorized_keys` + restorecon; `ansible_user`+`service_id` LIVE, hostname-probed) — **hub (asus-llm) still unmanaged** | was: dev leg + hub recovery blocked; hub leg remains | CONSOLE on hub only: inject `keys/service_id.pub` for ansible_user; proven recipe: `tee -a ~/.ssh/authorized_keys` + 700/600 + `restorecon` (see D-23) |
-| B-003 | ~~dev kuma DOWN~~ **CLOSED 2026-09-11** — dev Kuma UP via traefik, uptime.dundore.net/dashboard = 200 (probed from sager); M0 dev leg reachable. Playbook-produced state still pending the vagrant gate (law 1) — see queue 8 / kuma1 testbed | — |
-| B-004 | ~~DNS flip unpushed~~ **CLOSED 2026-09-11** — dnscontrol `711a389` LIVE; dig re-verified from sager: dev→.15, prod→.10, d701→.10, www→dev (preview leg NOT-TESTABLE on sager: binary absent) | — |
-| B-005 | ~~git auth dead on laptop~~ CLOSED 2026-09-10: gh authed as waltdundore (repo+workflow scopes); 5 pushes GREEN from laptop incl. homelab `production`/`development` | was: cannot push any repo incl. aitora | — (if it re-dies: `gh auth status` is the probe) |
 | B-006 | no vault password on laptop; **none on sager either** — and `/nas` there is a local dir, NOT the NFS mount (D-02 class, conformance audit F4) | vaulted runtime verify only where /nas is truly mounted | fix D-02 (real NFS mount), then place/resolve vault per D-06 canonical path |
 | B-007 | pi fleet **ping-REACHABLE 2026-09-11** (arm1/arm2/armdev/rpi5-01/rpi5-02 all UP from sager); identity/health/voter-role still unverified | voter node for lattice unknown | ssh+hostname probe per fleet-key pass (B-002 recipe) |
 | B-008 | 9 stashes LOCATED 2026-09-10 — all on the **laptop** (dated 2026-08-11→2026-09-01, mostly `WIP on test` commits, one real: "local drift: opencode.json.j2"); d701's student-safety stash preserved to origin (`shelve/student-safety-law-20260819`); sager swept CLEAN (0 stashes) | hidden drift vs branches | PM decision per stash: the eight `test`-base WIPs are likely discardable; "opencode.json.j2 drift" + 2026-09-01 trio need review before drop |
 | B-009 | d701 /etc/hosts stale (aliases + non-canonical name) | naming law violation; LE/cname scheme depends on it | base-role hostname enforcement after DNS push |
-| B-010 | ~~spark-auditor has PASSed nothing~~ **CLOSED 2026-09-11**: queue items 1–2 audited — vagrant gate PASS (scoped), flip pair PASS; verdicts in homelab docs/audits/2026-09-11-queue12.md | was: nothing could ever be AUDITED | — |
 | B-011 | ahab license CC BY-NC-SA conflicts with dogfood law's "fully open source" | blocks M1 + any public adoption | relicense MIT/Apache-2.0 (PM recommends Apache-2.0 for patent grant) before M1 merge work |
-| B-012 | (ID retired — never issued; tombstone for register integrity, conformance audit 2026-09-11) | — | — |
 | B-013 | ~~undecided~~ **DECIDED (PM 2026-09-11): canonical = `ahab-config`/`ahab-inventory`** (matches fleet naming law); all wiring (AWX Projects, `repo-git`, submodule URLs) targets `ahab-*` only | was: cannot point AWX Projects / `repo-git` / submodule URLs anywhere until "the one repo" is fixed | twins → lossless GitHub archive + README redirect once gh auth exists on this node (absent on sager); residual work tracked in D-16 |
 | B-014 | **premise flipped 2026-09-11: endpoint IS LIVE** at `https://10.200.10.20:8043` (ping 200) — but uncodified (D-20), `awx.dundore.net` still NXDOMAIN, no ingress, no kuma monitor, tokens unverified (shell-history ones stay burned) | webhook legs now BUILDABLE, not yet wired; controller without monitor/kuma does not exist (law 2) | codified bring-up (D-20): pin version, traefik+dnscontrol record, fresh vault-stored token, kuma monitor; M6 "blocked" framing can relax to "endpoint live, wiring pending" |
 | B-015 | no trunk protection enforced on any repo; direct pushes to `prod` are possible and HAVE happened (conflict markers on homelab `prod`, `6b15085`) | law 7 Tier A is advisory until a forge refuses bad merges | GitHub branch protection on `prod`/`dev` estate-wide (needs gh auth on sager, or do from laptop); Gitea inherits at init |
 | B-016 | root cause SUPERSEDED by filed verdict (queue 7, homelab `d2f162a` + addendum): `ci.yml` was **INVALID YAML** (unquoted `: ` step name) → workflow rejected on EVERY event — trigger defects real but secondary. Fix branch `fix/ci-triggers-trunk-gate` (`1e2d8f9`) pushed, **UNMERGED**; trunk still YAML-invalid | Tier-A gate provably inert until PR merges + runner proven | MERGE the PR (operator click); prove runner labels; then branch protection (B-015) |
 | B-017 | **Vagrant gate cannot run on sager (D-25).** Lab-net NAT/forward rules absent and unowned by code; also a second, still-unfixed Tier-A defect found 2026-09-11: `ci.yml` triggers on `dev`, but this repo's trunk pair on the forge is `prod`+`development` — and job 2 keys off `refs/heads/development`, so the health job can never fire | M0 round 2 + every future L4 gate is blocked; the Tier-A gate is inert for TWO independent reasons | **2026-09-11 operator directive received → PM narrow-rules posture ADOPTED** (see D-25); role + converge + `make lab-up` green dispatched to builder; ci.yml trunk-ref fix stays in the B-016 PR thread |
-
-8. **Question law (adopted 2026-09-11, operator ruling)** — a decision the PM cannot
-   make (security posture, irreversible data, public DNS / prod-affecting, credential
-   custody) is **parked, never idled on**: file it in `dundore-homelab/docs/OPEN-QUESTIONS.md`
-   (sole home for pending questions) with what it blocks, the options, a PM recommendation,
-   and what work continues meanwhile; then immediately continue an unblocked thread. Parking
-   a question must never stall the program, and never silently widen scope instead.
-
-9. **Loop law (adopted 2026-09-11, operator ruling after the estate sweep)** — a standing promise
-   needs a standing check: every invariant asserted in code or docs (links alive, keypair hashes
-   equal vault↔repo↔authorized_keys, registry↔disk, mountpoint-is-a-mount, config-has-a-code-home,
-   branch-foldability measured by 3-dot diff, repo-freshness lint) gets an executable verifier that
-   RUNS ON A SCHEDULE and reports to kuma — a failure nobody can see is a second failure. The
-   rot-scan playbook + monitors are the vehicle; the lab gate itself is under check (a gate that has
-   never run is rot). Whack-a-mole of findings is the symptom; the missing loop is the defect.
-
-10. **Students-first law (operator ruling 2026-09-11; reinstates the legacy
-    `DEVELOPMENT_RULES.md` value system at layer 1 — "that soul got lost
-    somewhere, so it's written down now")** — the entire philosophy, three
-    words: **STUDENTS FIRST**. The documentation IS the product: the customer
-    experience and the operator interface are the same surface, and we never
-    again let the learning surface rot while the machinery advances. Every
-    human-facing artifact (entrypoints, knowledge base, runbooks, dashboards,
-    alert copy, CI output) is audited and refactored in place against three
-    pillars:
-    - **Student Achievement** — the user can use the product effectively.
-      Audience bar: an **8th-grade CS student** follows it. If they cannot, the
-      surface is defective — never the student.
-    - **Organizational Effectiveness** — efficient? elegant? conventional?
-      Better than anything Apple would ship: the premium experience is the
-      baseline, not an upsell ("one more thing" is a deliverable).
-    - **Relationships and Perceptions** — the customer is our biggest advocate;
-      taking care of them is the mission, and marketing is part of caring, so
-      marketing tells the truth (a fake green badge is a pillar violation,
-      not a typo).
-    **Dogfood clause** (teeth on laws 0+6): we use exactly what they use —
-    infrastructure happens through `make` targets and Ansible convergence,
-    never ad-hoc scripts; a hand-run step is a defect to converge, not a
-    routine to repeat. **Cartridge clause:** every module is a Nintendo
-    cartridge — self-contained, plugs into ahab, carries its own prerequisites;
-    what you plug in is all you need.
-    **Curriculum clause (operator ruling 2026-09-11):** the knowledge base is
-    a *sequenced learning path*, not an alphabetical reference. Module 0
-    starts at the bootstrap — bare metal → tools (vagrant, docker) → testbed →
-    first service → first monitor → RAFT consensus (quorum, leader election,
-    log replication — taught by the pi-voter lattice itself: one node's claim
-    is a claim, a majority's is truth) — and every module ends with a runnable
-    proof. The learning design is spec'd in `docs/PEDAGOGY.md` (two students,
-    one ladder — human and model; Apple-style progressive disclosure is law).
-    Two legitimate students at every door: the one who fell in love
-    with the work and wants the whole stack, and the CIS-101 student who needs
-    their Apache server to work *tonight*. Starting at bootstrap is not a
-    hindrance — it is the training, paid forward. Nobody does this: honest
-    infrastructure that doubles as a school. That is the moat.
-    **Legacy clause (the why — operator statement 2026-09-11):** the operator's
-    grandchildren will one day learn to run their own code on this software and
-    teach the next model with it. Humans train agents; agents carry the docs;
-    the fleet hosts its own models — symbiotic by design. Every pillar above
-    serves this legacy; when a trade-off appears, the learning surface wins.
-11. **Execution-trust law (operator ruling 2026-09-11)** — the operator speaks
-    ONCE; the WORKFLOW proves it happened. "I shouldn't have to look behind
-    you — the workflow should handle that for me." A stop must carry a RECEIPT:
-    the measurement (command + output) that forced it and the pinned-state
-    workaround evaluated (worktree at HEAD, read-only partial, clean partial
-    delivery); deferral on unmeasured inference is itself a fabricated blocker
-    (D-44 — contention is a LOCATION question, worktree-at-HEAD always runs).
-    - **Execute, don't bait.** When the brief, the laws, and the plan settle a
-      choice, the agent acts. Pausing to ask a settled question, manufacturing
-      a decision, or stalling to be a good conversationalist is a contract
-      violation as serious as overreach. A REAL blocker is reported once, with
-      the exact error and the ≤2 attempts made, then work continues on an
-      unblocked thread (law 8 discipline).
-    - **Trust lives in machinery, not in reports.** Compliance is proven by
-      the forge and the loop — CI on push, webhook → controller flow, kuma
-      monitors, rot-scan — never by an agent's own claim. B-015/B-016 are
-      therefore trust infrastructure, not hygiene: while the Tier-A gate
-      cannot fire, every green report is unverified prose.
-    - **A surface that permits fake work is defective.** The `%:` catch-all
-      (D-39) is the named precedent: it let a model run `make <anything>` and
-      report success. Any surface where an unimplemented thing can look
-      successful is a lie waiting to happen — it must exit non-zero, and the
-      standing check for that class of lie is a verifier, not a promise
-      (law 9). SRE is taught here by doing it this way, in the open.
-12. **Delta law — the planner's voice and the auditor's voice (operator ruling
-    2026-09-12; the design philosophy in one sentence: *show an 8th-grader how to
-    go from scratch to a working DevOps homelab, one step at a time, describing
-    and testing as you go, and it is all true because the same code builds it and
-    the network reports on itself.*)** — we have many blockers, so we build what
-    we can and **iterate it into truth** by holding two live channels open and
-    working the gap between them:
-    - **NetBox = DESIRED state = the planner's voice.** Every machine, address,
-      role, and relationship the fleet is *meant* to have lives here first (M3;
-      interim custody = `inventory/fleet.yml`, D-37). A plan that cannot name its
-      NetBox/fleet-table row is not a plan — it is a guess. The planner SPEAKS by
-      writing desired state; nothing is built against a fact that has no desired-state home.
-    - **Uptime-Kuma = CURRENT state = the auditor's answer.** What the fleet
-      *actually is doing right now* lives here — not in a prose status the PM
-      hand-wrote. The auditor does not trust a claim; it **creates a monitor that
-      tests the claim**, then reads monitors later for the truth (kuma-first law 2
-      + loop law 9). A fact with no monitor is unverified; a PM "status" with no
-      monitor is a rumor.
-    - **Eyes, ears, and mouth — never optional.** NetBox and Kuma are the program's
-      eyes (desired), ears (current), and mouth (the status page / plan it speaks
-      back). They have been scaffolded-but-ignored; that ends now — M0 (Kuma) and
-      M3 (NetBox) are the *first* context channels, and every audit reads Kuma and
-      every plan reads the fleet table / NetBox. Prose status tables are a cache of
-      these two, never a substitute (the moment they disagree, the prose is the defect).
-    - **The whole thing is for the human.** Document for the human and design for
-      the human (law 10); the LLM consumes the *same* code, the *same* fleet table,
-      the *same* monitors — one source of truth serving both students. The
-      documentation shows the delta being closed step by step: *here is desired,
-      here is current, here is the one change that moves current toward desired,
-      and here is the monitor that proves it moved.* That loop IS the curriculum,
-      the method, and the product at once.
-
-## Branch archaeology (2026-09-09)
-
-- **homelab `origin/development` +2**: `143f265` pipeline-cruft removal + L-04 key-path comment fix; `9f60777` **repo-freshness role + deploy play (O-03)** — audit-relevant tooling, review for M1. Both need cherry-pick review into production.
-- **ahab `origin/dev` +2** (2025-12-12 shellcheck hygiene in setup-secrets-repo.sh) — merge into prod for M1.
-- **ahab `origin/production`**: 2024-09 separate-root lineage ("testing" x5, minimal main.yml/roles/ssh.sh) — archaeological, ignore unless M1 design review wants it.
-- ahab master/workstation/milestone-system-v1 == prod (no hidden code). geekend feature/epic-001-lab +8 commits = current WIP (expected). dnscontrol production branch = merged.
 
 ## Audit queue (next spark-auditor runs)
 1. ~~M0 vagrant gate~~ DONE 2026-09-11: PASS (scoped; dynamic claims transcript-only) → docs/audits/2026-09-11-queue12.md
@@ -527,39 +454,4 @@ moves → D-35 (`make fleet-status` + a kuma monitor per layer column).
 13. **M7 wave review** (opened 2026-09-11) — once doc-surface inventory + wave 1 land: three-pillar + 8th-grade bar on the refactored doc set (folds queue 5's ui-ux pass in); plus test-of-the-test — plant a dead link and a fake command citation, require the doc verifier to exit non-zero, then zero on a clean tree
 14. **24h uncodified-changes audit** (opened 2026-09-12, operator directive "review all changes in the past 24 hours") — independently verify A1–A7 + B3 of `dundore-homelab/docs/audits/2026-09-12-uncodified-24h.md`: D-47 IP-literals table (12 sites, re-grep), zombie-dispatch evidence chain (cancelled task mutated host nft state — verify logs + VM + ruleset triangulation), boot persistence of the live lab-net rules (or absence), `/etc/sysctl.d/99-ahab-lab.conf` role-ownership (B3), concurrent-writer tree disposition (A4), AWX account + credential-location risks (A5), Sentry receipt-only status (A6), lab VM inventory (A7); verdict into that same folder. Cited by D-46/D-47 — a cited queue item must exist (D-38 dangling-reference lesson; this row was created same pass as its citations)
 15. **Law-12 doctrine-alignment sweep + archive (operator directive 2026-09-12)** — review EVERY human-facing doc across the estate (ahab + all site modules) and archive anything not aligned to the law-12 design philosophy: an 8th-grader's one-step-at-a-time path from scratch to a working DevOps homelab, described AND tested as you go, all truth in code, feedback built into the network, documented for the human, with the NetBox(desired)↔Kuma(current) delta as the organizing loop. Non-aligned docs (prose status with no monitor, aspirational commands, org values in machinery, dead references, walls-of-prose that blow a model's context) → `docs/archive/2026-09/` with a redirect banner. Runs under M7 wave machinery; PM announces before each cut so concurrent writers aren't mid-edit on an archived file.
-
-## Live-probed facts (2026-09-11, BLUEPRINT conformance audit)
-
-| Item | Status | Evidence |
-|---|---|---|
-| BLUEPRINT conformance | audited | 23 CONFIRMED / 10 STALE / 3 FALSE / 7 NOT-TESTABLE @ `1c52850`; all AUDITED rows re-verified → docs/audits/2026-09-11-blueprint-conformance.md |
-| hub AWX :8043 | LIVE-PROBED | `/api/v2/ping` 200, 24.6.2.dev881, heartbeat 2026-09-11T02:50Z (see B-001/B-014) |
-| dev Kuma | LIVE-PROBED | 200 via traefik (B-003 closed); playbook-produced state NOT yet — vagrant gate pending |
-| pi fleet ping | LIVE-PROBED | 5/5 UP from sager (B-007) |
-| gitea DNS | **Git == live** at the authoritative NS | earlier "Git≠live" was a stale intermediate-recursive answer past TTL → D-24 downgraded; `make preview` = 0 corrections via container route |
-| operator command surface | **LIVE-PROBED** (code exists, gate/lab partially proven) | homelab `Makefile` 14 targets + `dundore-dnscontrol/Makefile` 3 targets; `make help`/`gate`/`preview`/`identity`/`lab-reap` run, `lab-up` blocked at D-25 → tests/evidence/command-surface-2026-09-11.md |
-| both READMEs are fiction | **LIVE-PROBED** | `bin/pipeline-run` absent, `secrets/` absent, ahab README links BLUEPRINT 0×, `make ui` nonexistent; plan `…_b618` wave 2 |
-| /nas on sager | NOT a mountpoint | findmnt empty, local tree → D-02 class (B-006) |
-| Tier-A gate | PROVABLY INERT | trunk ci.yml YAML-invalid; today's 5 prod commits all direct pushes; fix PR unmerged → B-016/B-015 |
-| d701 tailnet | REGRESSED | ping-UP but ABSENT from `tailscale status` (was "ssh OK via tailnet" 09-09); ssh key-denied from sager |
-| AWX :8043 via `asus-llm.dundore.net` | LIVE-PROBED (2026-09-11) | `/api/v2/ping` 200; login verified: `wdundore` = superuser (`/api/v2/me/` 200); dedicated PM account `ahab-pm` (superuser, id 6) created — password vaulted at `/nas/secrets/awx/ahab-pm.password` (0600, never in chat/history); `wdundore` untouched. **Operator ruling: AWX is OPTIONAL/convenience in Ahab — no milestone may depend on it** |
-| storage.dundore.net from sager | DEAD (D-13 stands) | ping 100% loss; {2049,111,445,80} closed 2026-09-11 — NFS real-target convergence impossible until operator powers/restores box |
-| sager `/nas` mechanism | LIVE-PROBED | fstab entry exists (`_netdev`), findmnt empty, local tree (`config/data/secrets`) shadows mountpoint = D-02 mechanism confirmed; reconcile-before-mount obligation registered |
-| sager lab-net (D-25) | LIVE-PROBED | sudo -n passwordless OK; nft FORWARD policy drop (DOCKER-USER jump); 7 ruleset lines mention 192.168.122 (classification pending builder); libvirt `default` inactive @qemu:///session (autostart yes); ip_forward=1 runtime |
-| estate push-freshness + wave pushes | LIVE-PROBED + PUSHED (2026-09-11) | pre-push: ahab/homelab/dnscontrol were ahead 1/2/1 over origin@09-11 00:03 → pushed (`c4db736`/`e664a5c`/`f7dfa9a` incl. hygiene + lab_host role); aitora/banking/geekend/template in sync since 09-10; `context` trunk last pushed **2026-06-21 (“test”)** → main→production consolidated (3 modify/delete conflicts, keep-both-sides, zero data deleted) pushed `12153c4`; **root workspace repo `homelab-git-root` = phantom** (0 commits, remote “Repository not found”, would track `secrets` symlink → operator decision); `fast/` + `paperless/` are NOT git repos at all |
-| branch estate, 3-dot classification (2026-09-11) | PROBED | ahab `clean-1765477195`/`master`/`workstation`/`milestone-system-v1` provably folded → deletion blocked by Safety Net (operator runs: `git -C ahab push origin --delete clean-1765477195 master workstation milestone-system-v1`); every homelab branch incl. 2 open dependabot bumps (trunk still hono 4.13.2) carries branch-only content → NOT deletion candidates; ahab `production` (2024 lineage) has NO merge-base — 3-dot result was an artifact, kept as tombstone |
-| root workspace repo | RULED + operator action pending | operator: root is not a repo; verified 0 commits/0 stashes; `mv .git` blocked by Safety Net (git-metadata protection) → operator runs `rm -rf /home/wdundore/git/.git`; `secrets → /nas/secrets` symlink stays (correct design; portability = D-02) |
-| gh CLI on sager | AUTH PENDING | operator reported CLI authenticated 2026-09-11, but `gh auth status` as wdundore@sager = not logged in (no `~/.config/gh`, no GH_* env) — forge-side work parked per law 8: B-016 PR merge, B-015 branch protection, D-16 twin archive; unlock = interactive `gh auth login` on sager or PAT at `/nas/secrets/github/token` |
-| d701 console pubkey | READY (D-27 vault pair) | line for `ansible_user@dundore-sager` fleet key: `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOuSXHY79GBOOmoHRf5wyrxgnP/J684wmNSiOyMLy+By`; recipe (proven B-002/D-23): tee -a ~/.ssh/authorized_keys + 700/600 + `restorecon -R ~/.ssh` |
-| d701 SSH from sager — all identities | KEY-DENIED (refines 09-11 row) | ping 0.5ms LAN, sshd offers publickey; `wdundore`@ denied; `ansible_user`+service_id impossible (**private half absent on sager — repo tracks only .pub**), `ansible_user`+`/nas/secrets/ansible/ansible_id` denied ⇒ d701 `authorized_keys` holds none of sager’s public halves (D-23 class); d701 pull-compare leg impossible without CONSOLE; B-002 recipe is proven (tee + 700/600 + restorecon). Estimated d701 delta: homelab copy @ `production 7412033` (09-10) lacks today’s 5+ trunk commits incl. hygiene + lab_host role |
-
-## Live-probed facts (2026-09-11, refactor-prep drift sweep)
-
-| Item | Status | Evidence |
-|---|---|---|
-| refactor-prep drift sweep, 9 repos | **FILED** by spark-auditor instances 2026-09-11 (content audits — they grant no milestone status) | 7 finding files + index + FEEDBACK-LOOP = **129 findings** (52 FOCUS / 54 CLEANUP / 4 KEEP / 19 LEAVE, post-correction) @ ahab `c4db736`, homelab `e664a5c`, dnscontrol `f7dfa9a`, aitora `ecf02e6`, banking_app `b439367`, context `12153c4`, estate tree → `dundore-homelab/docs/audits/refactor-drift-2026-09-11/`; **all 9 files uncommitted** (no commit without operator approval; homelab worktree also carries another thread's D-25 delta) |
-| `ci.yml` validity on trunk | **INVALID at HEAD** (PM-side parser probe, independent of the auditor) | `yaml.safe_load` on `git show HEAD:.github/workflows/ci.yml` → "mapping values are not allowed here", **line 26 column 34** (unquoted `: ` in a step name) = the B-016 root cause, still live at `e664a5c`; fix `1e2d8f9` still unmerged → **eyeballing YAML is not verification** (an audit pass mis-cleared it by eye) |
-| F-ES02 root `.git/opencode` hazard | **CORRECTED by PM** (FOCUS → LEAVE) | `.git/opencode` is a 40-byte ASCII file holding one hash (`0bba7496…`) that resolves in **no** repo, and the same marker exists in every real repo's `.git`; opencode's actual state is `~/.local/share/opencode` (237M) ⇒ the pending `rm -rf /home/wdundore/git/.git` (row above) does **not** endanger opencode state — hazard withdrawn so the real estate hazards keep their weight |
-| estate hazards the refactor must respect | FILED → **D-32** (Q-10/Q-11 parked) | phantom root repo sits one `git add .` from committing `paperless/` 458M personal docs + 3 plaintext env files + inline weak compose DB passwords; `paperless/.env → /nas/secrets/paperless.secret` dangles (target missing, `/nas` not a mount); aitora tracks a live-format bearer token |
-| dispatch integrity (process law) | **DEFECT RECORDED** | a spark-auditor dispatch reported `Task cancelled` to the PM but **kept running client-side**, then rewrote `02-homelab.md` whole at 16:47 concurrently with its own re-dispatch (which appended F-HL19–26 rather than clobbering). No data lost — saved by the brief's incremental-save rule + one-file-one-owner. Standing rule: a cancelled task is not a stopped task; probe file mtime + agent heartbeat before re-dispatching anything that owns a file |
 

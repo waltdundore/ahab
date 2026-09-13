@@ -51,7 +51,9 @@ echo ""
 
 # Verify
 echo -e "${BLUE}→${NC} Verifying installation..."
-if ! make verify-install; then
+# D-41: this step called a nonexistent target (`verify-install`), green only via the
+# old %: catch-all; `make status` is the real rule that verifies the installed workstation.
+if ! make status; then
     echo ""
     echo -e "${YELLOW}❌ Verification failed${NC}"
     exit 1

@@ -377,13 +377,13 @@ This module provides automated deployment and management of MODULE_NAME using:
 
 ```bash
 # Deploy MODULE_NAME
-make install MODULE_NAME
+make install MODULES=MODULE_NAME
 
 # Check status
-make status MODULE_NAME
+make status
 
 # Remove MODULE_NAME
-make clean MODULE_NAME
+make clean
 ```
 
 ## Features

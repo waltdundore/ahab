@@ -76,7 +76,7 @@ Ahab module for deploying and managing $module_name.
 ## Quick Start
 
 \`\`\`bash
-make install $module_name
+make install MODULES=$module_name
 \`\`\`
 
 ## Requirements

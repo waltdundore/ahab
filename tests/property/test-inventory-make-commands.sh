@@ -235,9 +235,10 @@ assert_contains "$INVENTORY_LIST_CONTENT" "dev prod workstation" \
 # Test 16: Make commands can be executed (smoke test)
 print_test_header "Test 16: Make commands execute without syntax errors"
 
-# Test inventory-list (should always work)
-assert_true "make inventory-list >/dev/null 2>&1" \
-    "make inventory-list executes successfully"
+# D-41: this smoke test asserted a nonexistent target (`inventory-list`) that
+# only ever "passed" via the old %: catch-all (D-39). Use a rule the Makefile actually provides.
+assert_true "make help >/dev/null 2>&1" \
+    "make help executes successfully"
 
 # Test inventory-test without ENV (should fail with helpful message)
 OUTPUT=$(make inventory-test 2>&1 || true)

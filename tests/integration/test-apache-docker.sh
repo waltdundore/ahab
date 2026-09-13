@@ -308,7 +308,7 @@ You are here! 👋
             <h2>🚀 What to Do Next</h2>
             <ul>
                 <li><strong>Customize This Page:</strong> Edit <code>/tmp/test-apache/html/index.html</code> in the VM</li>
-                <li><strong>Deploy More Services:</strong> Try <code>make install mysql</code> to add a database</li>
+                <li><strong>Deploy More Services:</strong> Try <code>make install MODULES=mysql</code> to add a database</li>
                 <li><strong>Learn the Commands:</strong> Run <code>make help</code> to see all available commands</li>
                 <li><strong>Check the Logs:</strong> Run <code>vagrant ssh -c "docker logs ahab-apache-test"</code></li>
                 <li><strong>Read the Docs:</strong> Open <code>README-STUDENTS.md</code> for tutorials and project ideas</li>

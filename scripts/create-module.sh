@@ -59,7 +59,7 @@ main() {
     print_info "Next steps:"
     print_info "  1. Edit modules/$module_name/roles/$module_name/tasks/main.yml"
     print_info "  2. Test with: make test-module MODULE=$module_name"
-    print_info "  3. Install with: make install $module_name"
+    print_info "  3. Install with: make install MODULES=$module_name"
 }
 
 show_usage() {

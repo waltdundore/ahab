@@ -131,9 +131,11 @@ install_and_verify_workstation() {
     record_result "$os" "install" "PASS" "Installation completed" "$install_duration"
     
     # Verify installation
+    # D-41: this step called a nonexistent target (`verify-install`), green only via
+    # the old %: catch-all; `make status` is the real rule that verifies the workstation.
     log_info "Verifying installation..."
     local verify_start=$(date +%s)
-    if ! make verify-install; then
+    if ! make status; then
         local verify_end=$(date +%s)
         local verify_duration=$((verify_end - verify_start))
         record_result "$os" "verify" "FAIL" "Verification failed" "$verify_duration"
@@ -418,7 +420,7 @@ Each OS goes through identical test phases:
 
 1. **Configuration** - Update ahab.conf to select OS
 2. **Installation** - Run `make install` to create VM
-3. **Verification** - Run `make verify-install` to check components
+3. **Verification** - Run `make status` to check components
 4. **Docker Testing** - Verify Docker installation and functionality
 5. **Permissions** - Verify file ownership and write access
 6. **Hello World** - Deploy simple web page as proof of functionality
@@ -479,9 +481,12 @@ generate_lessons_learned() {
     generate_doc_header
     
     # Add results for each OS
+    # Pre-existing structural repair (2026-09-13, receipt: `git show HEAD:... | bash -n`
+    # failed at the orphaned `done`): a stray loop-terminator here closed the `for os`
+    # loop early, orphaning the per-OS phase-row body below and making the whole file
+    # unparseable (bash -n rc 2 at HEAD). Removing it restores the intended nesting.
     for os in "${OS_LIST[@]}"; do
         generate_os_results "$os"
-    done
         
         for phase in config install verify docker permissions hello_world; do
             local status="${TEST_RESULTS[${os}_${phase}]:-SKIP}"
@@ -555,7 +560,7 @@ EOF
 
 3. **Docker Consistency**: Docker behaves identically across all three distributions, proving our container-first approach is sound.
 
-4. **Verification is Critical**: The `make verify-install` command catches issues immediately, before they become deployment problems.
+4. **Verification is Critical**: The `make status` command catches issues immediately, before they become deployment problems.
 
 5. **Hello World Milestone**: Deploying a simple web page proves the entire stack works: VM creation, OS provisioning, Docker installation, networking, and file permissions.
 
@@ -594,7 +599,7 @@ make test-os-journey
 # Or run manually for specific OS
 echo "DEFAULT_OS=fedora" > ahab.conf
 make install
-make verify-install
+make status
 ```
 
 ---

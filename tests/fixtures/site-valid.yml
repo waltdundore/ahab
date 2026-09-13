@@ -1,0 +1,12 @@
+---
+# TEST FIXTURE — a fake site manifest for the resolver's happy path.
+# The site is fictional (example.org, RFC 2606); nothing here is a real
+# machine, repo, or zone. Consumed by tests/test-composer.sh check 1.
+site: example.org
+repo: https://example.invalid/example-site.git
+dns: dns/
+modules:
+  - bootstrap
+  - docker
+  - platform
+local_roles: roles/

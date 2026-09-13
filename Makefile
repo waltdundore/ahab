@@ -32,6 +32,10 @@ help:
 	@echo "  make test-workstation     - Test workstation VM environment (⚠️ Run before physical deployment)"
 	@echo "  make audit                - Run accountability audit"
 	@echo ""
+	@echo "Plug-in Socket Commands (docs/PLUGIN.md):"
+	@echo "  make resolve MANIFEST=f  - Resolve a site's ahab-site.yml -> ansible.cfg"
+	@echo "  make socket-test         - Prove the socket resolves/refuses correctly"
+	@echo ""
 	@echo "Git Publishing Commands:"
 	@echo "  make publish              - Publish dev branch to GitHub"
 	@echo "  make publish-all          - Publish all configured branches"
@@ -328,6 +332,28 @@ audit:
 	@echo "→ Running: bash scripts/audit-accountability.sh"
 	@echo "   Purpose: Audit code for accountability and empathy standards"
 	@bash scripts/audit-accountability.sh
+
+# ==============================================================================
+# Plug-in Socket Commands (M1 — SPEC §3/§4)
+# ==============================================================================
+
+.PHONY: resolve socket-test
+
+# Resolve a site's ahab-site.yml into a generated ansible.cfg + group layout
+# + tags (SPEC §4). Every refusal names its cause and exits 2 (D-39).
+resolve:
+	@if [ -z "$(MANIFEST)" ]; then \
+		echo "usage: make resolve MANIFEST=path/to/ahab-site.yml" >&2; \
+		echo "  (your site repo's manifest — see docs/PLUGIN.md)" >&2; \
+		exit 2; \
+	fi
+	@./scripts/ahab-compose.sh $(MANIFEST)
+
+# The socket's own test: valid manifest resolves, unknown module refused by
+# name, missing dependency refused by name (tests/test-composer.sh).
+socket-test:
+	@bash tests/test-composer.sh
+
 # ==============================================================================
 # Git Publishing Commands
 # ==============================================================================

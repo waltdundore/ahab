@@ -1,0 +1,9 @@
+---
+# TEST FIXTURE — the resolver must REFUSE this manifest: 'platform' declares
+# requires: [docker], and 'docker' is not enabled. Proves the dependency
+# refusal NAMES the missing dependency and exits non-zero (SPEC §3.1).
+# Consumed by test-composer.sh check 3.
+site: example.org
+modules:
+  - bootstrap
+  - platform

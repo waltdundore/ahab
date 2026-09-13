@@ -1,0 +1,14 @@
+---
+# TEST FIXTURE — syntax-check probe for the plug-in socket (M1).
+# It references the four roles the extracted modules provide, by their
+# ORIGINAL names, and must pass `ansible-playbook --syntax-check` using ONLY
+# the generated ansible.cfg's roles_path. That is the drop-in guarantee:
+# site playbooks written against the pre-extraction tree resolve unchanged.
+- name: M1 socket probe — all four extracted module roles resolve via generated roles_path
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - system_prep
+    - ansible_user
+    - docker_engine
+    - platform_stack

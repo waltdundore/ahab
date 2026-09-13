@@ -1,0 +1,8 @@
+---
+# TEST FIXTURE — the resolver must REFUSE this manifest: 'teleport' is not
+# a module in MODULE_REGISTRY.yml. Proves the unknown-module refusal names
+# the offending module and exits non-zero. Consumed by test-composer.sh check 2.
+site: example.org
+modules:
+  - bootstrap
+  - teleport

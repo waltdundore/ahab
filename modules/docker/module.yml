@@ -1,0 +1,14 @@
+---
+# Module manifest — SPEC.md §3.1 (directory-based modules inside ahab).
+# Purpose: the Docker layer. Installs the Moby engine, the docker compose v2
+# CLI plugin, and grants the ansible_user service account socket access.
+# Provenance: extracted from a site module's L0 roles 2026-09-12 (ahab M1
+# consolidation, SPEC §2). Role name kept stable for drop-in resolution.
+# Org-free law: zero site values here; tunables are plain variables with
+# env-agnostic defaults in the role's defaults/ (no IPs, no org names).
+name: docker
+version: 1
+roles: [docker_engine]
+playbooks: []
+requires: [bootstrap]
+status: experimental

@@ -1,0 +1,17 @@
+---
+# Module manifest — SPEC.md §3.1 (directory-based modules inside ahab).
+# Purpose: platform layer — lays a site's compose-defined service stack under
+# a platform root, seeds its swarm demo artifact, builds and starts the
+# stack, then waits on each service's own health endpoint.
+# Provenance: extracted from a site module's L0 roles 2026-09-12 (ahab M1
+# consolidation, SPEC §2). Role name kept stable for drop-in resolution.
+# Org-free law: every site-specific value (the public swarm tracker URL, the
+# health-probe host, source/content paths) DEFAULTS EMPTY or to a generic
+# localhost value and is supplied by the SITE repo; the role ASSERTS with a
+# human-readable failure instead of silently guessing.
+name: platform
+version: 1
+roles: [platform_stack]
+playbooks: []
+requires: [docker]
+status: experimental

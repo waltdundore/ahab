@@ -1,0 +1,11 @@
+---
+# Fedora 43 ships the Moby (Docker) engine as these packages.
+# Compose v2 has no Fedora package; the plugin binary is fetched from
+# the upstream Docker release stream (MIT license) into the CLI plugin dir.
+# All values here are env-agnostic (no hosts, no IPs, no org names).
+docker_packages:
+  - moby-engine
+  - docker-cli
+docker_service: docker
+compose_plugin_path: /usr/libexec/docker/cli-plugins/docker-compose
+compose_release_base: https://github.com/docker/compose/releases/latest/download

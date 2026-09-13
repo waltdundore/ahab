@@ -1,0 +1,28 @@
+---
+# platform_stack defaults — the generic floor only.
+# Org-free law (BLUEPRINT §Portability Contract): values that identify a
+# site (its public tracker endpoint, its service content paths) have NO home
+# in machinery. They default EMPTY here; the role asserts with a human
+# message when a required one is unset, and the value's real home is the
+# SITE repo's group_vars / host_vars.
+ml_platform_dir: /opt/ml-platform
+ml_source_dir: "{{ playbook_dir }}/../services"
+ml_compose_project: ml-platform
+ml_swarm_dir: /opt/ml-platform/swarm
+ml_artifact_name: demo-artifact.bin
+ml_artifact_size_mb: 50
+# In-network tracker = the compose stack's own service name (not a site
+# endpoint): resolves on the internal docker bridge, safe as machinery.
+ml_swarm_local_tracker: "http://ml_tracker:6969/announce"
+# SITE VALUE — the public tracker your artifacts are advertised to.
+# Empty by default; platform_stack refuses to run until the site sets it.
+ml_swarm_external_tracker: ""
+# Health-probe targets: loopback by default (the stack publishes locally).
+# A site probes from elsewhere? platform_health_host is its override point.
+platform_health_host: localhost
+platform_catalog_port: 8000
+platform_forge_port: 3000
+platform_demo_port: 8501
+platform_health_path: health
+platform_edge_health_path: registry/health
+ml_postgres_container: ml_postgres

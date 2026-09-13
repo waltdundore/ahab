@@ -1,0 +1,77 @@
+---
+# system_prep — Layer-0 system baseline (bootstrap module).
+# Extracted from a site module's L0 roles 2026-09-12 (SPEC §2 consolidation);
+# role name kept stable so the originating site repo resolves here unchanged.
+#
+# Fedora 43 ships zram-generator (via zram-generator-defaults), which creates a
+# /dev/zram0 compressed-swap unit at boot:
+#   systemd-zram-setup@zram0.service -> dev-zram0.swap
+# A bare `swapoff -a` only unmounts the swap target; it does NOT tear down the
+# zram device. The unit is then re-triggered on the next logind session
+# (each `vagrant ssh`), tries to rewrite /sys/block/zram0/disksize on an
+# already-initialized device and fails with EBUSY. That leaves
+# systemd-zram-setup@zram0.service in `failed` state and puts the whole host in
+# `degraded`, so a plain `systemctl status` shows a red error.
+#
+# To disable swap cleanly and idempotently we suppress the generator at the
+# source (empty /etc/systemd/zram-generator.conf), then tear down the existing
+# device before any reload, so the unit can never be resurrected.
+
+- name: Suppress zram-generator so /dev/zram0 swap unit is never regenerated
+  ansible.builtin.copy:
+    content: "# swap disabled by ansible system_prep role\n"
+    dest: /etc/systemd/zram-generator.conf
+    owner: root
+    group: root
+    mode: "0644"
+  register: zram_conf
+
+- name: Reload systemd so the empty zram-generator config takes effect
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: zram_conf.changed
+
+- name: Check whether a zram swap unit is currently instantiated
+  ansible.builtin.command: systemctl list-unit-files dev-zram0.swap --no-legend
+  register: zram_unit
+  changed_when: false
+  # systemd >= 258 exits 1 when no unit file matches; absence is expected
+  # after the generator has been suppressed.
+  failed_when: zram_unit.rc not in [0, 1]
+
+- name: Stop and disable the existing zram swap device unit (if present)
+  ansible.builtin.systemd:
+    name: dev-zram0.swap
+    state: stopped
+    enabled: false
+  when: "'dev-zram0.swap' in zram_unit.stdout"
+
+- name: Reset the zram0 device so it releases its initialized state
+  ansible.builtin.shell: |
+    if [ -e /dev/zram0 ]; then
+      swapoff /dev/zram0 2>/dev/null || true
+      echo 1 > /sys/block/zram0/reset 2>/dev/null || true
+    fi
+  changed_when: "'dev-zram0.swap' in zram_unit.stdout"
+
+- name: Comment out any fstab swap entries to prevent leakage on reboot
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#\s]+\s+[^#\s]+\s+swap\s+.*)$'
+    replace: '# \1'
+
+- name: Install required security dependencies
+  ansible.builtin.dnf:
+    name:
+      - firewalld
+      - python3-pip
+    state: present
+
+# Site-provided extras (portability law): workload-specific packages are a
+# SITE value. The site repo sets system_prep_extra_packages in its
+# group_vars/host_vars; the machinery below stays org- and workload-agnostic.
+- name: Install site-declared extra packages (empty list = nothing to do)
+  ansible.builtin.dnf:
+    name: "{{ system_prep_extra_packages }}"
+    state: present
+  when: system_prep_extra_packages | length > 0

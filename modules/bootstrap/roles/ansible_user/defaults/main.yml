@@ -1,0 +1,6 @@
+---
+# System-provided values live in the SITE repo (portability law): each site
+# declares the direct-use accounts that must NEVER exist on its machines
+# (people's usernames are org-specific and have no home in machinery).
+# Empty default = the site has declared no prohibitions; the gate no-ops.
+ansible_user_prohibited_accounts: []

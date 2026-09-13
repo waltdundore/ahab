@@ -1,0 +1,6 @@
+---
+# System-provided values live in the SITE repo (portability law, BLUEPRINT
+# §Portability Contract): a site adds its workload-specific dnf packages here
+# (group_vars / host_vars), never inside this role. Default empty = baseline
+# packages only.
+system_prep_extra_packages: []

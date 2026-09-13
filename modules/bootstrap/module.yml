@@ -1,0 +1,16 @@
+---
+# Module manifest — SPEC.md §3.1 (directory-based modules inside ahab).
+# Purpose: Layer-0 bootstrap. Turns a blank box into a manageable machine:
+#   system baseline (swap/firewalld/packages) + the ansible_user service
+#   account with its key-enforcement and legacy-account gates.
+# Provenance: extracted from a site module's L0 roles 2026-09-12 (ahab M1
+# bootstrap consolidation, SPEC §2). Role names are kept stable so the site
+# module keeps working via the generated roles_path (drop-in).
+# Org-free law: this module carries ZERO site values; anything site-specific
+# is a variable whose home is the SITE repo (see each role's defaults/).
+name: bootstrap
+version: 1
+roles: [system_prep, ansible_user]
+playbooks: []
+requires: []
+status: experimental

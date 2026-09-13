@@ -1,0 +1,88 @@
+---
+# ansible_user — Layer-0 service account (bootstrap module).
+# Extracted from a site module's L0 roles 2026-09-12 (SPEC §2 consolidation);
+# role name kept stable so the originating site repo resolves here unchanged.
+# The fleet's single management identity: SPEC §2 bootstrap contract —
+# direct-use accounts are prohibited, access is key-enforced via
+# ~/.ssh/id_ansible_user with agent forwarding.
+
+- name: Ensure ansible_user group exists
+  ansible.builtin.group:
+    name: ansible_user
+    system: true
+    state: present
+
+- name: Ensure ansible_user service account exists
+  ansible.builtin.user:
+    name: ansible_user
+    group: ansible_user
+    system: true
+    shell: /usr/bin/bash
+    create_home: true
+    comment: "Deployment Service Account"
+
+- name: Enforce service account home permissions
+  ansible.builtin.file:
+    path: /home/ansible_user
+    owner: ansible_user
+    group: ansible_user
+    mode: '0750'
+    state: directory
+
+- name: Ensure passwordless sudo drop-in for ansible_user
+  ansible.builtin.copy:
+    content: "ansible_user ALL=(ALL) NOPASSWD: ALL\n"
+    dest: /etc/sudoers.d/90-ansible_user
+    owner: root
+    group: root
+    mode: '0440'
+    validate: 'visudo -cf %s'
+
+- name: Check authorized_keys presence for ansible_user (key enforcement gate)
+  ansible.builtin.stat:
+    path: /home/ansible_user/.ssh/authorized_keys
+  register: svc_authorized_keys
+
+- name: Fail closed if no SSH key was provisioned for ansible_user
+  ansible.builtin.assert:
+    that:
+      - svc_authorized_keys.stat.exists
+      - svc_authorized_keys.stat.size > 0
+    fail_msg: >-
+      ansible_user has no authorized SSH key. Provision it from the site
+      bootstrap (the matching *.pub for the fleet key must be installed on
+      the control host first); refusing to leave a root-only machine behind.
+
+- name: Ensure SSH directory ownership for ansible_user
+  ansible.builtin.file:
+    path: /home/ansible_user/.ssh
+    owner: ansible_user
+    group: ansible_user
+    mode: '0700'
+    state: directory
+
+- name: Ensure authorized_keys ownership for ansible_user
+  ansible.builtin.file:
+    path: /home/ansible_user/.ssh/authorized_keys
+    owner: ansible_user
+    group: ansible_user
+    mode: '0600'
+
+# Which human/direct-use accounts are BANNED on a fleet machine is a SITE
+# fact (people's usernames are org-specific — portability law). The site repo
+# declares its prohibited list in group_vars (see defaults/); an empty list
+# means "this site has declared none" and the gate is a no-op.
+- name: Check for prohibited legacy accounts (site-declared list)
+  ansible.builtin.command: "id {{ item }}"
+  loop: "{{ ansible_user_prohibited_accounts }}"
+  changed_when: false
+  failed_when: false
+  register: legacy_checks
+  when: ansible_user_prohibited_accounts | length > 0
+
+- name: Fail if any prohibited legacy account exists
+  ansible.builtin.assert:
+    that:
+      - item.rc != 0
+    fail_msg: "Prohibited legacy account '{{ item.item }}' exists on this machine."
+  loop: "{{ legacy_checks.results | default([]) }}"

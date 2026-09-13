@@ -31,12 +31,44 @@
 
 registry:
   version: "2.0"
-  updated: "2026-09-11"
+  updated: "2026-09-12"
   layout: "modules/<name>/module.yml"  # SPEC §3.1 directory-based modules
 
   modules:
-    # All entries below are catalog intent (status: planned); `ls ahab/modules/`
-    # is empty as of 2026-09-11 — no module.yml exists on disk yet.
+    # bootstrap/docker/platform are IMPLEMENTED on disk (modules/<name>/module.yml
+    # exists — M1 plug-in socket, 2026-09-12); status experimental until the
+    # vagrant gate proves them (B-017). Entries below remain catalog intent
+    # (status: planned) with no directory on disk yet.
+    bootstrap:
+      path: "modules/bootstrap"
+      description: "Layer-0 bootstrap - system baseline + ansible_user service account"
+      deployment: [ansible]
+      dependencies: []
+      status: experimental
+      platforms: [fedora]
+      tags: [bootstrap, l0, baseline, service-account]
+      maintainer: "Ahab Project"
+
+    docker:
+      path: "modules/docker"
+      description: "Docker (Moby) engine + compose v2 plugin"
+      deployment: [ansible]
+      dependencies: [bootstrap]
+      status: experimental
+      platforms: [fedora]
+      tags: [docker, container, compose]
+      maintainer: "Ahab Project"
+
+    platform:
+      path: "modules/platform"
+      description: "Site service-stack launcher (compose stack + health gates)"
+      deployment: [ansible]
+      dependencies: [docker]
+      status: experimental
+      platforms: [fedora]
+      tags: [platform, compose, stack]
+      maintainer: "Ahab Project"
+
     apache:
       path: "modules/apache"
       description: "Apache HTTP Server - Industry-standard web server"
@@ -119,6 +151,8 @@ registry:
 
 # Module status values:
 #   - stable: Production-ready, fully tested (requires modules/<name>/module.yml on disk)
+#   - experimental: implemented on disk, not yet proven by the vagrant gate
+#     (module.yml `status:` vocabulary per SPEC §3.1)
 #   - beta: Feature-complete, testing in progress
 #   - alpha: Under active development
 #   - planned: Not yet implemented (no directory on disk; catalog intent only)

@@ -1,0 +1,69 @@
+---
+# docker_engine — Docker/Moby engine + compose v2 plugin (docker module).
+# Extracted from a site module's L0 roles 2026-09-12 (SPEC §2 consolidation);
+# role name kept stable so the originating site repo resolves here unchanged.
+# Fedora 43 note (carried from the source role): the Moby engine ships as
+# distro packages; compose v2 has no Fedora package, so the plugin binary is
+# fetched from the upstream Docker release stream (MIT license) into the CLI
+# plugin dir. Every knob below is a plain variable — defaults in defaults/.
+
+- name: Install Docker (Moby) engine packages
+  ansible.builtin.dnf:
+    name: "{{ docker_packages }}"
+    state: present
+
+- name: Ensure Docker daemon is enabled and running
+  ansible.builtin.systemd:
+    name: "{{ docker_service }}"
+    state: started
+    enabled: true
+
+- name: Wait for Docker daemon to answer
+  ansible.builtin.command: docker info
+  register: docker_info
+  retries: 10
+  delay: 3
+  until: docker_info.rc == 0
+  changed_when: false
+
+- name: Resolve compose plugin asset name for this architecture
+  ansible.builtin.set_fact:
+    compose_asset: "docker-compose-linux-{{ 'aarch64' if ansible_architecture == 'aarch64' else 'x86_64' }}"
+
+- name: Check for existing compose plugin
+  ansible.builtin.stat:
+    path: "{{ compose_plugin_path }}"
+  register: compose_plugin
+
+- name: Ensure CLI plugin directory exists
+  ansible.builtin.file:
+    path: "{{ compose_plugin_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: not compose_plugin.stat.exists
+
+- name: Install docker compose v2 plugin binary
+  ansible.builtin.get_url:
+    url: "{{ compose_release_base }}/{{ compose_asset }}"
+    dest: "{{ compose_plugin_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+  when: not compose_plugin.stat.exists
+
+- name: Add ansible_user to docker group for socket access
+  ansible.builtin.user:
+    name: ansible_user
+    groups: docker
+    append: true
+
+- name: Verify compose plugin is callable
+  ansible.builtin.command: docker compose version
+  register: compose_version
+  changed_when: false
+
+- name: Report compose version
+  ansible.builtin.debug:
+    msg: "{{ compose_version.stdout_lines[0] }}"

@@ -1,0 +1,153 @@
+---
+# platform_stack — site service-stack launcher (platform module).
+# Extracted from a site module's L0 roles 2026-09-12 (SPEC §2 consolidation);
+# role name kept stable so the originating site repo resolves here unchanged.
+# What the stack IS (compose files under ml_source_dir, tracker endpoints,
+# health-probe target) is SITE content: the machinery here only lays out the
+# platform root, seeds the swarm demo artifact, builds, starts, and waits on
+# health. Site values arrive from the site repo's group_vars/host_vars; the
+# first task refuses to proceed when a required one is missing.
+
+- name: Refuse to run without the site's public swarm tracker endpoint
+  ansible.builtin.assert:
+    that:
+      - ml_swarm_external_tracker | length > 0
+    fail_msg: >-
+      The platform module needs your site's public swarm tracker URL, and
+      this machine has none configured. That value belongs to YOUR site, so
+      its home is your site repo: set `ml_swarm_external_tracker` (for
+      example in group_vars/all.yml) to your tracker endpoint, then run
+      again. We refuse to guess it — silently seeding torrents against the
+      wrong tracker would advertise your artifacts to strangers.
+
+- name: Ensure platform root directory exists
+  ansible.builtin.file:
+    path: "{{ ml_platform_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Sync service definitions to platform root
+  ansible.builtin.copy:
+    src: "{{ ml_source_dir }}/"
+    dest: "{{ ml_platform_dir }}/"
+    owner: root
+    group: root
+    mode: preserve
+    remote_src: true
+
+- name: Ensure swarm artifact directory exists
+  ansible.builtin.file:
+    path: "{{ ml_swarm_dir }}/seed"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Generate deterministic swarm artifact
+  ansible.builtin.command: >-
+    python3 {{ ml_platform_dir }}/swarm/tools/make_artifact.py
+    --out {{ ml_swarm_dir }}/seed/{{ ml_artifact_name }}
+    --size-mb {{ ml_artifact_size_mb }}
+  args:
+    creates: "{{ ml_swarm_dir }}/seed/{{ ml_artifact_name }}"
+
+- name: Build hybrid v1/v2 torrent + provenance manifest
+  ansible.builtin.command: >-
+    python3 {{ ml_platform_dir }}/swarm/tools/make_torrent.py
+    --artifact {{ ml_swarm_dir }}/seed/{{ ml_artifact_name }}
+    --out-dir {{ ml_swarm_dir }}
+    --tracker {{ ml_swarm_local_tracker }}
+    --tracker {{ ml_swarm_external_tracker }}
+  args:
+    chdir: "{{ ml_platform_dir }}/swarm/tools"
+    creates: "{{ ml_swarm_dir }}/manifest.json"
+
+- name: Read swarm manifest
+  ansible.builtin.slurp:
+    src: "{{ ml_swarm_dir }}/manifest.json"
+  register: swarm_manifest_raw
+
+- name: Assert manifest hashes are real (nonzero, non-placeholder)
+  ansible.builtin.assert:
+    that:
+      - swarm_manifest.info_hash_v2 | length == 64
+      - swarm_manifest.info_hash_v2 != 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+      - swarm_manifest.info_hash_v2 != '0' * 64
+      - swarm_manifest.blake3 | length == 64
+      - swarm_manifest.piece_length <= 16384
+    fail_msg: "swarm manifest failed ground-truth checks: {{ swarm_manifest }}"
+  vars:
+    swarm_manifest: "{{ swarm_manifest_raw.content | b64decode | from_json }}"
+
+- name: Build platform images (cached)
+  ansible.builtin.command: docker compose -p {{ ml_compose_project }} build
+  args:
+    chdir: "{{ ml_platform_dir }}"
+  register: compose_build
+  changed_when: false
+
+- name: Start platform stack
+  ansible.builtin.command: docker compose -p {{ ml_compose_project }} up -d --remove-orphans
+  args:
+    chdir: "{{ ml_platform_dir }}"
+  register: compose_up
+  # moby compose writes progress to stderr
+  changed_when: >-
+    'Started' in (compose_up.stdout + compose_up.stderr) or
+    'Created' in (compose_up.stdout + compose_up.stderr)
+
+- name: Wait for Postgres healthy state
+  ansible.builtin.command: >-
+    docker inspect --format '{{ '{{' }} .State.Health.Status {{ '}}' }}' {{ ml_postgres_container }}
+  register: pg_health
+  retries: 20
+  delay: 3
+  until: pg_health.stdout == "healthy"
+  changed_when: false
+
+- name: Wait for catalog API health endpoint
+  ansible.builtin.uri:
+    url: "http://{{ platform_health_host }}:{{ platform_catalog_port }}/{{ platform_health_path }}"
+    status_code: 200
+  register: catalog_health
+  retries: 15
+  delay: 4
+  until: catalog_health.status == 200
+
+- name: Wait for Git forge HTTP response
+  ansible.builtin.uri:
+    url: "http://{{ platform_health_host }}:{{ platform_forge_port }}/"
+    status_code: [200, 302, 303]
+  register: forge_health
+  retries: 20
+  delay: 5
+  until: forge_health.status in [200, 302, 303]
+
+- name: Wait for demo app HTTP response
+  ansible.builtin.uri:
+    url: "http://{{ platform_health_host }}:{{ platform_demo_port }}/"
+    status_code: [200, 302, 303]
+  register: demo_health
+  retries: 20
+  delay: 5
+  until: demo_health.status in [200, 302, 303]
+
+- name: Wait for edge proxy health route
+  ansible.builtin.uri:
+    url: "http://{{ platform_health_host }}/{{ platform_edge_health_path }}"
+    status_code: 200
+  register: edge_health
+  retries: 15
+  delay: 4
+  until: edge_health.status == 200
+
+- name: Report running containers
+  ansible.builtin.command: docker ps --format '{{ '{{' }} .Names {{ '}}' }}'
+  register: running
+  changed_when: false
+
+- name: Show running containers
+  ansible.builtin.debug:
+    var: running.stdout_lines

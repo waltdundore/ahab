@@ -17,16 +17,16 @@ All commands run once from the worktree root, 2026-09-13.
 
 ## Check 1 — phantom-target assertions removed (D-41)
 
-    grep -rn 'make inventory-list\|make verify-install' tests/ scripts/
+    grep -rn 'make'' inventory-list\|make'' verify-install' tests/ scripts/   # split to stay grep-clean
 
 **Verdict: PASS** — no output (grep rc=1).
 First run caught the unit's own explanatory comments quoting the literal strings;
 comments reworded (a comment may not re-create the grep-forbidden string it
-explains), re-run clean. Fixed sites: `make verify-install` → `make status`
+explains), re-run clean. Fixed sites: `verify-install` (bare) → `make status`
 (real rule verifying the workstation) at quick-test-os.sh:56 and
 test-os-install-journey.sh:138, plus the report prose the journey test WRITES
 (lines ~424, ~560, ~600 — docs the machine writes are code);
-`make inventory-list` smoke assert → `make help` (real always-runnable rule).
+`inventory-list` smoke assert → `make help` (real always-runnable rule).
 
 ## Check 2 — generators emit the MODULES= interface (D-42)
 

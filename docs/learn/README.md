@@ -32,7 +32,7 @@ mountain, never as if they ship today.
 |---|---|---|---|
 | **1 · Why** | say what this *method* is, and know you're allowed to take the quick door instead of the deep one | ~10 min | none — start here ([open it](module-0-bootstrap.md#rung-1--what-this-method-is)) |
 | **2 · Tools** | get git, vagrant and docker on your machine, and tell which ones *our code* sets up for you vs. which you install yourself | ~20–40 min (depends on your machine) | rung 1 ([open it](module-0-bootstrap.md#rung-2--the-tools)) |
-| **3 · Testbed** | run the `lab-*` sequence that proves a blank, empty box rebuilds from *this code alone*, and read what "green" actually means | ~30–60 min per VM build | rung 2 · **gate in build: D-25 / B-017** ([open it](module-0-bootstrap.md#rung-3--the-testbed)) |
+| **3 · Testbed** | run the `lab-*` sequence that proves a blank, empty box rebuilds from *this code alone*, and read what "green" actually means | ~30–60 min per VM build | rung 2 · **gate in build: D-46 / B-017** ([open it](module-0-bootstrap.md#rung-3--the-testbed)) |
 | **4 · First service** | stand up a real service and prove it's up | — | **in build — gate M0** (not shipped yet) |
 | **5 · First monitor** | get a monitor to go green, and know why a service without one "doesn't exist" | — | **in build — gate M0** (not shipped yet) |
 | **6 · RAFT consensus** | explain quorum, leader election and log replication — *taught by the pi-voter lattice itself*: one node's claim is a claim, a majority's is truth | — | **in build — gate M0** (not shipped yet) |

@@ -122,11 +122,15 @@ rung 3 of the ladder and the exit gate of milestone **M0**.
 different Makefile than rung 2's):
 
 ```bash
-make lab-host      # ready this host so the test VMs can reach the internet
 make lab-up        # build the blank test box and converge it from code
 make lab-status    # what's actually in the lab right now (VM states + containers)
 make lab-verify    # THE GATE: prove the box's own health monitor is GREEN
 ```
+
+There is deliberately **no host-prep step** in that list. You never get a
+command that rewrites your machine's networking just to get the lab running —
+and if you ever find one in an old note, don't run it. The honest status box
+below says why.
 
 `make lab-verify` going green is the whole point: it tunnels into the box and
 confirms the service it just built is *watching itself*. That green is a monitor
@@ -137,29 +141,55 @@ pass, so a green can't be fake), and teardown with `make lab-destroy` /
 `make lab-reap` (both refuse to delete anything unless you add `CONFIRM=yes`,
 because this lab box *is* the evidence machine).
 
-### Be honest about where this gate stands right now
+### ⚠️ Honest status: on a libvirt host, this gate is blocked today
 
-The method is real and the commands above are real. **The current status is not
-fully green on every host, and you should expect that — it's a known gate, not
-your mistake.**
+**Read this before you chase a red.** If your host runs **libvirt** (the
+hypervisor most Linux machines use), this lab gate **cannot go green right now**,
+and nothing you type on your host changes that. We track it in the open as
+blocker **B-017** — the vagrant gate can't run on this host — and as defect row
+**D-46**, which is the underlying reason: the lab network the test box needs in
+order to reach the internet is not yet owned by code in a way we can trust.
+Neither one is your mistake.
+
+Two habits keep you safe here:
+
+- **Never hand-write firewall, forward, or NAT rules on your host just to get
+  the lab running.** It looks like the obvious fix, and it is the exact thing
+  this
+  program banned. Rules you type by hand live in one machine's memory, not in a
+  commit, so the next rebuild dies quietly on a box nobody remembers prepping —
+  and a wrong forward rule can silently cut the internet from *every* container
+  on the machine. That is how D-46 was caught. Hand-typed state is never
+  convergence (rung 1's one sentence).
+- **If `make lab-up` boots the box and provisioning then fails with a network
+  or WAN error** — `urlopen error`, a package download that times out, "the
+  guest can't reach the internet" — that is the known defect talking, not you.
+  Your correct move is to **open row D-46 in
+  [BLUEPRINT.md](../../BLUEPRINT.md) and read where the fix stands**, not to
+  touch your firewall. The fix already has an agreed shape: the hypervisor owns
+  its own virtual network, and anything genuinely extra ships as a *file* a
+  service reconciles at boot. When that lands, the gate turns green by itself on
+  every machine, with nobody prepping anything.
+
+The method is real and the commands above are real. Here is where each host
+family actually stands today, stated plainly:
 
 - The clean-slate gate **passed and was audited** on a VirtualBox host on
   2026-09-09 — 18 tasks converged idempotent, self-monitor GREEN, and it caught
   eight real bugs that were fixed *in code, not on the box*. Read that evidence
   (it's short): [bootstrap-vagrant-2026-09-09.md](https://github.com/waltdundore/dundore-homelab/blob/prod/tests/evidence/bootstrap-vagrant-2026-09-09.md).
-- On the **current libvirt host, the gate has not gone green yet.** The reason is
-  tracked openly as **D-25** (the lab-network NAT the test box needs to reach the
-  internet wasn't owned by any code) and **B-017** (so the M0 gate can't run on
-  this host). `make lab-host` is the code written to close D-25. Until that's
-  proven, treat a first `make lab-up` as *expected to need that prep*, not as a
-  failure of yours. Run the BOOTSTRAP runbook alongside it:
+- On the **current libvirt host the gate has not gone green**, for the D-46 /
+  B-017 reason above, and the fix is being rewritten rather than patched. Until
+  it lands, treat a first `make lab-up` on libvirt as *expected to hit that
+  wall*. Run the BOOTSTRAP runbook alongside it:
   [docs/BOOTSTRAP.md](https://github.com/waltdundore/dundore-homelab/blob/prod/docs/BOOTSTRAP.md).
 
 ### When the gate doesn't go green (every failure has a next action)
 
 - **`make lab-up` starts but the VM can't reach the internet** → this is the
-  D-25 class, not you. Run `make lab-host` first (it sets up the lab network),
-  then `make lab-up` again.
+  B-017 / D-46 wall, not you. Stop there, read
+  [D-46 in BLUEPRINT.md](../../BLUEPRINT.md), and write down which step it died
+  at. Editing your host's firewall or NAT rules is never the answer.
 - **A stale VM is in the way** → `make lab-status` to see it; if it's a stranded
   box vagrant stopped tracking, `make lab-reap` finds it (it removes nothing
   without `CONFIRM=yes`).
@@ -169,7 +199,9 @@ your mistake.**
   in the D-register — not something to talk yourself past.
 
 **✅ You've finished rung 3 when** you've run the sequence, and — green or red —
-you can say *which* step it reached and *why* in your own words. Naming the state
+you can say *which* step it reached and *why* in your own words. On a blocked
+host, "it reached `lab-up` and died at the guest's internet step, and here is
+the register row that already says so" is a complete answer. Naming the state
 honestly is the skill; the green is just its echo.
 
 ---

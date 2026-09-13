@@ -66,6 +66,7 @@ vagrant-gate defect **D-25 / B-017**. This Makefile has **no `ui` target**
 | Question | Authority (read there) |
 |---|---|
 | I'm new — where do I start? | [START_HERE.md](START_HERE.md) |
+| I have a site — how do I plug into ahab? | [docs/PLUGIN.md](docs/PLUGIN.md) |
 | What does this actually *do* (the platform)? | [docs/PLATFORM.md](docs/PLATFORM.md) |
 | What does this word mean? | [docs/GLOSSARY.md](docs/GLOSSARY.md) |
 | I'm an agent — how do I get live context? | [AGENTS.md](AGENTS.md) |
@@ -82,11 +83,13 @@ vagrant-gate defect **D-25 / B-017**. This Makefile has **no `ui` target**
 
 Look these up in the BLUEPRINT D-register instead of tripping over them:
 
-- 9 committed `Makefile*` variants pollute the top level — **D-18**
-- [MODULE_REGISTRY.yml](MODULE_REGISTRY.yml) names 8 module repos that do not
-  exist — **D-17**; the decided design keeps directory modules inside ahab
-  (`modules/<name>/module.yml`), and `modules/` is empty today
-- 29 top-level `.md` files of mixed vintage; BLUEPRINT's doc-hierarchy table
+- ~~9 committed `Makefile*` variants~~ cleared: single `Makefile` at the top level
+  (measured 2026-09-13; D-18's tree half done — closure is the auditor's call)
+- [MODULE_REGISTRY.yml](MODULE_REGISTRY.yml) is directory-module truth since the
+  2026-09-11 rewrite (D-17): zero phantom repo names (measured), `modules/` holds
+  `bootstrap`, `docker`, `platform` with `module.yml` on disk, and `planned`
+  entries are catalog intent only — no invented URLs
+- 12 top-level `.md` files of mixed vintage; BLUEPRINT's doc-hierarchy table
   is the filter
 - byte-identical twin repos `ansible-config`/`ansible-inventory` ≡
   `ahab-config`/`ahab-inventory`; canonical name undecided — **D-16 / B-013**

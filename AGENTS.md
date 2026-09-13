@@ -98,3 +98,4 @@ The full delegation contract lives in
 `dundore-homelab/.opencode/skills/spark-delegation/`.
 
 *New human? Ignore this file and go to [START_HERE.md](START_HERE.md).*
+*Plugging a site into the module system? The socket in words: [docs/PLUGIN.md](docs/PLUGIN.md).*

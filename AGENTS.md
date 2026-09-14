@@ -88,6 +88,14 @@ file with a date in its name are append-only history — useful, never true.
 - **Secrets:** values live in the vault (OpenBao / `/nas/secrets`), only
   *references* in git. Never write a secret value into a file, a prompt, a
   commit, or a log — not even as an example.
+- **Credential discipline (D-54 addendum 2026-09-14).** Authenticate ONLY as a
+  service account explicitly delegated for agent use (`awx-runner` today);
+  an operator's personal credential is off-limits — never probed, pair-guessed,
+  or used, not even read-only. Finding a credential = ledger
+  (`inventory/secrets.yml`) → canonical store (OpenBao), never guess-and-probe
+  against a live service. One attempt per named pair; on 401 record the receipt
+  and stop — no retry roulette. Read values at the call site; they never enter
+  argv literals, prompts, files, commits, or logs.
 - **Trunk is `prod`/`dev`** (probe `git branch -r`; never assume `main`).
 
 ## Working model (who does what)

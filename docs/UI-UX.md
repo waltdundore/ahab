@@ -4,6 +4,12 @@
 
 **Scope law (2026-08-22):** This file is binding for EVERY interactive space created for the user — web pages, panes, dashboards, CLIs with UIs. Cite it in the design pass before writing UI code.
 
+**Parent authority:** this is the tactical checklist beneath
+[BLUEPRINT.md](../BLUEPRINT.md) law 3 (hospitality) and law 10 (three
+pillars) — on fleet surfaces (status page, alert copy, runbooks, CI output)
+those laws win; tone and audience fit are theirs, layout and interaction
+mechanics are this file's.
+
 ## Part 1: Core Design Philosophies
 
 Before writing a single line of code or placing a button, ensure the design aligns with these foundational philosophies:
@@ -55,5 +61,6 @@ Before writing a single line of code or placing a button, ensure the design alig
 *   **Primary vs. Secondary Actions:** Clearly distinguish the primary action on a screen (e.g., solid fill color) from secondary actions (e.g., outlined or text-only buttons).
 *   **Touch Targets:** Ensure all tappable areas are at least 44x44 points (or 48x48 pixels) to prevent accidental mis-taps. Leave ample space between interactive elements.
 
-**Actionable Instruction for LLM:**
-When asked to generate code, critique a design, or write a UX spec, automatically apply these rules. Ground every decision in the core philosophies (Agency, Clarity, Familiarity) and execute them using the tactical rules (native components, semantic layers, accessible contrast, 44pt touch targets).
+When asked to generate code, critique a design, or write a UX spec, apply
+these rules: ground every decision in the core philosophies (Part 1),
+execute with the tactical rules (Part 2).

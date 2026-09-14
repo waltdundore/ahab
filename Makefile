@@ -35,9 +35,6 @@ help:
 	@echo "Git Publishing Commands:"
 	@echo "  make publish              - Publish dev branch to GitHub"
 	@echo "  make publish-all          - Publish all configured branches"
-	@echo "  make publish-with-secrets - Publish all branches (handles GitHub push protection)"
-	@echo "  make publish-now          - Immediately publish all branches (quick solution)"
-	@echo "  make clean-and-publish    - Remove fake secrets, publish branches, restore sanitized"
 	@echo "  make publish-status       - Show git publishing status"
 	@echo ""
 	@echo "Secrets Management Commands:"
@@ -332,7 +329,7 @@ audit:
 # Git Publishing Commands
 # ==============================================================================
 
-.PHONY: publish publish-all publish-status publish-sync publish-with-secrets
+.PHONY: publish publish-all publish-status publish-sync
 
 publish:
 	@echo "→ Running: ./scripts/git-publish $(filter-out publish,$(MAKECMDGOALS))"
@@ -343,21 +340,6 @@ publish-all:
 	@echo "→ Running: ./scripts/git-publish all"
 	@echo "   Purpose: Publish all configured branches to GitHub"
 	@./scripts/git-publish all
-
-publish-with-secrets:
-	@echo "→ Running: ./scripts/git-publish-with-secrets all"
-	@echo "   Purpose: Publish all branches while handling GitHub push protection for fake secrets"
-	@./scripts/git-publish-with-secrets all
-
-publish-now:
-	@echo "→ Running: ./scripts/publish-now"
-	@echo "   Purpose: Immediately publish all branches (handles GitHub push protection)"
-	@./scripts/publish-now
-
-clean-and-publish:
-	@echo "→ Running: ./scripts/clean-and-publish"
-	@echo "   Purpose: Remove fake secrets, publish all branches, restore with sanitized examples"
-	@./scripts/clean-and-publish
 
 publish-clean:
 	@echo "→ Running: ./scripts/publish-clean-branch"

@@ -42,7 +42,6 @@ export REQUIRED_COMMANDS=(
 export OPTIONAL_COMMANDS=(
     "curl"
     "wget"
-    "VBoxManage"
 )
 
 # ==============================================================================

@@ -164,17 +164,17 @@ verify_installation() {
     fi
     print_success "ahab cloned"
     
-    if ! vagrant ssh -c "test -d ~/git/ansible-config" 2>/dev/null; then
-        print_error "ansible-config repository not cloned"
+    if ! vagrant ssh -c "test -d ~/git/ahab-config" 2>/dev/null; then
+        print_error "ahab-config repository not cloned"
         return 1
     fi
-    print_success "ansible-config cloned"
+    print_success "ahab-config cloned"
     
-    if ! vagrant ssh -c "test -d ~/git/ansible-inventory" 2>/dev/null; then
-        print_error "ansible-inventory repository not cloned"
+    if ! vagrant ssh -c "test -d ~/git/ahab-inventory" 2>/dev/null; then
+        print_error "ahab-inventory repository not cloned"
         return 1
     fi
-    print_success "ansible-inventory cloned"
+    print_success "ahab-inventory cloned"
     
     echo ""
     print_success "All verifications passed"

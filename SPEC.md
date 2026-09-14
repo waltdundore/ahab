@@ -50,7 +50,7 @@ Deliverables of L0 (the *bootstrap contract*):
 
 ### Layer 2 — Site repos (git submodules under `sites/`)
 Each site repo contributes: `inventory/`, `roles/` (service layer), `dns/` (DNSControl),
-and a `site.yml` manifest. Site repos contain **no** L0 logic.
+and an `ahab-site.yml` manifest (§4). Site repos contain **no** L0 logic.
 
 ### Layer 3 — Content repos (developer tier)
 Per BLUEPRINT.md "Portability Contract": applications never touch layers 0–2.
@@ -81,7 +81,7 @@ fiction — they were never imported, not absent). Dispositions:
 | `ahab-secrets` | examples (correct `REPLACE_*` tokens) + scripts; **one script embeds plaintext pwds (D-19)** | canonical secrets *reference* repo (real vault stays on /nas, D-06) | fix D-19, keep private, submodule on control nodes only |
 | `scripts` | 2023 personal scripts (chrony dup, ssh/rsync wrappers) | dead | archive |
 | `context` | GitHub agentic-workflow platform (marketplace, ~50 CI workflows) — model-as-developer reference | separate concern | keep; harvest workflow-gate patterns for §8 |
-| `aitora` | pushed (origin/production) | site repo (submodule later, §4) | M4 |
+| `aitora` | pushed (origin `prod` @ `ecf02e6`; trunk renamed production→prod per branch law) | site repo (submodule later, §4) | M4 |
 | `athensarea-content` | content tier | content repo | M5 |
 
 **Naming law (decision 2026-09-10, PM):** `ahab-*` names are canonical;
@@ -204,34 +204,37 @@ backed by that vault — never in shell history (D-20).
   flip `699e6bf` + DNS flip `d9c8465` **PUSHED & LIVE** (dig-verified, BLUEPRINT
   2026-09-09) — d701→prod(.10), sager→dev(.15). P1 now = netbox record hygiene, not
   the flip itself.
-- **sager is UNMANAGED + has NO ahab tree** (BLUEPRINT B-002, LIVE-PROBED 2026-09-10):
-  repo keys absent from `authorized_keys`, and §5.5's deploy path does not yet exist.
-  Both must land before any "update after push" claim. sager's repo working state is
-  UNKNOWN — audit on unlock.
-- **AWX on the hub is the intended GitOps controller** (operator attested) but is
-  currently DOWN, version-unpinned (`devel`), and lives in shell-history not code
-  (D-20). Until D-20/B-014 land, §5.5's controller leg is untestable.
+- **sager is UNLOCKED & MANAGED** (BLUEPRINT B-002, audited 2026-09-10: `ansible_user` +
+  `service_id` live, hostname-probed); **hub (asus-llm) remains unmanaged** — console
+  key-inject is the one physical step left (B-002 recipe). §5.5's deploy path still does
+  not exist, so no "update after push" claim is possible until it lands.
+- **AWX on the hub is the intended GitOps controller** and is **LIVE on LAN :8043**
+  (`/api/v2/ping` → 200; B-014 premise flipped 2026-09-11, re-probed D-53) — but
+  version-unpinned (`devel`) and lives in shell-history, not code (D-20). Until D-20
+  codification + a fresh vaulted token + ingress land, §5.5's controller leg is
+  untestable end-to-end.
 - `dundore-homelab/.gitmodules` declares an uninitialized `dns` submodule while `dns/`
   is a symlink — reconcile in P5.
-- ahab is CC BY-NC-**SA** 4.0: code promoted from sites into ahab becomes share-alike
-  non-commercial. Acceptable for personal + K-12/nonprofit use.
-  **⚠ DECISION PENDING (user):** keep CC BY-NC-SA for ahab, or relicense MIT/Apache for
-  the parts consumed as libraries?
-- NetBox runs dev on sager (netbox-dev) and prod on d701; ahab consumes only the prod
-  NetBox for inventory; `token_path` must move from `/nas/secrets/...` hardcode to a
-  vault lookup (P5).
+- ahab is CC BY-NC-SA 4.0 today — non-commercial, therefore *not* OSI open source,
+  which violates this program's own dogfood/open-source-only law. Relicensing to an
+  OSI license (Apache-2.0 recommended for the patent grant) is a **prerequisite of
+  M1, not an open question** — tracked as **B-011** in BLUEPRINT.
+- NetBox is **not yet deployed** (M3). Desired placement per D-50: DEV box first,
+  promoted to prod — the hub is orchestrator-only, never a service host. Ahab then
+  consumes the prod NetBox for inventory (M3 flip); `token_path` must move from
+  `/nas/secrets/...` hardcode to a vault lookup (P5).
 
 ## 7. Roadmap
 
 | Phase | Deliverable | Status |
 |---|---|---|
-| P1 | d701/sager inventory + DNS flip | ✅ DONE (pushed, live; unaudited → B-010) |
+| P1 | d701/sager inventory + DNS flip | ✅ DONE (pushed, live; flip pair audited PASS, scoped 2026-09-11 — homelab `docs/audits/2026-09-11-queue12.md`; history `docs/state/PROBED-2026-09.md`) |
 | P2 | This SPEC.md accepted + license decision (B-011) | draft below |
-| P3 | `waltdundore/aitora` pushed | ✅ DONE (origin/production live-probed) |
+| P3 | `waltdundore/aitora` pushed | ✅ DONE (origin `prod` @ `ecf02e6`, live-probed 2026-09-11) |
 | P4 | Directory modules + unified bootstrap extraction (Vagrant evidence) | pending SPEC |
 | P5 | Submodule wiring (`sites/`, dns), `enable: true` NetBox inventory | pending SPEC |
 | P6 | aitora.org zone in dundore-dnscontrol | pending registrar |
-| **P7** | **GitOps deploy path (§5.5): PR-gate CI → AWX webhook → converge blank host from Git → kuma** | **NOT STARTED; gated by B-002 (sager), B-014/D-20 (AWX), B-013 (canonical repos)** |
+| **P7** | **GitOps deploy path (§5.5): PR-gate CI → AWX webhook → converge blank host from Git → kuma** | **NOT STARTED; gated by B-002 (hub console key-inject), B-014/D-20 (AWX codification), D-16 (twin-archive wiring; B-013 naming decided)** |
 
 ## 8. Out of Scope
 

@@ -2,139 +2,124 @@
 # ==============================================================================
 # Ahab Module Registry
 # ==============================================================================
-# Central registry of available Ahab modules
+# Truth-rewritten 2026-09-11 per BLUEPRINT.md D-17 + SPEC.md §3.0/§3.1 and the
+# 2026-09-10 git-estate full probe (BLUEPRINT "Live-probed facts").
 #
-# Each module entry includes:
-#   - repository: GitHub repository URL
-#   - version: Current stable version (branch name)
-#   - description: Module description
-#   - deployment: Supported deployment methods
-#   - dependencies: Required modules
-#   - status: Development status
+# Design: modules are DIRECTORIES inside ahab (modules/<name>/module.yml),
+# never per-module GitHub repos. The 2024 repo-per-module design is retired:
+# the estate probe found 8 of 9 named `ahab-module-*` repos never existed.
 #
-# Version branches:
-#   - Branches match version numbers (v1.0.0, v1.1.0, etc.)
-#   - main branch always points to latest stable
-#   - dev branch for development
-# ==============================================================================
+# Entry keys:
+#   - path:        module directory inside ahab (modules/<name>/module.yml)
+#   - description / deployment / dependencies / platforms / tags: carried over
+#   - status:      stable | beta | alpha | planned | deprecated
+#     `planned` = no module.yml exists on disk yet; catalog intent only.
+#
+# Removed entries (2026-09-11 estate-hygiene pass, evidence
+# evidence/2026-09-11-estate-hygiene.md):
+#   - docker: `ahab-module-docker` exists but is a stale copy of
+#     ahab-module-common shipping no docker role — retired per D-17; a real
+#     `modules/docker/` will be authored per SPEC §3.1 when built.
+#   - the 8 phantom repo entries (apache, php, mysql, postgresql, nginx,
+#     redis, wordpress, nextcloud) had their repository/documentation URLs
+#     stripped per SPEC §3.0 disposition "delete from MODULE_REGISTRY.yml";
+#     their module intent survives below ONLY as status: planned with a
+#     directory path (no phantom repo is referenced anywhere in this file).
+#   - apache note: a real apache module.yml exists in the `ahab-modules`
+#     repo, to be absorbed into modules/apache/ per SPEC §3.0 — until it
+#     lands on disk here its status is honestly `planned`, not `stable`.
 
 registry:
-  version: "1.0"
-  updated: "2024-12-06"
-  
+  version: "2.0"
+  updated: "2026-09-11"
+  layout: "modules/<name>/module.yml"  # SPEC §3.1 directory-based modules
+
   modules:
+    # All entries below are catalog intent (status: planned); `ls ahab/modules/`
+    # is empty as of 2026-09-11 — no module.yml exists on disk yet.
     apache:
-      repository: "https://github.com/waltdundore/ahab-module-apache.git"
-      version: "v1.0.0"
+      path: "modules/apache"
       description: "Apache HTTP Server - Industry-standard web server"
       deployment: [ansible, docker]
       dependencies: []
-      status: stable
+      status: planned
       platforms: [fedora, debian, ubuntu]
       tags: [webserver, http, apache]
-      documentation: "https://github.com/waltdundore/ahab-module-apache/blob/main/README.md"
       maintainer: "Ahab Project"
-      
+
     php:
-      repository: "https://github.com/waltdundore/ahab-module-php.git"
-      version: "v1.0.0"
+      path: "modules/php"
       description: "PHP - Server-side scripting language"
       deployment: [ansible, docker]
       dependencies: [apache]
-      status: stable
+      status: planned
       platforms: [fedora, debian, ubuntu]
       tags: [php, scripting, web]
-      documentation: "https://github.com/waltdundore/ahab-module-php/blob/main/README.md"
       maintainer: "Ahab Project"
-      
-    docker:
-      repository: "https://github.com/waltdundore/ahab-module-docker.git"
-      version: "v1.0.0"
-      description: "Docker - Container runtime and orchestration"
-      deployment: [ansible]
-      dependencies: []
-      status: stable
-      platforms: [fedora, debian, ubuntu]
-      tags: [docker, containers, virtualization]
-      documentation: "https://github.com/waltdundore/ahab-module-docker/blob/main/README.md"
-      maintainer: "Ahab Project"
-    
-    # Future modules (planned)
+
     mysql:
-      repository: "https://github.com/waltdundore/ahab-module-mysql.git"
-      version: "v1.0.0"
+      path: "modules/mysql"
       description: "MySQL - Relational database server"
       deployment: [ansible, docker]
       dependencies: []
       status: planned
       platforms: [fedora, debian, ubuntu]
       tags: [database, mysql, sql]
-      documentation: "https://github.com/waltdundore/ahab-module-mysql/blob/main/README.md"
       maintainer: "Ahab Project"
-    
+
     postgresql:
-      repository: "https://github.com/waltdundore/ahab-module-postgresql.git"
-      version: "v1.0.0"
+      path: "modules/postgresql"
       description: "PostgreSQL - Advanced relational database"
       deployment: [ansible, docker]
       dependencies: []
       status: planned
       platforms: [fedora, debian, ubuntu]
       tags: [database, postgresql, sql]
-      documentation: "https://github.com/waltdundore/ahab-module-postgresql/blob/main/README.md"
       maintainer: "Ahab Project"
-    
+
     nginx:
-      repository: "https://github.com/waltdundore/ahab-module-nginx.git"
-      version: "v1.0.0"
+      path: "modules/nginx"
       description: "Nginx - High-performance web server and reverse proxy"
       deployment: [ansible, docker]
       dependencies: []
       status: planned
       platforms: [fedora, debian, ubuntu]
       tags: [webserver, nginx, proxy]
-      documentation: "https://github.com/waltdundore/ahab-module-nginx/blob/main/README.md"
       maintainer: "Ahab Project"
-    
+
     redis:
-      repository: "https://github.com/waltdundore/ahab-module-redis.git"
-      version: "v1.0.0"
+      path: "modules/redis"
       description: "Redis - In-memory data structure store"
       deployment: [ansible, docker]
       dependencies: []
       status: planned
       platforms: [fedora, debian, ubuntu]
       tags: [cache, redis, database]
-      documentation: "https://github.com/waltdundore/ahab-module-redis/blob/main/README.md"
       maintainer: "Ahab Project"
-    
+
     wordpress:
-      repository: "https://github.com/waltdundore/ahab-module-wordpress.git"
-      version: "v1.0.0"
+      path: "modules/wordpress"
       description: "WordPress - Content management system"
       deployment: [ansible, docker]
       dependencies: [apache, php, mysql]
       status: planned
       platforms: [fedora, debian, ubuntu]
       tags: [cms, wordpress, web]
-      documentation: "https://github.com/waltdundore/ahab-module-wordpress/blob/main/README.md"
       maintainer: "Ahab Project"
-    
+
     nextcloud:
-      repository: "https://github.com/waltdundore/ahab-module-nextcloud.git"
-      version: "v1.0.0"
+      path: "modules/nextcloud"
       description: "Nextcloud - Self-hosted file sharing and collaboration"
       deployment: [ansible, docker]
       dependencies: [apache, php, mysql]
       status: planned
       platforms: [fedora, debian, ubuntu]
       tags: [cloud, storage, collaboration]
-      documentation: "https://github.com/waltdundore/ahab-module-nextcloud/blob/main/README.md"
       maintainer: "Ahab Project"
 
 # Module status values:
-#   - stable: Production-ready, fully tested
+#   - stable: Production-ready, fully tested (requires modules/<name>/module.yml on disk)
 #   - beta: Feature-complete, testing in progress
 #   - alpha: Under active development
-#   - planned: Not yet implemented
+#   - planned: Not yet implemented (no directory on disk; catalog intent only)
 #   - deprecated: No longer maintained

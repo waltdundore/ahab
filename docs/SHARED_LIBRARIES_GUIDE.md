@@ -201,7 +201,7 @@ print_success "Validation passed"
 
 ## See Also
 
-- `DRY_VIOLATIONS_AUDIT.md` - Test suite analysis
-- `SCRIPT_DRY_ANALYSIS.md` - Script analysis
-- `REFACTORING_SUMMARY.md` - Implementation details
-- `DRY_REFACTORING_COMPLETE.md` - Complete summary
+- `docs/archive/2026-09/docs/DRY_VIOLATIONS_AUDIT.md` - Test suite analysis
+- `docs/archive/2026-09/docs/SCRIPT_DRY_ANALYSIS.md` - Script analysis
+- `docs/archive/2026-09/docs/REFACTORING_SUMMARY.md` - Implementation details
+- `docs/archive/2026-09/docs/DRY_REFACTORING_COMPLETE.md` - Complete summary

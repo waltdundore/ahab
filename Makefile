@@ -5,8 +5,7 @@
 # Core command: make install [modules...]
 # ==============================================================================
 
-# Include common functions and patterns
-include Makefile.common
+# Makefile.common removed per BLUEPRINT D-18 (single Makefile; helpers are no-ops)
 
 # Include safety system (optional - for advanced safety checks)
 -include docs/development/Makefile.safety
@@ -36,9 +35,6 @@ help:
 	@echo "Git Publishing Commands:"
 	@echo "  make publish              - Publish dev branch to GitHub"
 	@echo "  make publish-all          - Publish all configured branches"
-	@echo "  make publish-with-secrets - Publish all branches (handles GitHub push protection)"
-	@echo "  make publish-now          - Immediately publish all branches (quick solution)"
-	@echo "  make clean-and-publish    - Remove fake secrets, publish branches, restore sanitized"
 	@echo "  make publish-status       - Show git publishing status"
 	@echo ""
 	@echo "Secrets Management Commands:"
@@ -117,10 +113,6 @@ install:
 	fi
 	@echo ""
 	@echo "✅ Ready - Access: vagrant ssh"
-
-# Allow module names as targets (prevents "No rule to make target" errors)
-%:
-	@:
 
 status:
 	$(call SHOW_SECTION,System Status)
@@ -337,7 +329,7 @@ audit:
 # Git Publishing Commands
 # ==============================================================================
 
-.PHONY: publish publish-all publish-status publish-sync publish-with-secrets
+.PHONY: publish publish-all publish-status publish-sync
 
 publish:
 	@echo "→ Running: ./scripts/git-publish $(filter-out publish,$(MAKECMDGOALS))"
@@ -348,21 +340,6 @@ publish-all:
 	@echo "→ Running: ./scripts/git-publish all"
 	@echo "   Purpose: Publish all configured branches to GitHub"
 	@./scripts/git-publish all
-
-publish-with-secrets:
-	@echo "→ Running: ./scripts/git-publish-with-secrets all"
-	@echo "   Purpose: Publish all branches while handling GitHub push protection for fake secrets"
-	@./scripts/git-publish-with-secrets all
-
-publish-now:
-	@echo "→ Running: ./scripts/publish-now"
-	@echo "   Purpose: Immediately publish all branches (handles GitHub push protection)"
-	@./scripts/publish-now
-
-clean-and-publish:
-	@echo "→ Running: ./scripts/clean-and-publish"
-	@echo "   Purpose: Remove fake secrets, publish all branches, restore with sanitized examples"
-	@./scripts/clean-and-publish
 
 publish-clean:
 	@echo "→ Running: ./scripts/publish-clean-branch"
@@ -415,6 +392,10 @@ test-security-sanitized:
 		exit 1; \
 	fi
 
-# Handle branch names as arguments to publish command
-%:
-	@:
+# D-39 / BLUEPRINT law 11: loud-failing catch-all (replaces the two silent
+# `%: @:` no-ops that once let ANY unknown target "succeed" — a cheat vector:
+# a model ran `make <anything>` and reported fabricated success). One
+# authoritative rule, at the END of the file; real targets above always win.
+# Module installs dispatch via `make install MODULES=<names>`, never via
+# positional target words — a bare word here is a typo and must exit non-zero.
+%: ; @echo "make: no such target: $@ — run 'make help' for real targets" >&2; exit 2

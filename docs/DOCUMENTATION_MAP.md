@@ -23,8 +23,8 @@ When you need to update content, which file do you update? If you update the wro
 | **Quick Start Commands** | README.md | START_HERE.md, README-STUDENTS.md, DEVELOPMENT_RULES.md |
 | **Repository Structure** | README.md | START_HERE.md, ABOUT.md |
 | **Module Architecture** | docs/MODULE_ARCHITECTURE.md | README.md, DEVELOPMENT_RULES.md |
-| **Mission & Vision** | ABOUT.md | README.md, EXECUTIVE_SUMMARY.md |
-| **Release Process** | ABOUT.md | DEVELOPMENT_RULES.md, QUEUE.md |
+| **Mission & Vision** | ABOUT.md | README.md, docs/archive/2026-09/EXECUTIVE_SUMMARY.md |
+| **Release Process** | ABOUT.md | DEVELOPMENT_RULES.md, docs/archive/2026-09/QUEUE.md |
 | **Testing Guidelines** | TESTING.md | DEVELOPMENT_RULES.md, README.md |
 | **NASA Standards** | DEVELOPMENT_RULES.md | All code files (comments) |
 | **Configuration** | ahab.conf | Vagrantfile, Makefile, scripts |
@@ -33,10 +33,10 @@ When you need to update content, which file do you update? If you update the wro
 
 | Content Type | Authoritative Source | Who Links To It |
 |-------------|---------------------|-----------------|
-| **Development Rules** | DEVELOPMENT_RULES.md | README.md, ABOUT.md, QUEUE.md |
-| **Work Queue** | QUEUE.md | PRIORITIES.md, DEVELOPMENT_RULES.md |
-| **Priorities** | PRIORITIES.md | QUEUE.md, README.md |
-| **Improvements** | IMPROVEMENTS.md | WORKFLOW_IMPROVEMENT.md |
+| **Development Rules** | DEVELOPMENT_RULES.md | README.md, ABOUT.md, docs/archive/2026-09/QUEUE.md |
+| **Work Queue** | docs/archive/2026-09/QUEUE.md | PRIORITIES.md, DEVELOPMENT_RULES.md |
+| **Priorities** | PRIORITIES.md | docs/archive/2026-09/QUEUE.md, README.md |
+| **Improvements** | docs/archive/2026-09/IMPROVEMENTS.md | docs/archive/2026-09/docs/WORKFLOW_IMPROVEMENT.md |
 | **Changelog** | CHANGELOG.md | README.md, release notes |
 
 ### User Content
@@ -45,7 +45,7 @@ When you need to update content, which file do you update? If you update the wro
 |-------------|---------------------|-----------------|
 | **Getting Started** | START_HERE.md | README.md (for new users) |
 | **Technical Overview** | README.md | All other docs |
-| **Executive Summary** | EXECUTIVE_SUMMARY.md | README.md, ABOUT.md |
+| **Executive Summary** | docs/archive/2026-09/EXECUTIVE_SUMMARY.md | README.md, ABOUT.md |
 | **Student Guide** | README-STUDENTS.md | README.md |
 | **Troubleshooting** | TROUBLESHOOTING.md | README.md, error messages |
 
@@ -59,7 +59,7 @@ When you need to update content, which file do you update? If you update the wro
    - Technical vs non-technical
    - Beginner vs advanced
    - Different language/tone needed
-   - **Example**: EXECUTIVE_SUMMARY.md vs README.md
+   - **Example**: docs/archive/2026-09/EXECUTIVE_SUMMARY.md vs README.md
 
 2. **Different Entry Points**
    - START_HERE.md for absolute beginners
@@ -144,12 +144,12 @@ For full explanations and examples, see [DEVELOPMENT_RULES.md](DEVELOPMENT_RULES
 
 ### When Philosophy Changes (ABOUT.md)
 
-**Flow**: ABOUT.md → DEVELOPMENT_RULES.md → SPECIFICATIONS.md → Code
+**Flow**: ABOUT.md → DEVELOPMENT_RULES.md → docs/archive/2026-09/docs/architecture/SPECIFICATIONS.md → Code
 
 **Steps**:
 1. Update ABOUT.md (mission, vision, principles)
 2. Update DEVELOPMENT_RULES.md (align Core Principles)
-3. Update SPECIFICATIONS.md (requirements serve mission)
+3. Update docs/archive/2026-09/docs/architecture/SPECIFICATIONS.md (requirements serve mission)
 4. Update code (implement new principles)
 5. Update CHANGELOG.md
 
@@ -157,12 +157,12 @@ For full explanations and examples, see [DEVELOPMENT_RULES.md](DEVELOPMENT_RULES
 
 ### When Adding New Feature
 
-**Flow**: SPECIFICATIONS.md → Code → QUEUE.md → CHANGELOG.md
+**Flow**: docs/archive/2026-09/docs/architecture/SPECIFICATIONS.md → Code → docs/archive/2026-09/QUEUE.md → CHANGELOG.md
 
 **Steps**:
-1. Update SPECIFICATIONS.md (requirements and design)
+1. Update docs/archive/2026-09/docs/architecture/SPECIFICATIONS.md (requirements and design)
 2. Write code (implement feature)
-3. Update QUEUE.md (mark task complete)
+3. Update docs/archive/2026-09/QUEUE.md (mark task complete)
 4. Update CHANGELOG.md (document change)
 5. Update README.md if user-facing
 
@@ -201,7 +201,7 @@ For full explanations and examples, see [DEVELOPMENT_RULES.md](DEVELOPMENT_RULES
 
 ### Weekly (Monday Morning)
 
-- [ ] Review QUEUE.md vs actual work
+- [ ] Review docs/archive/2026-09/QUEUE.md vs actual work
 - [ ] Update PRIORITIES.md if priorities changed
 - [ ] Check for documentation drift (grep for duplicates)
 
@@ -325,7 +325,7 @@ ABOUT.md (Philosophy)
   ↓
 DEVELOPMENT_RULES.md (How we code)
   ↓
-SPECIFICATIONS.md (What we build)
+docs/archive/2026-09/docs/architecture/SPECIFICATIONS.md (What we build)
   ↓
 Code (Implementation)
 ```
@@ -335,17 +335,17 @@ Code (Implementation)
 README.md (Main entry point)
   ↓
 START_HERE.md (Beginner entry)
-EXECUTIVE_SUMMARY.md (Leader entry)
+docs/archive/2026-09/EXECUTIVE_SUMMARY.md (Leader entry)
 README-STUDENTS.md (Student entry)
 ```
 
 **Development** (changes constantly):
 ```
-QUEUE.md (What we're doing)
+docs/archive/2026-09/QUEUE.md (What we're doing)
   ↓
 PRIORITIES.md (What's important)
   ↓
-IMPROVEMENTS.md (What could be better)
+docs/archive/2026-09/IMPROVEMENTS.md (What could be better)
   ↓
 CHANGELOG.md (What we did)
 ```

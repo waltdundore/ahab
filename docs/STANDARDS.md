@@ -602,7 +602,7 @@ error messages.
 
 - Added 5 new error functions
 - Created test suite in tests/test-error-messages.sh
-- Updated ERROR_MESSAGE_IMPROVEMENTS.md with usage examples
+- Updated docs/archive/2026-09/docs/ERROR_MESSAGE_IMPROVEMENTS.md with usage examples
 
 Core Principles: #4 (Never Assume Success), #10 (Teaching Mindset)
 

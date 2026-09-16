@@ -11,8 +11,6 @@
 #   - check_command_version()
 #   - check_docker_running()
 #   - check_vagrant_plugins()
-#   - check_virtualbox()
-#   - check_vbox_modules()
 #   - print_installation_help()
 #
 # Security: Zero Trust - validates each tool independently
@@ -66,32 +64,6 @@ check_vagrant_plugins() {
     fi
 }
 
-check_virtualbox() {
-    if command -v VBoxManage >/dev/null 2>&1; then
-        local version
-        version=$(VBoxManage --version 2>/dev/null | head -1 || echo "Unknown")
-        print_success "VirtualBox: $version"
-        
-        check_vbox_modules
-        return 0
-    else
-        print_error "VirtualBox: Not installed"
-        return 1
-    fi
-}
-
-check_vbox_modules() {
-    # Check if VirtualBox kernel modules are loaded (Linux only)
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        if lsmod | grep -q vboxdrv; then
-            print_success "VirtualBox kernel modules: Loaded"
-        else
-            print_warning "VirtualBox kernel modules: Not loaded"
-            echo "  → Load with: sudo modprobe vboxdrv"
-        fi
-    fi
-}
-
 # ==============================================================================
 # Installation Help Functions
 # ==============================================================================
@@ -99,19 +71,17 @@ check_vbox_modules() {
 print_fedora_help() {
     echo "    Fedora/RHEL:"
     echo "      sudo dnf install git ansible vagrant docker make python3"
-    echo "      sudo dnf install VirtualBox"
 }
 
 print_debian_help() {
     echo "    Debian/Ubuntu:"
     echo "      sudo apt update"
-    echo "      sudo apt install git ansible vagrant virtualbox docker.io make python3"
+    echo "      sudo apt install git ansible vagrant docker.io make python3"
 }
 
 print_macos_help() {
     echo "    macOS (with Homebrew):"
     echo "      brew install git ansible vagrant docker make python3"
-    echo "      brew install --cask virtualbox"
 }
 
 print_installation_help() {
@@ -140,7 +110,6 @@ print_installation_help() {
         *)
             echo "    See: https://docs.ansible.com/ansible/latest/installation_guide/"
             echo "    See: https://www.vagrantup.com/downloads"
-            echo "    See: https://www.virtualbox.org/wiki/Downloads"
             ;;
     esac
     
@@ -169,11 +138,6 @@ check_required_tools() {
                     ((missing++))
                 fi
                 ;;
-            "VBoxManage")
-                if ! check_virtualbox; then
-                    ((missing++))
-                fi
-                ;;
             *)
                 if ! check_command_version "$cmd"; then
                     ((missing++))
@@ -193,11 +157,6 @@ check_optional_tools() {
     # Check optional commands
     for cmd in "${OPTIONAL_COMMANDS[@]}"; do
         case "$cmd" in
-            "VBoxManage")
-                if ! check_virtualbox; then
-                    ((warnings++))
-                fi
-                ;;
             *)
                 if ! check_command_version "$cmd"; then
                     ((warnings++))

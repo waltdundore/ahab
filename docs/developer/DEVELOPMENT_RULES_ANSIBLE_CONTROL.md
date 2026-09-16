@@ -208,8 +208,8 @@ This file depends on:
 - **ABOUT.md** - Core Principles must align with philosophy
 
 When you update this file, also update:
-1. SPECIFICATIONS.md - Verify requirements follow new rules
-2. QUEUE.md - Add refactoring tasks if needed
+1. docs/archive/2026-09/docs/architecture/SPECIFICATIONS.md - Verify requirements follow new rules
+2. docs/archive/2026-09/QUEUE.md - Add refactoring tasks if needed
 3. All code - Refactor to comply with new rules
 
 **Rule**: Coding standards flow from philosophy. Check ABOUT.md first.
@@ -393,7 +393,7 @@ make help                 # Show all commands
 ### Files
 - `ahab.conf` - Configuration (single source of truth)
 - `PRIORITIES.md` - Quick reference for what to work on (session handoff schema)
-- `QUEUE.md` - Detailed work queue (our bible)
+- `docs/archive/2026-09/QUEUE.md` - Detailed work queue (our bible)
 - `README.md` - User documentation
 - `ABOUT.md` - Mission, vision, release process
 - `DEVELOPMENT_RULES.md` - This file

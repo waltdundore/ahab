@@ -138,6 +138,19 @@ check_required_tools() {
                     ((missing++))
                 fi
                 ;;
+            "shellcheck")
+                # D-82: `make test` runs shellcheck; a missing binary must be
+                # NAMED here (one line, with its fix route), never resurfacing
+                # later as fabricated per-script findings.
+                if command -v shellcheck >/dev/null 2>&1; then
+                    local sc_version
+                    sc_version=$(shellcheck --version 2>/dev/null | awk '/^version:/{print $2; exit}')
+                    print_success "shellcheck: ShellCheck ${sc_version:-unknown version}"
+                else
+                    print_error "shellcheck: Not installed — required by 'make test'; fix: converge playbooks/install-prerequisites.yml"
+                    ((missing++))
+                fi
+                ;;
             *)
                 if ! check_command_version "$cmd"; then
                     ((missing++))

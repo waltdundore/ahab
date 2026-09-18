@@ -17,12 +17,6 @@ skip_list: []
 # Enable offline mode (don't check for newer versions)
 offline: true
 
-# Parseable output format
-parseable: false
-
-# Quiet mode (only show errors)
-quiet: false
-
 # Verbosity level (0-2)
 verbosity: 1
 

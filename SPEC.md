@@ -88,17 +88,26 @@ fiction — they were never imported, not absent). Dispositions:
 `ansible-*` twins are archived (GitHub archive = read-only, lossless) after a
 redirect README commit — no repo is ever deleted, git history is the backup.
 
-### 3.1 Modules are directories, not repos
+### 3.1 Modules are directories on the cartridge shelf, not repos
 
 The 2024 design (one GitHub repo per module, `MODULE_REGISTRY.yml` pointing at
 `ahab-module-*`) is **retired**: verified above — 8 of 9 per-module repos never
 existed and the 9th is a mislabeled copy. Repo-per-module was repo sprawl.
 
-New design — directory-based modules inside ahab:
+**Operator ruling 2026-09-17 (shelf reconciliation):** ONE shelf repo —
+`ahab-modules` — is the **cartridge shelf**, mounted as the `modules/`
+submodule of ahab (`.gitmodules`). Modules are directories *on the shelf*
+(`ahab-modules/<name>/module.yml`), visible inside ahab at
+`modules/<name>/module.yml`. "Never per-module GitHub repos" stands: one
+shelf holds many cartridges; no repo per module. The reverse direction
+(workspace repos mounting ahab itself as a SHA-pinned submodule) is the
+template/M6 model — both directions are canon.
+
+New design — directory-based modules on the shelf, mounted at `ahab/modules/`:
 
 ```
 ahab/
-  modules/
+  modules/            # ← submodule: ahab-modules (the cartridge shelf)
     bootstrap/        # L0 (module.yml, roles/, playbooks/)
     docker/
     traefik/

@@ -40,6 +40,7 @@ Ahab requires these tools to be installed on your host system:
 - **Docker** - Container runtime
 - **Make** - Build automation
 - **Python 3** - Scripting language
+- **Shellcheck** - Shell script static analysis (run by `make test`)
 
 ### Why These Tools?
 
@@ -50,6 +51,7 @@ Ahab requires these tools to be installed on your host system:
 - **Docker**: Run Python scripts in containers (Zero Trust)
 - **Make**: Provide consistent command interface
 - **Python 3**: Generate configurations and run utilities
+- **Shellcheck**: Run the shell-script analysis suite in `make test` (a missing tool is one named prereq failure, never fabricated per-script findings — D-82)
 
 ---
 
@@ -195,6 +197,7 @@ REQUIRED TOOLS
 ✓ Docker: Running
 ✓ make: GNU Make 4.3
 ✓ python3: Python 3.11.0
+✓ shellcheck: ShellCheck 0.10.0
 
 ==========================================
 OPTIONAL TOOLS

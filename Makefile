@@ -32,11 +32,6 @@ help:
 	@echo "  make test-workstation     - Test workstation VM environment (⚠️ Run before physical deployment)"
 	@echo "  make audit                - Run accountability audit"
 	@echo ""
-	@echo "Git Publishing Commands:"
-	@echo "  make publish              - Publish dev branch to GitHub"
-	@echo "  make publish-all          - Publish all configured branches"
-	@echo "  make publish-status       - Show git publishing status"
-	@echo ""
 	@echo "Secrets Management Commands:"
 	@echo "  make setup-secrets        - Set up private secrets repository integration"
 	@echo "  make check-secrets-access - Check access to private secrets repository"
@@ -325,36 +320,6 @@ audit:
 	@echo "→ Running: bash scripts/audit-accountability.sh"
 	@echo "   Purpose: Audit code for accountability and empathy standards"
 	@bash scripts/audit-accountability.sh
-# ==============================================================================
-# Git Publishing Commands
-# ==============================================================================
-
-.PHONY: publish publish-all publish-status publish-sync
-
-publish:
-	@echo "→ Running: ./scripts/git-publish $(filter-out publish,$(MAKECMDGOALS))"
-	@echo "   Purpose: Publish branch to GitHub for collaboration and visibility"
-	@./scripts/git-publish $(filter-out publish,$(MAKECMDGOALS))
-
-publish-all:
-	@echo "→ Running: ./scripts/git-publish all"
-	@echo "   Purpose: Publish all configured branches to GitHub"
-	@./scripts/git-publish all
-
-publish-clean:
-	@echo "→ Running: ./scripts/publish-clean-branch"
-	@echo "   Purpose: Create clean branch without secret history and publish all branches"
-	@./scripts/publish-clean-branch
-
-publish-status:
-	@echo "→ Running: ./scripts/git-publish status"
-	@echo "   Purpose: Show current git publishing status and branch sync state"
-	@./scripts/git-publish status
-
-publish-sync:
-	@echo "→ Running: ./scripts/git-publish sync"
-	@echo "   Purpose: Sync dev branch with remote changes before publishing"
-	@./scripts/git-publish sync
 
 # ==============================================================================
 # Secrets Management Commands

@@ -1,3 +1,4 @@
+---
 # Infrastructure Test Evidence
 # This file tracks test results on real infrastructure (not just CI)
 # Last Updated: 2025-12-08
@@ -22,7 +23,7 @@ test_results:
     evidence: "tests/integration/test-workstation-bootstrap.sh output"
     test_commit: "ff437628a1a4841095ae2d62c534cd7ebcfe525a"
     notes: "VM successfully created, configured, and accessible via SSH"
-    
+
   apache_deployment:
     feature: "Apache web server deployment"
     last_tested: "2025-12-08"
@@ -31,7 +32,7 @@ test_results:
     evidence: "tests/integration/test-apache-simple.sh output"
     test_commit: "ff437628a1a4841095ae2d62c534cd7ebcfe525a"
     notes: "Apache deployed and serving content successfully"
-    
+
   docker_compose_generation:
     feature: "Docker Compose file generation for services"
     last_tested: "2025-12-08"
@@ -40,7 +41,7 @@ test_results:
     evidence: "Generated docker-compose.yml deployed successfully"
     test_commit: "ff437628a1a4841095ae2d62c534cd7ebcfe525a"
     notes: "Generated compose files work on real infrastructure"
-    
+
   multi_os_support:
     feature: "Multi-OS version support (Debian, Fedora, Ubuntu)"
     last_tested: "2025-12-08"
@@ -49,7 +50,7 @@ test_results:
     evidence: "tests/integration/test-os-versions.sh output"
     test_commit: "0ad355b"
     notes: "Tested on Debian 12, Debian 13, Fedora 43, Ubuntu 22.04"
-    
+
   error_messages:
     feature: "Educational error messages"
     last_tested: "2025-12-08"

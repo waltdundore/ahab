@@ -45,7 +45,7 @@
           - "  - Faster and more reliable"
           - ""
           - "For production Ansible deployments:"
-          - "  ansible-playbook -i inventory/prod/hosts.yml playbooks/webservers.yml"
+          - "  ansible-playbook -i inventory/prod/hosts.yml playbooks/deploy-service.yml -e service=apache"
           - "=========================================="
 
     - name: Fail with migration instructions
@@ -58,4 +58,4 @@
             NEW: make install apache
 
           For production Ansible deployments:
-            NEW: ansible-playbook -i inventory/prod/hosts.yml playbooks/webservers.yml
+            NEW: ansible-playbook -i inventory/prod/hosts.yml playbooks/deploy-service.yml -e service=apache

@@ -1,22 +1,22 @@
 ---
 # Apache handlers
 
-- name: restart apache
+- name: Restart apache
   service:
     name: "{{ apache_service }}"
     state: restarted
 
-- name: reload apache
+- name: Reload apache
   service:
     name: "{{ apache_service }}"
     state: reloaded
 
-- name: stop apache
+- name: Stop apache
   service:
     name: "{{ apache_service }}"
     state: stopped
 
-- name: start apache
+- name: Start apache
   service:
     name: "{{ apache_service }}"
     state: started

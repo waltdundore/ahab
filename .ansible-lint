@@ -1,3 +1,4 @@
+---
 # Ansible Lint Configuration for Ahab
 # ==============================================================================
 
@@ -9,11 +10,12 @@ exclude_paths:
   - .cache/
   - .github/
   - .vagrant/
+  - .kiro/ # IDE metadata, not Ansible content
+  - .clean-publish-backup/ # publish-time backup cruft, not Ansible content
   - generated/
 
 # Skip specific rules for legitimate use cases
 skip_list: []
-
 # Enable offline mode (don't check for newer versions)
 offline: true
 
@@ -23,8 +25,8 @@ verbosity: 1
 # Warn on unmatched ignore rules
 warn_list:
   - experimental
-  - yaml[line-length]  # Allow longer lines in some cases
-  - name[casing]       # Allow lowercase handler names
+  - yaml[line-length] # Allow longer lines in some cases
+  - name[casing] # Allow lowercase handler names
 
 # Use default rules
 use_default_rules: true

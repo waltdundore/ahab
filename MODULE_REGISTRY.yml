@@ -32,7 +32,7 @@
 registry:
   version: "2.0"
   updated: "2026-09-11"
-  layout: "modules/<name>/module.yml"  # SPEC §3.1 directory-based modules
+  layout: "modules/<name>/module.yml" # SPEC §3.1 directory-based modules
 
   modules:
     # All entries below are catalog intent (status: planned); `ls ahab/modules/`

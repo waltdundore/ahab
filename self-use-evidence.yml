@@ -1,3 +1,4 @@
+---
 # Self-Use Evidence
 # This file tracks evidence that the Ahab development team uses what we document
 # Last Updated: 2025-12-08
@@ -17,7 +18,7 @@ infrastructure:
       - "Debian 13"
       - "Fedora 43"
     notes: "Multi-OS testing implemented and verified on real VMs"
-    
+
   docker_compose_orchestration:
     description: "Proof that we can orchestrate multiple interconnected services"
     capability: "Generate and deploy docker-compose stacks with service linking and data sharing"
@@ -39,7 +40,7 @@ commands_we_use:
     last_used: "2025-12-08"
     frequency: "daily"
     notes: "Primary command for creating workstation VMs"
-  
+
   make_test:
     documented_in: "README.md"
     used_by_team: true
@@ -47,7 +48,7 @@ commands_we_use:
     last_used: "2025-12-08"
     frequency: "multiple times per day"
     notes: "Run before every commit per DEVELOPMENT_RULES.md"
-  
+
   make_clean:
     documented_in: "README.md"
     used_by_team: true
@@ -55,7 +56,7 @@ commands_we_use:
     last_used: "2025-12-08"
     frequency: "daily"
     notes: "Part of standard development workflow"
-  
+
   make_ssh:
     documented_in: "README.md"
     used_by_team: true
@@ -63,7 +64,7 @@ commands_we_use:
     last_used: "2025-12-08"
     frequency: "multiple times per day"
     notes: "Essential for troubleshooting VM issues"
-  
+
   make_generate_compose:
     documented_in: "README.md"
     used_by_team: true
@@ -71,7 +72,7 @@ commands_we_use:
     last_used: "2025-12-08"
     frequency: "as needed"
     notes: "Used when testing new service deployments"
-  
+
   make_audit:
     documented_in: "README.md"
     used_by_team: true
@@ -79,7 +80,7 @@ commands_we_use:
     last_used: "2025-12-08"
     frequency: "weekly"
     notes: "Part of quality assurance process"
-  
+
   make_bootstrap:
     documented_in: "README.md"
     used_by_team: true
@@ -100,21 +101,21 @@ workflows_we_follow:
       - "Document changes"
       - "Commit"
     notes: "Quick iterative testing is core to our process"
-  
+
   testing_before_commit:
     documented_in: "DEVELOPMENT_RULES.md"
     team_follows: true
     evidence: ".test-status file shows test runs before commits"
     verification: "Test status tracked in repository"
     notes: "Only passing versions are promotable"
-  
+
   lessons_learned_documentation:
     documented_in: "DEVELOPMENT_RULES.md"
     team_follows: true
     evidence: "LESSONS_LEARNED.md has 12+ entries with dates and details"
     verification: "All major issues documented publicly"
     notes: "Transparency is a core principle"
-  
+
   make_commands_only:
     documented_in: "DEVELOPMENT_RULES.md, .kiro/steering/ahab-development.md"
     team_follows: true
@@ -129,7 +130,7 @@ docker_first_architecture:
     evidence: "Python scripts executed via Docker, not directly on host"
     verification: "Makefile uses PYTHON_DOCKER variable for Python execution"
     notes: "All Python execution happens in containers for consistency"
-  
+
   containerized_services:
     documented_in: "README.md"
     team_follows: true
@@ -144,14 +145,14 @@ documentation_practices:
     evidence: "Core principles referenced in development decisions"
     verification: "This compliance spec exists to enforce those principles"
     notes: "Principles are not aspirational - they're enforceable requirements"
-  
+
   troubleshooting_guide:
     documented_in: "TROUBLESHOOTING.md"
     team_follows: true
     evidence: "Common issues documented with solutions"
     verification: "File exists and is maintained"
     notes: "Updated when new issues are discovered"
-  
+
   standards_mapping:
     documented_in: "GEORGIA_STANDARDS_VERIFICATION.md"
     team_follows: true

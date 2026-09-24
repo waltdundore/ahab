@@ -1,0 +1,22 @@
+# Managed by Ansible — do not edit locally
+# Sources are declared once, in the tier-2 inventory (inventory/group_vars/all.yml).
+{% for server in chrony_servers %}
+server {{ server }} iburst
+{% endfor %}
+
+# Record the rate at which the system clock gains/losses time.
+driftfile {{ chrony_driftfile }}
+
+# Step the clock on the first three updates when the offset exceeds 1 s. This
+# keeps the distro default and matters: a host can sit minutes behind UTC when
+# its only source never replies (hub measured 3567.78 s behind).
+makestep 1.0 3
+
+# Enable kernel synchronization of the real-time clock (RTC).
+rtcsync
+{% if chrony_confdir %}
+
+# Keep the distro drop-in directory active so pre-existing drop-ins are not
+# silently disabled by this managed file.
+confdir {{ chrony_confdir }}
+{% endif %}

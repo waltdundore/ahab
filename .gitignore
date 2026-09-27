@@ -113,6 +113,14 @@ local_*.yml
 .vault_pass.backup
 
 # ------------------------------------------------------------------------------
+# Local Run Artifacts (DO NOT COMMIT)
+# ------------------------------------------------------------------------------
+# .coverage = pytest run output; roles/chrony/chrony/ = nested copy left behind
+# when the time-sync role was lifted to tier 1 (the role lives at roles/chrony)
+.coverage
+roles/chrony/chrony/
+
+# ------------------------------------------------------------------------------
 # Notes
 # ------------------------------------------------------------------------------
 # - generated/ directory contains docker-compose.yml created by scripts

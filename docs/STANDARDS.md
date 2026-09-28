@@ -8,6 +8,12 @@
 
 ## Purpose
 
+User centric user focused. We use these tools to test and build. We don't write custom ad-hoc code - we use ansible and infrastructure as code and templates to verify consistency, modular functional thinking and efficient elegant secure code. 
+
+The user documentation must be premium, luxury, and more than is expected.
+
+Do not overthink, converse. Bounce ideas off the other models and form a consensus.
+
 This document defines strict, non-negotiable standards for:
 - Code layout and formatting
 - Documentation structure and content
@@ -596,7 +602,7 @@ error messages.
 
 - Added 5 new error functions
 - Created test suite in tests/test-error-messages.sh
-- Updated ERROR_MESSAGE_IMPROVEMENTS.md with usage examples
+- Updated docs/archive/2026-09/docs/ERROR_MESSAGE_IMPROVEMENTS.md with usage examples
 
 Core Principles: #4 (Never Assume Success), #10 (Teaching Mindset)
 

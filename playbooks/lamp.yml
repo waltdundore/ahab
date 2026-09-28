@@ -1,28 +1,25 @@
 ---
 # ==============================================================================
-# DEPRECATED: Use webservers.yml instead
+# DEPRECATED: Use deploy-service.yml (or Docker Compose) instead
 # ==============================================================================
 # This playbook is deprecated and will be removed in a future release.
 #
 # Why deprecated:
-#   - Name is misleading (LAMP = Linux + Apache + MySQL + PHP, but no MySQL role)
-#   - Functionality duplicated by webservers.yml
+#   - Duplicated role logic that now lives in the apache/mysql/php roles
 #   - Confusing to have multiple playbooks doing the same thing
 #
-# Migration:
+# Migration (each service deploys through its role):
 #   OLD: ansible-playbook -i inventory/dev/hosts.yml playbooks/lamp.yml
-#   NEW: ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
+#   NEW (per service): ansible-playbook -i inventory/dev/hosts.yml \
+#         playbooks/deploy-service.yml -e service=<apache|mysql|php>
 #
-# For development:
-#   Use: make install apache php (Docker Compose - faster)
+# For development (faster):
+#   Use: make install apache php (Docker Compose)
 #
-# When MySQL role exists:
-#   Use: ansible-playbook -i inventory/dev/hosts.yml playbooks/site.yml
-#
-# This file redirects to the new structure for backward compatibility.
+# This file fails with migration instructions for backward compatibility.
 # ==============================================================================
 
-- name: Redirect to webservers.yml
+- name: Redirect to deploy-service.yml
   hosts: webservers
   gather_facts: false
 
@@ -35,14 +32,13 @@
           - "=========================================="
           - "This playbook (lamp.yml) is deprecated."
           - ""
-          - "Use instead:"
-          - "  ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml"
+          - "Use instead (one command per service):"
+          - "  ansible-playbook -i inventory/dev/hosts.yml playbooks/deploy-service.yml -e service=apache"
+          - "  ansible-playbook -i inventory/dev/hosts.yml playbooks/deploy-service.yml -e service=mysql"
+          - "  ansible-playbook -i inventory/dev/hosts.yml playbooks/deploy-service.yml -e service=php"
           - ""
           - "Or for development:"
           - "  make install apache php"
-          - ""
-          - "Note: This playbook is named 'LAMP' but doesn't include MySQL."
-          - "When MySQL role exists, use playbooks/site.yml instead."
           - "=========================================="
 
     - name: Fail with migration instructions
@@ -51,6 +47,7 @@
           This playbook is deprecated. Please update your commands:
 
           OLD: ansible-playbook -i inventory/dev/hosts.yml playbooks/lamp.yml
-          NEW: ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
+          NEW (per service): ansible-playbook -i inventory/dev/hosts.yml \
+                playbooks/deploy-service.yml -e service=<apache|mysql|php>
 
           Or use: make install apache php

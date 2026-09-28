@@ -1,47 +1,61 @@
 name: Test Suite
 
+# Trunk is prod/dev (see AGENTS.md "Trunk is prod/dev"); main is a stale
+# legacy branch. CI must fire on the trunk or none of these gates run.
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ prod, dev ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ prod, dev ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y shellcheck python3-pip
-        pip3 install ansible-core ansible-lint --break-system-packages
+        # Pin ansible-lint to the version the tree is validated green against
+        # so the lint gate is deterministic across CI runs.
+        pip3 install "ansible-core" "ansible-lint==25.12.2" --break-system-packages
         ansible-galaxy collection install ansible.posix community.general community.docker
-        
-    - name: Run NASA Power of 10 validation
-      run: make test-nasa
-      
+
+    - name: Ansible syntax check (all playbooks)
+      run: |
+        for p in playbooks/*.yml; do
+          echo "::group::syntax-check $p"
+          ansible-playbook --syntax-check "$p"
+          echo "::endgroup::"
+        done
+
+    - name: Ansible lint (schema + style gate)
+      run: ansible-lint
+
+    - name: Run full test suite (incl. reference integrity)
+      run: make test
+
     - name: Record test status
       if: success()
       run: |
         bash scripts/record-test-pass.sh
         cat .test-status
-        
+
     - name: Record test failure
       if: failure()
-      run: |
-        bash scripts/record-test-fail.sh || true
-        
+      run: bash scripts/record-test-fail.sh || true
+
     - name: Upload test status
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test-status
         path: .test-status
-        
+
     - name: Comment PR with status
       if: github.event_name == 'pull_request'
       uses: actions/github-script@v7
@@ -52,7 +66,7 @@ jobs:
           const passing = status.includes('PASS');
           const emoji = passing ? '✅' : '❌';
           const message = passing ? 'All tests passed!' : 'Tests failed';
-          
+
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,

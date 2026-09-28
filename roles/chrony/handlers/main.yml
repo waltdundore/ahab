@@ -1,0 +1,14 @@
+---
+# chrony — handlers.
+# Purpose: apply a changed chrony config to the running daemon.
+# Consumes: notifications from tasks/main.yml; chrony_service_name (set_fact).
+# Affects:  chronyd run state, therefore the system clock source.
+# Handler-timing note: handlers run at END OF PLAY. A task later in the same
+# play that depends on a corrected clock would need meta: flush_handlers —
+# nothing in roles/chrony or roles/base does (and playbooks/verify-baseline.yml
+# is a separate play), so no flush is added here.
+
+- name: Restart chronyd
+  ansible.builtin.service:
+    name: "{{ chrony_service_name }}"
+    state: restarted

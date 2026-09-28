@@ -1,6 +1,6 @@
 ---
 # ==============================================================================
-# DEPRECATED: Use webservers.yml instead
+# DEPRECATED: Use deploy-service.yml (or Docker Compose) instead
 # ==============================================================================
 # This playbook is deprecated and will be removed in a future release.
 #
@@ -11,15 +11,16 @@
 #
 # Migration:
 #   OLD: ansible-playbook playbooks/webserver.yml
-#   NEW: ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
+#   NEW: ansible-playbook -i inventory/dev/hosts.yml \
+#         playbooks/deploy-service.yml -e service=apache
 #
 # For development:
 #   Use: make install apache (Docker Compose - faster)
 #
-# This file redirects to the new structure for backward compatibility.
+# This file fails with migration instructions for backward compatibility.
 # ==============================================================================
 
-- name: Redirect to webservers.yml
+- name: Redirect to deploy-service.yml
   hosts: all
   gather_facts: false
 
@@ -33,12 +34,10 @@
           - "This playbook (webserver.yml) is deprecated."
           - ""
           - "Use instead:"
-          - "  ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml"
+          - "  ansible-playbook -i inventory/dev/hosts.yml playbooks/deploy-service.yml -e service=apache"
           - ""
           - "Or for development:"
           - "  make install apache"
-          - ""
-          - "Redirecting to webservers.yml..."
           - "=========================================="
 
     - name: Fail with migration instructions
@@ -47,6 +46,7 @@
           This playbook is deprecated. Please update your commands:
 
           OLD: ansible-playbook playbooks/webserver.yml
-          NEW: ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
+          NEW: ansible-playbook -i inventory/dev/hosts.yml \
+                playbooks/deploy-service.yml -e service=apache
 
           Or use: make install apache

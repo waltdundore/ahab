@@ -308,6 +308,19 @@ class DockerComposeGenerator:
 
 
 def main():
+    try:  # Sentry error reporting (operator directive 2026-09-14); non-fatal if SDK absent
+        import sentry_sdk
+
+        sentry_sdk.init(
+            # tier-1 machinery: no baked env values (portability law); deploy injects SENTRY_DSN
+            dsn=os.environ.get("SENTRY_DSN"),
+            # Add data like request headers and IP for users,
+            # see https://docs.sentry.io/platforms/python/data-management/data-collected/
+            send_default_pii=True,
+        )
+    except ImportError:
+        pass
+
     parser = argparse.ArgumentParser(
         description='Generate docker-compose.yml from Ahab module metadata'
     )

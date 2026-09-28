@@ -36,13 +36,13 @@ export REQUIRED_COMMANDS=(
     "docker"
     "make"
     "python3"
+    "shellcheck"
 )
 
 # Optional but recommended commands
 export OPTIONAL_COMMANDS=(
     "curl"
     "wget"
-    "VBoxManage"
 )
 
 # ==============================================================================
@@ -52,17 +52,16 @@ export OPTIONAL_COMMANDS=(
 main() {
     print_header "Ahab Prerequisites Check"
     
-    local missing warnings additional_warnings
-    
-    check_required_tools
-    missing=$?
-    
-    check_optional_tools
-    warnings=$?
-    
-    check_additional_requirements
-    additional_warnings=$?
-    
+    local missing=0 warnings=0 additional_warnings=0
+
+    # `|| var=$?` keeps the counts under `set -e` and lets the SUMMARY
+    # (incl. installation help) always print, even when tools are missing.
+    check_required_tools || missing=$?
+
+    check_optional_tools || warnings=$?
+
+    check_additional_requirements || additional_warnings=$?
+
     warnings=$((warnings + additional_warnings))
     
     print_final_summary $missing $warnings

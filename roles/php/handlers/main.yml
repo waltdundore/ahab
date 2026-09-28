@@ -1,23 +1,23 @@
 ---
 # PHP handlers
 
-- name: restart apache
+- name: Restart apache
   service:
     name: "{{ apache_service }}"
     state: restarted
 
-- name: reload apache
+- name: Reload apache
   service:
     name: "{{ apache_service }}"
     state: reloaded
 
-- name: restart php-fpm
+- name: Restart php-fpm
   service:
     name: php-fpm
     state: restarted
   when: php_fpm_enabled | default(false)
 
-- name: reload php-fpm
+- name: Reload php-fpm
   service:
     name: php-fpm
     state: reloaded

@@ -99,7 +99,7 @@ API_KEY = "YOUR_API_KEY_HERE"  # In .template files
 - All secrets loaded from environment variables
 - `.env` files excluded from git (`.gitignore`)
 - `.env.example` provides template without secrets
-- Ansible Vault for encrypted secrets in playbooks
+- Ansible Vault for encrypted secrets in `group_vars`
 
 **Implementation**:
 ```bash
@@ -109,7 +109,7 @@ SECRET_KEY=<generated-unique-key>
 AHAB_PATH=/path/to/ahab
 
 # Ansible encrypted secrets
-ahab/playbooks/secrets.yml  # Encrypted with ansible-vault
+ahab/group_vars/all/vault.yml  # Encrypted with ansible-vault
 ```
 
 **Code Pattern**:
@@ -126,8 +126,8 @@ if not SECRET_KEY:
 
 **Verification**:
 ```bash
-# Check for hardcoded secrets
-make audit-secrets
+# Check for hardcoded secrets (scan the whole repo)
+./scripts/ci/scan-secrets.sh .
 
 # Scan specific file
 ./scripts/ci/scan-secrets.sh path/to/file
@@ -974,7 +974,7 @@ cd ahab
 ./scripts/ci/scan-secrets.sh path/to/file
 
 # Scan entire codebase
-make audit-secrets
+./scripts/ci/scan-secrets.sh .
 ```
 
 ### 2. Root Container Detection
@@ -989,7 +989,7 @@ cd ahab
 ./scripts/ci/check-container-users.sh path/to/dir
 
 # Check all containers
-make audit-containers
+./scripts/ci/check-container-users.sh .
 ```
 
 ### 3. Command Whitelist

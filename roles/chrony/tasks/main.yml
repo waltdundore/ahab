@@ -1,0 +1,54 @@
+---
+# chrony — own chrony end-to-end (install, config, service).
+# Purpose: guarantee every Linux host runs chronyd against the sources declared
+#          in the inventory (inventory/group_vars/all.yml). No hostname or IP is
+#          hardcoded here.
+# Consumes: chrony_servers, chrony_package, ansible_facts['os_family'].
+# Affects:  the chrony package, the distro chrony config file, chronyd unit.
+# Notes:    config is written BEFORE the service is started so a first-time
+#           converge never boots chronyd against the distro/dead config.
+
+- name: Set chrony OS-family-dependent variables
+  ansible.builtin.set_fact:
+    chrony_service_name: "{{ 'chrony' if ansible_facts['os_family'] == 'Debian' else 'chronyd' }}"
+    # Debian ships its config under /etc/chrony/ and has NO /etc/chrony.conf at
+    # all (verified on rpi5-01, Debian: /etc/chrony/chrony.conf + conf.d/), so
+    # the Debian path is the only one chronyd there reads.
+    chrony_conf_path: "{{ '/etc/chrony/chrony.conf' if ansible_facts['os_family'] == 'Debian' else '/etc/chrony.conf' }}"
+    chrony_driftfile: "{{ '/var/lib/chrony/chrony.drift' if ansible_facts['os_family'] == 'Debian' else '/var/lib/chrony/drift' }}"
+    # Drop-in directory per family, kept active in the template so existing
+    # drop-ins survive. Debian has /etc/chrony/conf.d (verified on rpi5-01);
+    # EL has no /etc/chrony.d on this fleet and its live config has no confdir
+    # line (verified on Fedora control nodes).
+    chrony_confdir: "{{ '/etc/chrony/conf.d' if ansible_facts['os_family'] == 'Debian' else '' }}"
+
+- name: Ensure chrony is installed
+  ansible.builtin.package:
+    name: "{{ chrony_package }}"
+    state: present
+
+- name: Assert the site declares its NTP sources
+  ansible.builtin.assert:
+    that:
+      - chrony_servers is defined
+      - chrony_servers | length > 0
+    fail_msg: >-
+      chrony_servers is unset or empty for {{ inventory_hostname }}. Set it in
+      inventory/group_vars/all.yml (site value, BLUEPRINT D-47) — this role
+      carries no NTP sources of its own.
+
+- name: Ensure chrony configuration is deployed
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: "{{ chrony_conf_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  notify: Restart chronyd
+
+- name: Ensure chronyd service is enabled and started
+  ansible.builtin.service:
+    name: "{{ chrony_service_name }}"
+    state: started
+    enabled: true

@@ -5,13 +5,12 @@
 # Core command: make install [modules...]
 # ==============================================================================
 
-# Include common functions and patterns
-include Makefile.common
+# Makefile.common removed per BLUEPRINT D-18 (single Makefile; helpers are no-ops)
 
 # Include safety system (optional - for advanced safety checks)
 -include docs/development/Makefile.safety
 
-.PHONY: help install clean status ssh test test-security test-security-standards test-integration-simple test-nasa audit bootstrap check-prerequisites milestone-1 milestone-2 milestone-3 milestone-4 milestone-5 milestone-6 milestone-7 milestone-8 milestone-status milestone-reset
+.PHONY: help install clean status ssh test test-security test-security-standards test-integration-simple test-refs test-nasa audit bootstrap check-prerequisites install-prerequisites network-switches network-switches-version network-switches-test milestone-1 milestone-2 milestone-3 milestone-4 milestone-5 milestone-6 milestone-7 milestone-8 milestone-status milestone-reset
 
 # Default target
 all: help
@@ -19,8 +18,14 @@ all: help
 help:
 	$(call HELP_HEADER,Ahab Control)
 	@echo "Setup Commands:"
-	@echo "  make check-prerequisites  - Check if required tools are installed"
+	@echo "  make check-prerequisites   - Check if required tools are installed"
+	@echo "  make install-prerequisites - Install Vagrant, VirtualBox, Ansible, Docker"
 	@echo "  make bootstrap            - Set up repository structure"
+	@echo ""
+	@echo "Network Switch Commands:"
+	@echo "  make network-switches       - Run all switch tasks"
+	@echo "  make network-switches-version - Version info only"
+	@echo "  make network-switches-test  - Connectivity test"
 	@echo ""
 	@echo "Core Commands:"
 	@echo "  make install              - Create workstation VM"
@@ -33,14 +38,6 @@ help:
 	@echo "  make test-workstation     - Test workstation VM environment (⚠️ Run before physical deployment)"
 	@echo "  make audit                - Run accountability audit"
 	@echo ""
-	@echo "Git Publishing Commands:"
-	@echo "  make publish              - Publish dev branch to GitHub"
-	@echo "  make publish-all          - Publish all configured branches"
-	@echo "  make publish-with-secrets - Publish all branches (handles GitHub push protection)"
-	@echo "  make publish-now          - Immediately publish all branches (quick solution)"
-	@echo "  make clean-and-publish    - Remove fake secrets, publish branches, restore sanitized"
-	@echo "  make publish-status       - Show git publishing status"
-	@echo ""
 	@echo "Secrets Management Commands:"
 	@echo "  make setup-secrets        - Set up private secrets repository integration"
 	@echo "  make check-secrets-access - Check access to private secrets repository"
@@ -49,15 +46,9 @@ help:
 	@echo ""
 	@echo "Milestone Commands (8-Step Deployment Pipeline):"
 	@echo "  make milestone-1          - Verify workstation installation"
-	@echo "  make milestone-2          - Define target servers"
-	@echo "  make milestone-3          - Verify connectivity"
-	@echo "  make milestone-4          - Test with Vagrant"
-	@echo "  make milestone-5          - Verify playbooks"
-	@echo "  make milestone-6          - Deploy to real server"
-	@echo "  make milestone-7          - Final verification"
-	@echo "  make milestone-8          - Production readiness"
-	@echo "  make milestone-status     - Show progress"
-	@echo "  make milestone-reset      - Reset progress"
+	@echo "  make milestone-2..8       - (not yet implemented; fail loudly)"
+	@echo "  make milestone-status     - Show progress (all 8 steps)"
+	@echo "  make milestone-reset      - (not yet implemented; fails loudly)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make install              # Just the workstation"
@@ -83,6 +74,31 @@ check-prerequisites:
 	@echo "→ Running: ./scripts/check-prerequisites.sh"
 	@echo "   Purpose: Verify all required tools are installed"
 	@./scripts/check-prerequisites.sh
+
+install-prerequisites:
+	$(call SHOW_SECTION,Installing Ahab Prerequisites)
+	@echo "→ Running: ansible-playbook playbooks/install-prerequisites.yml --ask-become-pass"
+	@echo "   Purpose: Install Vagrant, VirtualBox, Ansible, Docker on the control node"
+	@ansible-playbook playbooks/install-prerequisites.yml --ask-become-pass
+
+# ==============================================================================
+# Network Switch Commands (HP Aruba / Ruckus)
+# ==============================================================================
+# Inventory is copied from the committed example before first use:
+#   cp inventory/dev/network-switches.yml.example inventory/dev/network-switches.yml
+
+network-switches:
+	$(call SHOW_SECTION,Network Switches - All Tasks)
+	@echo "→ Running: ansible-playbook -i inventory/dev/network-switches.yml playbooks/network-switches.yml"
+	@ansible-playbook -i inventory/dev/network-switches.yml playbooks/network-switches.yml
+
+network-switches-version:
+	$(call SHOW_SECTION,Network Switches - Version Info)
+	@ansible-playbook -i inventory/dev/network-switches.yml playbooks/network-switches.yml --tags show_version
+
+network-switches-test:
+	$(call SHOW_SECTION,Network Switches - Connectivity Test)
+	@ansible-playbook -i inventory/dev/network-switches.yml playbooks/network-switches.yml --tags test
 
 # ==============================================================================
 # Core Commands
@@ -117,10 +133,6 @@ install:
 	fi
 	@echo ""
 	@echo "✅ Ready - Access: vagrant ssh"
-
-# Allow module names as targets (prevents "No rule to make target" errors)
-%:
-	@:
 
 status:
 	$(call SHOW_SECTION,System Status)
@@ -163,8 +175,9 @@ test:
 	@echo "  1. NASA Power of 10 standards validation"
 	@echo "  2. Security standards validation"
 	@echo "  3. Simple integration tests (no VM required)"
+	@echo "  4. Reference integrity (Makefile + playbooks point at real files/targets)"
 	@echo ""
-	@if $(MAKE) test-nasa && $(MAKE) test-security-standards && $(MAKE) test-integration-simple; then \
+	@if $(MAKE) test-nasa && $(MAKE) test-security-standards && $(MAKE) test-integration-simple && $(MAKE) test-refs; then \
 		echo ""; \
 		echo "=========================================="; \
 		echo "✅ All Tests Passed"; \
@@ -214,6 +227,17 @@ test-integration-simple:
 		echo "✅ Simple integration tests passed"; \
 	else \
 		echo "⚠ No simple integration tests found"; \
+	fi
+
+test-refs:
+	$(call SHOW_SECTION,Reference Integrity Check)
+	@echo "→ Running: bash scripts/ci/check-file-refs.sh"
+	@echo "   Purpose: Fail if the Makefile or playbooks reference missing files or make targets"
+	@if [ -f "scripts/ci/check-file-refs.sh" ]; then \
+		bash scripts/ci/check-file-refs.sh; \
+	else \
+		echo "❌ Reference check script not found"; \
+		exit 1; \
 	fi
 
 test-nasa:
@@ -270,47 +294,36 @@ milestone-1:
 	@echo "   Purpose: Verify workstation is properly installed and configured"
 	@./scripts/milestone-1-verify-workstation.sh
 
+# Milestones 2-8 are part of the 8-step pipeline (see milestone-status.sh)
+# but are not yet implemented. They fail LOUDLY via a shared helper instead of
+# pointing at scripts that do not exist (D-39: no fabricated success).
 milestone-2:
 	$(call SHOW_SECTION,Milestone 2 - Target Server Definition)
-	@echo "→ Running: ./scripts/milestone-2-define-targets.sh"
-	@echo "   Purpose: Guide user through defining target servers and inventory"
-	@./scripts/milestone-2-define-targets.sh
+	@./scripts/lib/milestone-not-implemented.sh 2 "Target Server Definition"
 
 milestone-3:
 	$(call SHOW_SECTION,Milestone 3 - Connectivity Verification)
-	@echo "→ Running: ./scripts/milestone-3-verify-connectivity.sh"
-	@echo "   Purpose: Test SSH connectivity and credentials to target servers"
-	@./scripts/milestone-3-verify-connectivity.sh
+	@./scripts/lib/milestone-not-implemented.sh 3 "Connectivity Verification"
 
 milestone-4:
 	$(call SHOW_SECTION,Milestone 4 - Vagrant Test Deployment)
-	@echo "→ Running: ./scripts/milestone-4-vagrant-test.sh"
-	@echo "   Purpose: Test deployment on vanilla Vagrant VM"
-	@./scripts/milestone-4-vagrant-test.sh
+	@./scripts/lib/milestone-not-implemented.sh 4 "Vagrant Test Deployment"
 
 milestone-5:
 	$(call SHOW_SECTION,Milestone 5 - Playbook Verification)
-	@echo "→ Running: ./scripts/milestone-5-verify-playbooks.sh"
-	@echo "   Purpose: Validate Ansible playbooks work correctly"
-	@./scripts/milestone-5-verify-playbooks.sh
+	@./scripts/lib/milestone-not-implemented.sh 5 "Playbook Verification"
 
 milestone-6:
 	$(call SHOW_SECTION,Milestone 6 - Real Server Deployment)
-	@echo "→ Running: ./scripts/milestone-6-deploy-real.sh"
-	@echo "   Purpose: Deploy to actual target server using SSH"
-	@./scripts/milestone-6-deploy-real.sh
+	@./scripts/lib/milestone-not-implemented.sh 6 "Real Server Deployment"
 
 milestone-7:
 	$(call SHOW_SECTION,Milestone 7 - Final System Verification)
-	@echo "→ Running: ./scripts/milestone-7-final-verification.sh"
-	@echo "   Purpose: Comprehensive verification of deployed system"
-	@./scripts/milestone-7-final-verification.sh
+	@./scripts/lib/milestone-not-implemented.sh 7 "Final System Verification"
 
 milestone-8:
 	$(call SHOW_SECTION,Milestone 8 - Production Readiness)
-	@echo "→ Running: ./scripts/milestone-8-production-ready.sh"
-	@echo "   Purpose: Validate system is ready for production use"
-	@./scripts/milestone-8-production-ready.sh
+	@./scripts/lib/milestone-not-implemented.sh 8 "Production Readiness"
 
 milestone-status:
 	$(call SHOW_SECTION,Milestone Progress Status)
@@ -320,9 +333,7 @@ milestone-status:
 
 milestone-reset:
 	$(call SHOW_SECTION,Reset Milestone Progress)
-	@echo "→ Running: ./scripts/milestone-reset.sh"
-	@echo "   Purpose: Reset milestone progress (start over)"
-	@./scripts/milestone-reset.sh
+	@./scripts/lib/milestone-not-implemented.sh reset "Reset Milestone Progress"
 
 # ==============================================================================
 # Audit Commands
@@ -333,51 +344,6 @@ audit:
 	@echo "→ Running: bash scripts/audit-accountability.sh"
 	@echo "   Purpose: Audit code for accountability and empathy standards"
 	@bash scripts/audit-accountability.sh
-# ==============================================================================
-# Git Publishing Commands
-# ==============================================================================
-
-.PHONY: publish publish-all publish-status publish-sync publish-with-secrets
-
-publish:
-	@echo "→ Running: ./scripts/git-publish $(filter-out publish,$(MAKECMDGOALS))"
-	@echo "   Purpose: Publish branch to GitHub for collaboration and visibility"
-	@./scripts/git-publish $(filter-out publish,$(MAKECMDGOALS))
-
-publish-all:
-	@echo "→ Running: ./scripts/git-publish all"
-	@echo "   Purpose: Publish all configured branches to GitHub"
-	@./scripts/git-publish all
-
-publish-with-secrets:
-	@echo "→ Running: ./scripts/git-publish-with-secrets all"
-	@echo "   Purpose: Publish all branches while handling GitHub push protection for fake secrets"
-	@./scripts/git-publish-with-secrets all
-
-publish-now:
-	@echo "→ Running: ./scripts/publish-now"
-	@echo "   Purpose: Immediately publish all branches (handles GitHub push protection)"
-	@./scripts/publish-now
-
-clean-and-publish:
-	@echo "→ Running: ./scripts/clean-and-publish"
-	@echo "   Purpose: Remove fake secrets, publish all branches, restore with sanitized examples"
-	@./scripts/clean-and-publish
-
-publish-clean:
-	@echo "→ Running: ./scripts/publish-clean-branch"
-	@echo "   Purpose: Create clean branch without secret history and publish all branches"
-	@./scripts/publish-clean-branch
-
-publish-status:
-	@echo "→ Running: ./scripts/git-publish status"
-	@echo "   Purpose: Show current git publishing status and branch sync state"
-	@./scripts/git-publish status
-
-publish-sync:
-	@echo "→ Running: ./scripts/git-publish sync"
-	@echo "   Purpose: Sync dev branch with remote changes before publishing"
-	@./scripts/git-publish sync
 
 # ==============================================================================
 # Secrets Management Commands
@@ -415,6 +381,10 @@ test-security-sanitized:
 		exit 1; \
 	fi
 
-# Handle branch names as arguments to publish command
-%:
-	@:
+# D-39 / BLUEPRINT law 11: loud-failing catch-all (replaces the two silent
+# `%: @:` no-ops that once let ANY unknown target "succeed" — a cheat vector:
+# a model ran `make <anything>` and reported fabricated success). One
+# authoritative rule, at the END of the file; real targets above always win.
+# Module installs dispatch via `make install MODULES=<names>`, never via
+# positional target words — a bare word here is a typo and must exit non-zero.
+%: ; @echo "make: no such target: $@ — run 'make help' for real targets" >&2; exit 2

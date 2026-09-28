@@ -109,7 +109,7 @@
         state: directory
         owner: vagrant
         group: vagrant
-        mode: '0755'
+        mode: "0755"
       loop: "{{ ahab_directories }}"
 
     - name: Set ownership of ahab directory
@@ -128,31 +128,31 @@
       register: git_check
       changed_when: false
 
-    - name: Get Git version  # noqa: command-instead-of-module
+    - name: Get Git version # noqa: command-instead-of-module
       ansible.builtin.command: git --version
       register: git_ver
       changed_when: false
       failed_when: git_ver.rc != 0
 
-    - name: Verify Ansible installation  # noqa: command-instead-of-module
+    - name: Verify Ansible installation # noqa: command-instead-of-module
       ansible.builtin.command: ansible --version
       register: ansible_ver
       changed_when: false
       failed_when: ansible_ver.rc != 0
 
-    - name: Verify Docker installation  # noqa: command-instead-of-module
+    - name: Verify Docker installation # noqa: command-instead-of-module
       ansible.builtin.command: docker --version
       register: docker_version
       changed_when: false
       failed_when: docker_version.rc != 0
 
-    - name: Verify Docker Compose installation  # noqa: command-instead-of-module
+    - name: Verify Docker Compose installation # noqa: command-instead-of-module
       ansible.builtin.command: docker compose version
       register: docker_compose_version
       changed_when: false
       failed_when: false
 
-    - name: Verify Python installation  # noqa: command-instead-of-module
+    - name: Verify Python installation # noqa: command-instead-of-module
       ansible.builtin.command: python3 --version
       register: python_version
       changed_when: false

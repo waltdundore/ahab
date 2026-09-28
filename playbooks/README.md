@@ -19,54 +19,38 @@
 
 ## Available Playbooks
 
-### 1. workstation.yml
-**Purpose**: Provision Ahab workstation with development tools  
-**Usage**: `ansible-playbook playbooks/workstation.yml`  
-**Called by**: `make install` (via Vagrant)  
-**Installs**: Git, Ansible, Docker, development tools
+Six playbooks are live today, plus three deprecated shims that fail with
+migration instructions. There is **no `site.yml` or `webservers.yml`** — those
+were planned (see `SPEC.md` §4) but never built. Deploy individual services
+with `deploy-service.yml`, or use the Docker Compose path (`make install <module>`).
 
-**Why this exists**: Every Ahab deployment starts with a workstation. This is the foundation.
+### Live playbooks
 
----
+| Playbook | Purpose | Target |
+|----------|---------|--------|
+| `provision-workstation.yml` | Install workstation tools (git, Ansible, Docker, compose, make, Python deps) | `all` (the VM) |
+| `workstation.yml` | Provision a workstation with Ansible, Docker, dev tools | `all` (the VM) |
+| `install-prerequisites.yml` | Install host prerequisites (Vagrant, VirtualBox, Ansible, Docker) on the control node | `localhost` |
+| `deploy-service.yml` | Deploy one service by including its role | `all` |
+| `deploy-workstation.yml` | Deploy Ahab to a physical Fedora 43 workstation (user, Docker, firewall) | `workstations` |
+| `network-switches.yml` | Manage HP Aruba / Ruckus switches (version, uptime, connectivity) | `network_switches` |
 
-### 2. site.yml
-**Purpose**: Deploy complete infrastructure (all services)  
-**Usage**: `ansible-playbook -i inventory/dev/hosts.yml playbooks/site.yml`  
-**Deploys**: All configured services for an environment  
-**Tags**: Use tags to deploy specific services
+**Notes**
+- The `Vagrantfile` provisions via `playbooks/provision-workstation.yml`
+  (`config.vm.provision "ansible_local"`), not `workstation.yml`.
+- `deploy-service.yml` takes the service as an extra var (must be `apache`,
+  `mysql`, or `php`):
+  ```bash
+  ansible-playbook -i inventory/dev/hosts.yml playbooks/deploy-service.yml -e service=apache
+  ```
 
-**Why this exists**: Production deployments need everything. One command, complete infrastructure.
+### Deprecated shims (fail with migration instructions)
 
-**Example**:
-```bash
-# Deploy everything
-ansible-playbook -i inventory/prod/hosts.yml playbooks/site.yml
-
-# Deploy only web servers
-ansible-playbook -i inventory/prod/hosts.yml playbooks/site.yml --tags webserver
-
-# Deploy only databases
-ansible-playbook -i inventory/prod/hosts.yml playbooks/site.yml --tags database
-```
-
----
-
-### 3. webservers.yml
-**Purpose**: Deploy web server infrastructure (Apache + PHP)  
-**Usage**: `ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml`  
-**Deploys**: Apache, PHP, web content  
-**Tags**: apache, php
-
-**Why this exists**: Sometimes you only need web servers, not the entire infrastructure.
-
-**Example**:
-```bash
-# Deploy Apache + PHP
-ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
-
-# Deploy only Apache
-ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml --tags apache
-```
+| Playbook | Why deprecated | Use instead |
+|----------|----------------|-------------|
+| `lamp.yml` | Misleading name (no MySQL role); duplicated | `make install apache php` or `deploy-service.yml` |
+| `webserver.yml` | Duplicated the apache role; hardcoded | `make install apache` or `deploy-service.yml -e service=apache` |
+| `webserver-docker.yml` | Docker belongs in Compose, not Ansible | `make install apache` |
 
 ---
 
@@ -103,7 +87,7 @@ ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml --tags apac
   hosts: webservers
   roles:
     - apache
-  # Configuration comes from inventory/group_vars/webservers.yml
+  # Configuration comes from inventory (group_vars/ + inventory/<env>/), not the playbook
 
 # ❌ BAD: Configuration hardcoded in playbook
 - name: Deploy Apache
@@ -132,14 +116,13 @@ ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml --tags apac
 ### Rule #4: Single Source of Truth (DRY)
 **No duplication. Use roles.**
 
-```yaml
-# ✅ GOOD: One playbook, multiple environments
-ansible-playbook -i inventory/dev/hosts.yml playbooks/site.yml
-ansible-playbook -i inventory/prod/hosts.yml playbooks/site.yml
+```bash
+# ✅ GOOD: One playbook, multiple environments (same playbook, different inventory)
+ansible-playbook -i inventory/dev/hosts.yml playbooks/deploy-service.yml -e service=apache
+ansible-playbook -i inventory/prod/hosts.yml playbooks/deploy-service.yml -e service=apache
 
-# ❌ BAD: Separate playbooks for each environment
-playbooks/dev-site.yml
-playbooks/prod-site.yml
+# ❌ BAD: Separate playbooks for each environment (dev-site.yml, prod-site.yml, ...)
+#    — that is duplication; the inventory is what differs, not the playbook
 ```
 
 ---
@@ -160,7 +143,7 @@ make install apache mysql # Uses Docker Compose (not Ansible playbooks)
 make install apache
 
 # Production: Ansible Playbooks (flexible, multi-host)
-ansible-playbook -i inventory/prod/hosts.yml playbooks/site.yml
+ansible-playbook -i inventory/prod/hosts.yml playbooks/deploy-service.yml -e service=apache
 ```
 
 **Why**: Production needs multi-host orchestration, configuration management, and idempotency.
@@ -175,60 +158,35 @@ ansible-playbook -i inventory/prod/hosts.yml playbooks/site.yml
 - When to use it vs alternatives
 - Example commands
 
-**Example**:
+**Example** (from the live `deploy-service.yml`):
 ```yaml
 ---
 # ==============================================================================
-# Web Servers Playbook
+# Deploy Service with Modular Configuration
 # ==============================================================================
-# Deploys Apache + PHP for web hosting
+# Deploys a single service by including its role (apache, mysql, or php)
 #
 # Usage:
-#   ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml
+#   ansible-playbook -i inventory/dev/hosts.yml playbooks/deploy-service.yml -e service=apache
 #
 # Why this exists:
-#   Sometimes you only need web servers, not the entire infrastructure.
-#   This is faster than deploying everything with site.yml.
+#   One entry point per service; configuration comes from the site config.
 #
 # Alternative:
 #   For development: make install apache php (uses Docker Compose)
-#   For everything: ansible-playbook playbooks/site.yml
 # ==============================================================================
 ```
 
 ---
 
-## Migration from Old Structure
+## History: the web-server playbooks were consolidated
 
-### Old Structure (WRONG)
-```
-playbooks/
-├── webserver.yml          # Duplicates apache role
-├── webserver-docker.yml   # Duplicates apache role
-├── lamp.yml               # Calls roles (correct approach)
-└── workstation.yml        # Provisions workstation
-```
-
-**Problems**:
-- `webserver.yml` duplicates apache role logic
-- `webserver-docker.yml` duplicates apache role logic
-- Two playbooks doing the same thing (DRY violation)
-- Unclear which to use
-
-### New Structure (CORRECT)
-```
-playbooks/
-├── README.md              # This file (explains everything)
-├── workstation.yml        # Provision workstation (unchanged)
-├── site.yml               # Deploy everything
-└── webservers.yml         # Deploy web servers only
-```
-
-**Benefits**:
-- Clear purpose for each playbook
-- No duplication (DRY compliant)
-- Playbooks call roles (correct pattern)
-- Easy to understand which to use
+The original `webserver.yml`, `webserver-docker.yml`, and `lamp.yml` each
+deployed Apache (and PHP) with overlapping, partly hardcoded logic. They are
+now **deprecated shims** that fail with migration instructions, so old commands
+still surface a pointer instead of a silent no-op. The live structure is the
+six playbooks in the table above; service deployment goes through
+`deploy-service.yml` (roles do the work) or Docker Compose for development.
 
 ---
 
@@ -236,17 +194,19 @@ playbooks/
 
 | Playbook | Purpose | Usage |
 |----------|---------|-------|
-| workstation.yml | Provision workstation | `make install` |
-| site.yml | Deploy everything | `ansible-playbook -i inventory/prod/hosts.yml playbooks/site.yml` |
-| webservers.yml | Deploy web servers | `ansible-playbook -i inventory/dev/hosts.yml playbooks/webservers.yml` |
+| provision-workstation.yml | Provision the Vagrant workstation | `make install` (via Vagrantfile) |
+| deploy-service.yml | Deploy one service (apache/mysql/php) | `ansible-playbook -i inventory/dev/hosts.yml playbooks/deploy-service.yml -e service=apache` |
+| deploy-workstation.yml | Deploy to a physical workstation | `ansible-playbook -i inventory/workstation/hosts.yml playbooks/deploy-workstation.yml` |
+| install-prerequisites.yml | Host prerequisites on the control node | `ansible-playbook playbooks/install-prerequisites.yml --ask-become-pass` |
+| network-switches.yml | Inspect/manage HP Aruba / Ruckus | `ansible-playbook -i inventory/dev/network-switches.yml playbooks/network-switches.yml` |
 
 ---
 
 ## Next Steps
 
 1. **For development**: Use `make install apache` (Docker Compose)
-2. **For production**: Use `ansible-playbook playbooks/site.yml` (Ansible)
-3. **For specific services**: Use tags or specific playbooks
+2. **For a single service**: Use `ansible-playbook playbooks/deploy-service.yml -e service=<apache|mysql|php>` (Ansible)
+3. **For workstation bring-up**: Use `make install` (Vagrant) or `deploy-workstation.yml` (physical)
 
 ---
 

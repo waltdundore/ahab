@@ -118,7 +118,7 @@
       ansible.builtin.get_url:
         url: https://download.docker.com/linux/fedora/docker-ce.repo
         dest: /etc/yum.repos.d/docker-ce.repo
-        mode: '0644'
+        mode: "0644"
       when: ansible_distribution == 'Fedora'
 
     - name: Install Docker (Fedora)
@@ -148,7 +148,7 @@
       ansible.builtin.get_url:
         url: "{{ vagrant_rpm_url }}"
         dest: /tmp/vagrant.rpm
-        mode: '0644'
+        mode: "0644"
       when: ansible_distribution == 'Fedora'
 
     - name: Install Vagrant (Fedora)
@@ -224,7 +224,7 @@
       ansible.builtin.get_url:
         url: "{{ vagrant_deb_url }}"
         dest: /tmp/vagrant.deb
-        mode: '0644'
+        mode: "0644"
       when: ansible_distribution in ['Debian', 'Ubuntu']
 
     - name: Install Vagrant (Debian/Ubuntu)
@@ -382,7 +382,7 @@
             "no-new-privileges": true
           }
         dest: /etc/docker/daemon.json
-        mode: '0644'
+        mode: "0644"
         backup: true
       when: ansible_system == 'Linux'
       notify: Restart docker

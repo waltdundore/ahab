@@ -1,0 +1,14 @@
+---
+# chrony — role defaults: env-agnostic machinery only (BLUEPRINT D-47: role code
+# carries zero env values; "does this file mention a hostname, secret, or org
+# name?" — yes => inventory, not a role).
+# Consumes: the site's NTP source list — a SITE value declared once in
+#           inventory/group_vars/all.yml (tasks/main.yml asserts it is non-empty,
+#           so a missing value fails loudly instead of deploying a config with no
+#           servers). ansible_facts['os_family'].
+# Affects:  templates/chrony.conf.j2 -> /etc/chrony.conf (EL) or
+#          /etc/chrony/chrony.conf (Debian).
+
+# Package name is identical on both supported families; kept as a var so an
+# EL/Debian split, if one ever appears, is a defaults change, not a task edit.
+chrony_package: chrony

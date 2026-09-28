@@ -23,9 +23,9 @@
     msg: "Installing Apache on {{ ansible_distribution }} {{ ansible_distribution_version }}"
   tags: [apache]
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Package Installation
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 - name: Install Apache packages (RedHat family)
   package:
@@ -38,13 +38,13 @@
   package:
     name: "{{ apache_packages }}"
     state: present
-    update_cache: yes
+    update_cache: true
   when: ansible_os_family == "Debian"
   tags: [apache, packages]
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Configuration
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 - name: Create document root directory
   file:
@@ -52,7 +52,7 @@
     state: directory
     owner: "{{ apache_user }}"
     group: "{{ apache_group }}"
-    mode: '0755'
+    mode: "0755"
   tags: [apache, config]
 
 - name: Download index.html from website repository
@@ -61,8 +61,8 @@
     dest: "{{ apache_document_root }}/index.html"
     owner: "{{ apache_user }}"
     group: "{{ apache_group }}"
-    mode: '0644'
-    force: no
+    mode: "0644"
+    force: false
   tags: [apache, config]
   # Single Source of Truth: waltdundore.github.io repository
   # No HTML duplication - follows DRY principle
@@ -70,7 +70,7 @@
 - name: Configure Apache ServerName (RedHat)
   lineinfile:
     path: "{{ apache_config_file }}"
-    regexp: '^#?ServerName'
+    regexp: "^#?ServerName"
     line: "ServerName {{ apache_server_name }}"
     state: present
   when: ansible_os_family == "RedHat"
@@ -80,9 +80,9 @@
 - name: Configure Apache ServerName (Debian)
   lineinfile:
     path: /etc/apache2/conf-available/servername.conf
-    regexp: '^ServerName'
+    regexp: "^ServerName"
     line: "ServerName {{ apache_server_name }}"
-    create: yes
+    create: true
     state: present
   when: ansible_os_family == "Debian"
   notify: restart apache
@@ -96,15 +96,15 @@
   notify: restart apache
   tags: [apache, config]
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Security Configuration
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 - name: Disable directory listing
   lineinfile:
     path: "{{ apache_config_file }}"
-    regexp: '^\s*Options.*Indexes'
-    line: '    Options -Indexes +FollowSymLinks'
+    regexp: "^\\s*Options.*Indexes"
+    line: "    Options -Indexes +FollowSymLinks"
     state: present
   notify: restart apache
   tags: [apache, security]
@@ -112,80 +112,80 @@
 - name: Set ServerTokens to Prod
   lineinfile:
     path: "{{ apache_security_conf }}"
-    regexp: '^ServerTokens'
-    line: 'ServerTokens Prod'
+    regexp: "^ServerTokens"
+    line: "ServerTokens Prod"
     state: present
-    create: yes
+    create: true
   notify: restart apache
   tags: [apache, security]
 
 - name: Set ServerSignature to Off
   lineinfile:
     path: "{{ apache_security_conf }}"
-    regexp: '^ServerSignature'
-    line: 'ServerSignature Off'
+    regexp: "^ServerSignature"
+    line: "ServerSignature Off"
     state: present
-    create: yes
+    create: true
   notify: restart apache
   tags: [apache, security]
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Firewall Configuration
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 - name: Configure firewall for HTTP (firewalld)
   firewalld:
     service: http
-    permanent: yes
+    permanent: true
     state: enabled
-    immediate: yes
+    immediate: true
   when:
     - ansible_os_family == "RedHat"
     - ansible_service_mgr == "systemd"
-  ignore_errors: yes
+  ignore_errors: true
   tags: [apache, firewall]
 
 - name: Configure firewall for HTTPS (firewalld)
   firewalld:
     service: https
-    permanent: yes
+    permanent: true
     state: enabled
-    immediate: yes
+    immediate: true
   when:
     - ansible_os_family == "RedHat"
     - ansible_service_mgr == "systemd"
-  ignore_errors: yes
+  ignore_errors: true
   tags: [apache, firewall]
 
 - name: Configure firewall for HTTP (ufw)
   ufw:
     rule: allow
-    port: '80'
+    port: "80"
     proto: tcp
   when:
     - ansible_os_family == "Debian"
-  ignore_errors: yes
+  ignore_errors: true
   tags: [apache, firewall]
 
 - name: Configure firewall for HTTPS (ufw)
   ufw:
     rule: allow
-    port: '443'
+    port: "443"
     proto: tcp
   when:
     - ansible_os_family == "Debian"
-  ignore_errors: yes
+  ignore_errors: true
   tags: [apache, firewall]
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Service Management
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 - name: Start and enable Apache service
   service:
     name: "{{ apache_service }}"
     state: started
-    enabled: yes
+    enabled: true
   tags: [apache, service]
 
 - name: Wait for Apache to be ready
@@ -195,15 +195,15 @@
     timeout: 30
   tags: [apache, service]
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Verification
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 - name: Verify Apache is responding
   uri:
     url: "http://localhost"
     status_code: 200
-    return_content: yes
+    return_content: true
   register: apache_response
   retries: 3
   delay: 5

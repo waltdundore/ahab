@@ -10,7 +10,7 @@
 #   2. Cloning all four repositories (if not already cloned)
 #   3. Initializing ahab-modules as a Git submodule
 #   4. Creating symlinks for inventory and config
-#   5. Creating Makefile symlinks for ansible-inventory and ansible-config
+#   5. Creating Makefile symlinks for ahab-inventory and ahab-config
 #   6. Checking out the dev branch on all repos
 #   7. Creating example configuration files
 #   8. Verifying the installation
@@ -142,8 +142,8 @@ ensure_dir "${BASE_DIR}"
 # Clone all four Ahab repositories from GitHub if they don't already exist
 # Repositories:
 #   - ahab: Playbooks and automation logic
-#   - ansible-inventory: Host definitions and groups
-#   - ansible-config: Configuration variables and settings
+#   - ahab-inventory: Host definitions and groups
+#   - ahab-config: Configuration variables and settings
 #   - ahab-modules: Service definitions (configured as submodule)
 echo "Step 1: Checking repositories..."
 cd "${BASE_DIR}"
@@ -159,26 +159,26 @@ else
     echo "  ✓ ahab exists"
 fi
 
-if [ ! -d "ansible-inventory" ]; then
-    echo "  → Cloning ansible-inventory..."
-    if ! git clone "git@github.com:${GITHUB_USER}/ansible-inventory.git"; then
-        echo -e "${RED}✗ Failed to clone ansible-inventory${NC}"
+if [ ! -d "ahab-inventory" ]; then
+    echo "  → Cloning ahab-inventory..."
+    if ! git clone "git@github.com:${GITHUB_USER}/ahab-inventory.git"; then
+        echo -e "${RED}✗ Failed to clone ahab-inventory${NC}"
         echo "  Check your GitHub SSH keys and network connection"
         exit 1
     fi
 else
-    echo "  ✓ ansible-inventory exists"
+    echo "  ✓ ahab-inventory exists"
 fi
 
-if [ ! -d "ansible-config" ]; then
-    echo "  → Cloning ansible-config..."
-    if ! git clone "git@github.com:${GITHUB_USER}/ansible-config.git"; then
-        echo -e "${RED}✗ Failed to clone ansible-config${NC}"
+if [ ! -d "ahab-config" ]; then
+    echo "  → Cloning ahab-config..."
+    if ! git clone "git@github.com:${GITHUB_USER}/ahab-config.git"; then
+        echo -e "${RED}✗ Failed to clone ahab-config${NC}"
         echo "  Check your GitHub SSH keys and network connection"
         exit 1
     fi
 else
-    echo "  ✓ ansible-config exists"
+    echo "  ✓ ahab-config exists"
 fi
 
 echo ""
@@ -221,13 +221,13 @@ cd "${BASE_DIR}/ahab"
 git checkout dev
 echo "  ✓ ahab on dev"
 
-cd "${BASE_DIR}/ansible-inventory"
+cd "${BASE_DIR}/ahab-inventory"
 git checkout dev
-echo "  ✓ ansible-inventory on dev"
+echo "  ✓ ahab-inventory on dev"
 
-cd "${BASE_DIR}/ansible-config"
+cd "${BASE_DIR}/ahab-config"
 git checkout dev
-echo "  ✓ ansible-config on dev"
+echo "  ✓ ahab-config on dev"
 
 # Checkout dev branch in ahab-modules submodule if it exists
 if [ -d "${BASE_DIR}/ahab/modules/.git" ]; then
@@ -244,15 +244,15 @@ echo ""
 # Create symbolic links to tie the repositories together
 # This allows ahab to access inventory seamlessly
 # Symlinks:
-#   - inventory -> ../ansible-inventory (host definitions)
+#   - inventory -> ../ahab-inventory (host definitions)
 # Note: modules directory is managed as a Git submodule, not a symlink
 # Note: config.yml removed - ahab.conf is the single source of truth
 echo "Step 4: Creating symlinks..."
 cd "${BASE_DIR}/ahab"
 
 if [ ! -L "inventory" ]; then
-    ln -s ../ansible-inventory inventory
-    echo "  ✓ Created inventory → ../ansible-inventory"
+    ln -s ../ahab-inventory inventory
+    echo "  ✓ Created inventory → ../ahab-inventory"
 else
     echo "  ✓ inventory symlink exists"
 fi
@@ -267,20 +267,20 @@ echo ""
 # All repos share the same Makefile targets for consistency
 echo "Step 5: Creating Makefile symlinks..."
 
-cd "${BASE_DIR}/ansible-inventory"
+cd "${BASE_DIR}/ahab-inventory"
 if [ ! -L "Makefile" ]; then
     ln -s ../ahab/Makefile Makefile
-    echo "  ✓ Created ansible-inventory/Makefile → ../ahab/Makefile"
+    echo "  ✓ Created ahab-inventory/Makefile → ../ahab/Makefile"
 else
-    echo "  ✓ ansible-inventory/Makefile symlink exists"
+    echo "  ✓ ahab-inventory/Makefile symlink exists"
 fi
 
-cd "${BASE_DIR}/ansible-config"
+cd "${BASE_DIR}/ahab-config"
 if [ ! -L "Makefile" ]; then
     ln -s ../ahab/Makefile Makefile
-    echo "  ✓ Created ansible-config/Makefile → ../ahab/Makefile"
+    echo "  ✓ Created ahab-config/Makefile → ../ahab/Makefile"
 else
-    echo "  ✓ ansible-config/Makefile symlink exists"
+    echo "  ✓ ahab-config/Makefile symlink exists"
 fi
 
 echo ""
@@ -297,33 +297,33 @@ echo ""
 echo "Step 6: Creating example configuration files..."
 
 # Dev inventory
-if [ ! -f "${BASE_DIR}/ansible-inventory/dev/hosts.yml" ]; then
-    if [ -f "${BASE_DIR}/ansible-inventory/dev/hosts.yml.example" ]; then
-        cp "${BASE_DIR}/ansible-inventory/dev/hosts.yml.example" "${BASE_DIR}/ansible-inventory/dev/hosts.yml"
+if [ ! -f "${BASE_DIR}/ahab-inventory/dev/hosts.yml" ]; then
+    if [ -f "${BASE_DIR}/ahab-inventory/dev/hosts.yml.example" ]; then
+        cp "${BASE_DIR}/ahab-inventory/dev/hosts.yml.example" "${BASE_DIR}/ahab-inventory/dev/hosts.yml"
         echo "  ✓ Created dev/hosts.yml from example"
-        echo -e "  ${YELLOW}⚠  Edit ansible-inventory/dev/hosts.yml with your hosts${NC}"
+        echo -e "  ${YELLOW}⚠  Edit ahab-inventory/dev/hosts.yml with your hosts${NC}"
     fi
 else
     echo "  ✓ dev/hosts.yml exists"
 fi
 
 # Prod inventory
-if [ ! -f "${BASE_DIR}/ansible-inventory/prod/hosts.yml" ]; then
-    if [ -f "${BASE_DIR}/ansible-inventory/prod/hosts.yml.example" ]; then
-        cp "${BASE_DIR}/ansible-inventory/prod/hosts.yml.example" "${BASE_DIR}/ansible-inventory/prod/hosts.yml"
+if [ ! -f "${BASE_DIR}/ahab-inventory/prod/hosts.yml" ]; then
+    if [ -f "${BASE_DIR}/ahab-inventory/prod/hosts.yml.example" ]; then
+        cp "${BASE_DIR}/ahab-inventory/prod/hosts.yml.example" "${BASE_DIR}/ahab-inventory/prod/hosts.yml"
         echo "  ✓ Created prod/hosts.yml from example"
-        echo -e "  ${YELLOW}⚠  Edit ansible-inventory/prod/hosts.yml with your hosts${NC}"
+        echo -e "  ${YELLOW}⚠  Edit ahab-inventory/prod/hosts.yml with your hosts${NC}"
     fi
 else
     echo "  ✓ prod/hosts.yml exists"
 fi
 
 # Workstation inventory
-if [ ! -f "${BASE_DIR}/ansible-inventory/workstation/hosts.yml" ]; then
-    if [ -f "${BASE_DIR}/ansible-inventory/workstation/hosts.yml.example" ]; then
-        cp "${BASE_DIR}/ansible-inventory/workstation/hosts.yml.example" "${BASE_DIR}/ansible-inventory/workstation/hosts.yml"
+if [ ! -f "${BASE_DIR}/ahab-inventory/workstation/hosts.yml" ]; then
+    if [ -f "${BASE_DIR}/ahab-inventory/workstation/hosts.yml.example" ]; then
+        cp "${BASE_DIR}/ahab-inventory/workstation/hosts.yml.example" "${BASE_DIR}/ahab-inventory/workstation/hosts.yml"
         echo "  ✓ Created workstation/hosts.yml from example"
-        echo -e "  ${YELLOW}⚠  Edit ansible-inventory/workstation/hosts.yml with your hosts${NC}"
+        echo -e "  ${YELLOW}⚠  Edit ahab-inventory/workstation/hosts.yml with your hosts${NC}"
     fi
 else
     echo "  ✓ workstation/hosts.yml exists"
@@ -360,8 +360,8 @@ fi
 
 # Check git branches
 CONTROL_BRANCH=$(cd "${BASE_DIR}/ahab" && git rev-parse --abbrev-ref HEAD)
-INVENTORY_BRANCH=$(cd "${BASE_DIR}/ansible-inventory" && git rev-parse --abbrev-ref HEAD)
-CONFIG_BRANCH=$(cd "${BASE_DIR}/ansible-config" && git rev-parse --abbrev-ref HEAD)
+INVENTORY_BRANCH=$(cd "${BASE_DIR}/ahab-inventory" && git rev-parse --abbrev-ref HEAD)
+CONFIG_BRANCH=$(cd "${BASE_DIR}/ahab-config" && git rev-parse --abbrev-ref HEAD)
 
 if [ "$CONTROL_BRANCH" = "dev" ] && [ "$INVENTORY_BRANCH" = "dev" ] && [ "$CONFIG_BRANCH" = "dev" ]; then
     echo "  ✓ All repos on dev branch"
@@ -372,8 +372,8 @@ fi
 # Verify all four repositories exist
 REPOS_FOUND=0
 [ -d "${BASE_DIR}/ahab/.git" ] && ((REPOS_FOUND++))
-[ -d "${BASE_DIR}/ansible-inventory/.git" ] && ((REPOS_FOUND++))
-[ -d "${BASE_DIR}/ansible-config/.git" ] && ((REPOS_FOUND++))
+[ -d "${BASE_DIR}/ahab-inventory/.git" ] && ((REPOS_FOUND++))
+[ -d "${BASE_DIR}/ahab-config/.git" ] && ((REPOS_FOUND++))
 [ -d "${BASE_DIR}/ahab/modules/.git" ] && ((REPOS_FOUND++))
 
 if [ $REPOS_FOUND -eq 4 ]; then
@@ -390,8 +390,8 @@ echo ""
 echo -e "${BLUE}Installation Summary:${NC}"
 echo "  • Four repositories cloned and configured"
 echo "    - ahab (orchestration)"
-echo "    - ansible-config (configuration)"
-echo "    - ansible-inventory (environments)"
+echo "    - ahab-config (configuration)"
+echo "    - ahab-inventory (environments)"
 echo "    - ahab-modules (service definitions)"
 echo "  • Symlinks created for seamless integration"
 echo "  • ahab-modules configured as Git submodule"
@@ -402,7 +402,7 @@ echo -e "${BLUE}Next Steps:${NC}"
 echo ""
 echo -e "${YELLOW}1. Configure Your Inventory${NC}"
 echo "   Edit the list of computers you want to manage:"
-echo "   ${BASE_DIR}/ansible-inventory/dev/hosts.yml"
+echo "   ${BASE_DIR}/ahab-inventory/dev/hosts.yml"
 echo ""
 echo -e "${YELLOW}2. Customize Configuration${NC}"
 echo "   Set your preferences and variables:"

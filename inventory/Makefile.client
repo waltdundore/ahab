@@ -17,7 +17,7 @@ help:
 	@echo ""
 
 sync:
-	@echo "Syncing ansible-inventory..."
+	@echo "Syncing ahab-inventory..."
 	@git fetch origin
 	@git pull origin $(CURRENT_BRANCH)
 	@echo "✓ Synced with remote"

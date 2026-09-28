@@ -124,8 +124,24 @@ check_privileged_containers() {
 # Shellcheck Validation
 # ==============================================================================
 
+# D-82: exit code of an INCOMPLETE shellcheck run — the binary is absent, so
+# the suite was SKIPPED. A missing tool must never be reported as per-script
+# findings and never as a pass. Distinct from any real finding count: there
+# are far fewer than 111 scripts in scripts/ (measured 33 at filing).
+SHELLCHECK_SKIPPED_RC=111
+
 run_shellcheck_validation() {
     echo "→ Running shellcheck on all scripts..."
+
+    # Probe ONCE before the loop (D-82, law 11): if the binary is absent,
+    # print one honest line naming the tool and its fix route, mark the
+    # suite SKIPPED, and return a non-zero incomplete-run signal so no
+    # caller can print an all-green summary.
+    if ! command -v shellcheck >/dev/null 2>&1; then
+        echo "⚠ shellcheck is not installed — shellcheck suite SKIPPED (incomplete run, not a pass). Fix: converge playbooks/install-prerequisites.yml"
+        return $SHELLCHECK_SKIPPED_RC
+    fi
+
     local shellcheck_errors=0
     
     for script in scripts/*.sh; do
@@ -195,12 +211,20 @@ check_rule_s10_zero_warnings() {
     echo "Checking Security Rule: Zero Warnings..."
     echo ""
     
-    if run_shellcheck_validation; then
+    local rc=0
+    run_shellcheck_validation || rc=$?
+
+    if [ $rc -eq 0 ]; then
         echo "✓ PASS: All scripts pass shellcheck"
         return 0
+    elif [ "$rc" -eq "$SHELLCHECK_SKIPPED_RC" ]; then
+        # D-82: tool absent → the suite never ran. Stay non-zero so the
+        # caller cannot report green, but never claim script findings for a
+        # check that did not execute (a verifier asserts only what ran).
+        echo "⚠ INCOMPLETE: shellcheck suite SKIPPED — tool not installed (see line above); no green result possible"
+        return 1
     else
-        local shellcheck_errors=$?
-        echo "✗ FAIL: $shellcheck_errors script(s) have shellcheck warnings"
+        echo "✗ FAIL: $rc script(s) have shellcheck warnings"
         return 1
     fi
 }

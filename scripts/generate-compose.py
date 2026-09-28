@@ -66,6 +66,19 @@ def generate_compose(modules, modules_dir, output_file):
     print(f"✓ Services: {', '.join(compose['services'].keys())}")
 
 def main():
+    try:  # Sentry error reporting (operator directive 2026-09-14); non-fatal if SDK absent
+        import sentry_sdk
+
+        sentry_sdk.init(
+            # tier-1 machinery: no baked env values (portability law); deploy injects SENTRY_DSN
+            dsn=os.environ.get("SENTRY_DSN"),
+            # Add data like request headers and IP for users,
+            # see https://docs.sentry.io/platforms/python/data-management/data-collected/
+            send_default_pii=True,
+        )
+    except ImportError:
+        pass
+
     if len(sys.argv) < 2:
         print("Usage: generate-compose.py MODULE [MODULE...]", file=sys.stderr)
         print("Example: generate-compose.py apache mysql", file=sys.stderr)

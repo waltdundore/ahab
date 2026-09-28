@@ -191,7 +191,7 @@ This file is the **foundation** of the project. When you change the philosophy h
 1. DEVELOPMENT_RULES.md - Core Principles must align
 2. README.md - Mission statement must match
 3. index.html - Philosophy section must match
-4. SPECIFICATIONS.md - Requirements must serve the mission
+4. docs/archive/2026-09/docs/architecture/SPECIFICATIONS.md - Requirements must serve the mission
 
 **Rule**: Philosophy changes flow DOWN to all other documents. Never let code changes drive philosophy changes.
 

@@ -8,8 +8,8 @@
 #
 # Included by:
 #   - ahab/Makefile
-#   - ansible-config/Makefile
-#   - ansible-inventory/Makefile
+#   - ahab-config/Makefile
+#   - ahab-inventory/Makefile
 #
 # Provides:
 #   - sync: Pull latest changes from remote

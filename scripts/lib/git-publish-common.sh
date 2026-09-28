@@ -94,11 +94,35 @@ handle_push_protection() {
 # Publishing Functions
 # ==============================================================================
 
+# Promotion is the only prod path (operator law, 2026-09-28): the agent key must never push
+# prod, by ordinary push or by force-with-lease. The override is an environment variable on
+# purpose — a flag would be discoverable in shell history by the agent that must stop.
+prod_push_guard() {
+    local branch="${1:-}"
+
+    case "$branch" in
+        prod|refs/heads/prod)
+            if [ "${PROMOTE_ALLOW_PROD:-0}" = "1" ]; then
+                print_warning "PROMOTE_ALLOW_PROD=1 — pushing prod outside the promotion script"
+                return 0
+            fi
+            print_error "refusing to push prod with the agent key"
+            echo "use scripts/promote-to-prod.sh (operator-run)"
+            echo "override: PROMOTE_ALLOW_PROD=1"
+            return 1
+            ;;
+    esac
+
+    return 0
+}
+
 # Publish single branch with transparency
 git_publish_branch() {
     local branch="${1:-$DEFAULT_BRANCH}"
     local remote="${2:-origin}"
-    
+
+    prod_push_guard "$branch" || return 1
+
     print_section "Publishing Branch: $branch"
     
     # Validate inputs
@@ -217,7 +241,9 @@ git_publish_all() {
 git_publish_force() {
     local branch="${1:-$DEFAULT_BRANCH}"
     local remote="${2:-origin}"
-    
+
+    prod_push_guard "$branch" || return 1
+
     print_section "Force Publishing Branch: $branch"
     print_warning "Using force push - this can overwrite remote history"
     

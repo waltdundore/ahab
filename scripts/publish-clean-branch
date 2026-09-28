@@ -148,10 +148,26 @@ the security testing framework through private repository integration."
     print_section "Updating all branches to clean state"
     
     local branches="dev prod master workstation milestone-system-v1"
+    local push_branches=""
+    local b
+
+    # prod is promotion-only (operator law, 2026-09-28): this tool force-moves branches, so it
+    # must never force-move prod. Override with PROMOTE_ALLOW_PROD=1, operator-run only.
+    for b in $branches; do
+        if [ "$b" = "prod" ] && [ "${PROMOTE_ALLOW_PROD:-0}" != "1" ]; then
+            print_warning "excluding prod — promotion is the only prod path (override: PROMOTE_ALLOW_PROD=1)"
+            continue
+        fi
+        push_branches="$push_branches $b"
+    done
+
+    print_info "Will force-update and push:$push_branches"
+    echo ""
+
     local success_count=0
     local total_count=0
-    
-    for branch in $branches; do
+
+    for branch in $push_branches; do
         ((total_count++))
         
         if git show-ref --verify --quiet "refs/heads/$branch"; then

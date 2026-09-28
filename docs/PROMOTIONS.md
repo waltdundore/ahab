@@ -9,7 +9,7 @@ promotes, and the script is the sole mechanism
 Line format:
 
 ```
-UTC | repo | source-ref source-sha → prod-sha | actor-email (whoami) | tag | rollback: git revert --no-commit <prod-before>..<prod-after> && git commit -m "revert promote <tag>"
+UTC | repo | source-ref source-sha → prod-sha | actor-email (whoami) | tag | rollback: git revert --no-commit <prod-before>..<prod-after> && git commit -m "revert <tag>"
 ```
 
 - **Append-only.** Never edit, reorder, or delete an existing line; correct a mistake with a new line.

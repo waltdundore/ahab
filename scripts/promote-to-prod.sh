@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 #
 # promote-to-prod.sh — the sole mechanism for moving a source ref onto prod.
-# Doctrine: docs/standards/gitops-2026-09-10.md rule "10. Promotion".
+# Doctrine: docs/standards/gitops-2026-09-10.md rule 11 (Promotion).
 #
 # Fast-forward only. Tagged. Append-only ledger. Never merges, never rebases,
 # never forces. Dry-run is the default and mutates nothing.
+#
+# Usage: promote-to-prod.sh [--source <ref>] [--push] [--repo <path>]
+#   --source  ref to promote, tried as <ref> then origin/<ref>. Omit it and the source defaults to
+#             dev then development (same two-step); if none resolve, exit 2 lists `git branch -r`.
+#   --push    promote for real: switch, ff-merge, tag, append + commit the ledger, one push.
+#             Valid on its own — the default source is resolved and every gate still runs.
+#   --repo    repo to operate on (default: the repo containing this script)
+#   PROMOTE_ALLOWED_EMAILS   space-separated allowlist, overrides the default
 #
 # Gate 5 allowlists the AUTHOR and COMMITTER of every commit in <target>..<source>,
 # not the identity running the script: `merge --ff-only` creates no commit, so
@@ -13,16 +21,10 @@
 # undo the four already in homelab prod history (pm@dundore.net x2,
 # ahab-pm@dundore.net x2).
 #
-# Usage: promote-to-prod.sh --source <ref> [--push] [--repo <path>]
-#   --source  ref to promote (required; missing => usage, exit 2)
-#   --push    actually promote: switch, ff-merge, tag, append + commit the ledger, one push
-#
 # Rollback is the RANGE revert, not revert-to-tag. A fast-forward promotion creates no merge
 # commit, so `git revert -m 1 <tag>` reverts the tag's own commit only: measured 2026-09-28, a
 # 3-commit promotion left 2 of 3 commits in place and still exited 0. The ledger therefore stores
 # `git revert --no-commit <prod-before>..<prod-after> && git commit`, and the tag is an identifier.
-#   --repo    repo to operate on (default: the repo containing this script)
-#   PROMOTE_ALLOWED_EMAILS   space-separated allowlist, overrides the default
 #
 # Exit codes
 #   0  dry-run completed, or --push completed
@@ -39,7 +41,8 @@ DEFAULT_ALLOWED="walt@dundore.org walt@dundore.net wdundore@d701.dundore.net wdu
 ALLOWLIST="${PROMOTE_ALLOWED_EMAILS:-$DEFAULT_ALLOWED}"
 
 usage() {
-  printf 'usage: %s --source <ref> [--push] [--repo <path>]\n' "${0##*/}" >&2
+  printf 'usage: %s [--source <ref>] [--push] [--repo <path>]\n' "${0##*/}" >&2
+  printf '       source defaults to origin/dev, else origin/development\n' >&2
   printf '       dry-run by default; --push is required to mutate anything\n' >&2
 }
 
@@ -75,8 +78,6 @@ while [ "$#" -gt 0 ]; do
     *) printf 'unknown argument: %s\n' "$1" >&2; usage; exit 2 ;;
   esac
 done
-if [ -z "$source_ref" ]; then usage; exit 2; fi
-
 if [ -z "$repo" ]; then
   script_dir="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
   repo="$script_dir"
@@ -101,14 +102,22 @@ for redir in rebase-merge rebase-apply; do
   fi
 done
 
-dirty="$(git -C "$root" status --porcelain)"
-if [ -n "$dirty" ]; then
-  if [ "$do_push" -eq 1 ]; then
-    die 2 "1" "working tree is not clean; --push refuses to switch branches over it" \
-      "dirty entries: $(count_lines "$dirty")" \
-      "next: commit or stash them, then re-run"
+# Gate 1 keys on TRACKED changes: those are what a branch switch can clobber. Untracked files are
+# a warning — a checkout cannot overwrite them unless a tracked file of the same name arrives, and
+# git refuses outright in that case. Counting `??` as dirty would deadlock --push on any scratch
+# file, including this script before it is committed.
+dirty_block=0
+tracked="$(git -C "$root" diff --stat; git -C "$root" diff --cached --stat)"
+tracked_files="$(printf '%s\n' "$tracked" | awk -F'|' '/\|/ { gsub(/^ +/, "", $1); print $1 }' | tr '\n' ' ')"
+untracked="$(git -C "$root" status --porcelain | sed -n 's/^?? //p')"
+if [ -n "$tracked" ]; then
+  dirty_block=1
+  if [ "$do_push" -eq 0 ]; then
+    warn "tracked changes present (${tracked_files:-see git status}) — dry-run reads only; --push would stop here"
   fi
-  warn "working tree is not clean ($(count_lines "$dirty") entries) — dry-run reads only, but --push would stop here"
+fi
+if [ -n "$untracked" ]; then
+  warn "untracked files, left in place: $(printf '%s\n' "$untracked" | tr '\n' ' ')"
 fi
 
 if ! git -C "$root" remote get-url origin >/dev/null 2>&1; then
@@ -117,6 +126,43 @@ fi
 if ! git -C "$root" ls-remote origin >/dev/null 2>&1; then
   die 2 "1" "origin is not reachable: $(git -C "$root" remote get-url origin)" \
     "next: restore access to origin, then re-run (this script never fetches)"
+fi
+
+# ---------------------------------------------------- gate 2a: pick the source ref
+# Each name is tried as <ref>, then as origin/<ref> — the operator types `--source dev` whether or
+# not a local dev branch exists, and neither repo is required to carry one.
+resolve_ref() { # <ref> → prints the ref that resolves, or nothing
+  local r="$1"
+  if git -C "$root" rev-parse --verify --quiet "${r}^{commit}" >/dev/null 2>&1; then
+    printf '%s\n' "$r"
+  elif git -C "$root" rev-parse --verify --quiet "origin/${r}^{commit}" >/dev/null 2>&1; then
+    printf '%s\n' "origin/$r"
+  fi
+}
+list_remote_branches() { git -C "$root" branch -r | sed 's/^ *//' | head -40 | tr '\n' ' '; }
+
+if [ -n "$source_ref" ]; then
+  requested="$source_ref"
+  source_ref="$(resolve_ref "$requested" || true)"
+  if [ -z "$source_ref" ]; then
+    die 2 "2" "source ref does not resolve: $requested (tried $requested and origin/$requested)" \
+      "remote branches: $(list_remote_branches)" \
+      "next: $0 --source <ref>"
+  fi
+  if [ "$source_ref" != "$requested" ]; then
+    note "source: $source_ref (resolved from --source $requested)"
+  fi
+else
+  for cand in dev development; do
+    source_ref="$(resolve_ref "$cand" || true)"
+    if [ -n "$source_ref" ]; then break; fi
+  done
+  if [ -z "$source_ref" ]; then
+    die 2 "2" "no default source: neither dev nor development resolves locally or on origin" \
+      "remote branches: $(list_remote_branches)" \
+      "next: $0 --source <ref>"
+  fi
+  note "source: $source_ref (default — override with --source <ref>)"
 fi
 
 # ------------------------------------------------------ gate 2: refs resolve
@@ -156,8 +202,7 @@ if ! git -C "$root" merge-base --is-ancestor "$target_sha" "$source_sha"; then
   if [ "$behind_total" -gt 20 ]; then
     printf '  (sample: 20 of %s)\n' "$behind_total" >&2
   fi
-  printf '  next: rebase %s onto %s, or promote another ref. Divergence is the operator call.\n' \
-    "$source_ref" "$TARGET_BRANCH" >&2
+  printf '  next: git fetch origin && git log --oneline %s..%s | head\n' "$source_ref" "$TARGET_BRANCH" >&2
   exit 3
 fi
 
@@ -233,7 +278,7 @@ fi
 utc_human="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 tag="promote-${repo_name}-$(date -u +%Y%m%dT%H%M%SZ)"
 ledger="docs/PROMOTIONS.md"
-rollback_cmd="git revert --no-commit ${target_sha}..${source_sha} && git commit -m \"revert promote ${tag}\""
+rollback_cmd="git revert --no-commit ${target_sha}..${source_sha} && git commit -m \"revert ${tag}\""
 actor="$(git -C "$root" config user.email || echo '<unset>')"
 
 note "repo:    $repo_name ($root)"
@@ -258,6 +303,11 @@ if [ "$do_push" -eq 0 ]; then
 fi
 
 # ------------------------------------------------------------------ --push path
+if [ "$dirty_block" -eq 1 ]; then
+  die 2 "1" "working tree is not clean; --push refuses to switch branches over it" \
+    "tracked files: ${tracked_files}" \
+    "next: commit or stash them, then re-run"
+fi
 note ""
 note "PROMOTING $repo_name: $TARGET_BRANCH $target_sha -> $source_sha"
 if ! git -C "$root" switch "$TARGET_BRANCH"; then

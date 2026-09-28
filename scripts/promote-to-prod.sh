@@ -276,7 +276,12 @@ fi
 
 # -------------------------------------------------------- gate 6: report, then maybe act
 utc_human="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-tag="promote-${repo_name}-$(date -u +%Y%m%dT%H%M%SZ)"
+tag_base="promote-${repo_name}-$(date -u +%Y%m%dT%H%M%SZ)"
+tag="$tag_base"
+tag_n=1
+while git -C "$root" rev-parse --verify --quiet "refs/tags/${tag}^{commit}" >/dev/null 2>&1; do
+  tag_n=$((tag_n + 1)); tag="${tag_base}-${tag_n}"
+done
 ledger="docs/PROMOTIONS.md"
 rollback_cmd="git revert --no-commit ${target_sha}..${source_sha} && git commit -m \"revert ${tag}\""
 actor="$(git -C "$root" config user.email || echo '<unset>')"

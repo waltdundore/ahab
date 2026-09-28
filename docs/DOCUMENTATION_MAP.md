@@ -19,23 +19,23 @@ When you need to update content, which file do you update? If you update the wro
 
 | Content Type | Authoritative Source | Who Links To It |
 |-------------|---------------------|-----------------|
-| **Core Principles** | DEVELOPMENT_RULES.md | README.md, ABOUT.md, PRIORITIES.md |
-| **Quick Start Commands** | README.md | START_HERE.md, README-STUDENTS.md, DEVELOPMENT_RULES.md |
+| **Core Principles** | DEVELOPMENT_RULES.md | README.md, ABOUT.md (PRIORITIES.md REMOVED 2026-09-28: file does not exist) |
+| **Quick Start Commands** | README.md | START_HERE.md, DEVELOPMENT_RULES.md (README-STUDENTS.md REMOVED 2026-09-28: file does not exist) |
 | **Repository Structure** | README.md | START_HERE.md, ABOUT.md |
 | **Module Architecture** | docs/MODULE_ARCHITECTURE.md | README.md, DEVELOPMENT_RULES.md |
 | **Mission & Vision** | ABOUT.md | README.md, docs/archive/2026-09/EXECUTIVE_SUMMARY.md |
 | **Release Process** | ABOUT.md | DEVELOPMENT_RULES.md, docs/archive/2026-09/QUEUE.md |
 | **Testing Guidelines** | TESTING.md | DEVELOPMENT_RULES.md, README.md |
 | **NASA Standards** | DEVELOPMENT_RULES.md | All code files (comments) |
-| **Configuration** | ahab.conf | Vagrantfile, Makefile, scripts |
+| **Configuration** | REMOVED 2026-09-28: ahab.conf does not exist — config lives in inventory/group_vars/ and role defaults | Vagrantfile, Makefile, scripts |
 
 ### Development Content
 
 | Content Type | Authoritative Source | Who Links To It |
 |-------------|---------------------|-----------------|
 | **Development Rules** | DEVELOPMENT_RULES.md | README.md, ABOUT.md, docs/archive/2026-09/QUEUE.md |
-| **Work Queue** | docs/archive/2026-09/QUEUE.md | PRIORITIES.md, DEVELOPMENT_RULES.md |
-| **Priorities** | PRIORITIES.md | docs/archive/2026-09/QUEUE.md, README.md |
+| **Work Queue** | docs/archive/2026-09/QUEUE.md | DEVELOPMENT_RULES.md (PRIORITIES.md REMOVED 2026-09-28: file does not exist) |
+| **Priorities** | REMOVED 2026-09-28: PRIORITIES.md does not exist — priorities live in BLUEPRINT.md | docs/archive/2026-09/QUEUE.md, README.md |
 | **Improvements** | docs/archive/2026-09/IMPROVEMENTS.md | docs/archive/2026-09/docs/WORKFLOW_IMPROVEMENT.md |
 | **Changelog** | CHANGELOG.md | README.md, release notes |
 
@@ -46,8 +46,8 @@ When you need to update content, which file do you update? If you update the wro
 | **Getting Started** | START_HERE.md | README.md (for new users) |
 | **Technical Overview** | README.md | All other docs |
 | **Executive Summary** | docs/archive/2026-09/EXECUTIVE_SUMMARY.md | README.md, ABOUT.md |
-| **Student Guide** | README-STUDENTS.md | README.md |
-| **Troubleshooting** | TROUBLESHOOTING.md | README.md, error messages |
+| **Student Guide** | REMOVED 2026-09-28: README-STUDENTS.md does not exist — student path lives in docs/learn/ | README.md |
+| **Troubleshooting** | REMOVED 2026-09-28: TROUBLESHOOTING.md does not exist | README.md, error messages |
 
 ---
 

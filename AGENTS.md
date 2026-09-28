@@ -54,6 +54,9 @@ If no — fix it or let it be archived. Never silently restore an archived file.
 A channel that errors is **telling you something** (a prerequisite isn't up),
 not asking you to work around it. Report it; don't paper over it.
 
+The binding rules for every contribution are in [DEVELOPMENT_RULES.md](DEVELOPMENT_RULES.md) —
+the root copy is canonical; the files under `docs/developer/` are pointer stubs, not rules.
+
 ## Authority order (follow top to bottom)
 
 1. **Live state** → the MCP channels above. Never guess an IP, hostname, port,

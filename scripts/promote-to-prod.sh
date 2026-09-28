@@ -21,10 +21,14 @@
 # undo the four already in homelab prod history (pm@dundore.net x2,
 # ahab-pm@dundore.net x2).
 #
-# Rollback is the RANGE revert, not revert-to-tag. A fast-forward promotion creates no merge
-# commit, so `git revert -m 1 <tag>` reverts the tag's own commit only: measured 2026-09-28, a
-# 3-commit promotion left 2 of 3 commits in place and still exited 0. The ledger therefore stores
-# `git revert --no-commit <prod-before>..<prod-after> && git commit`, and the tag is an identifier.
+# Rollback is a TREE RESTORE, not a revert. Neither revert form works as a primitive:
+#   `git revert -m 1 <tag>`   undoes the tag's own commit only — measured 2026-09-28, a 3-commit
+#                             fast-forward left 2 of 3 commits in place and still exited 0.
+#   `git revert A..B`         aborts when the range contains a merge commit — auditor A-21,
+#                             2026-09-28, on ahab's real 41edb51..c03adb6 range (merge c03adb6).
+# Restoring the tree states the intent directly — one new commit that makes prod's tree equal the
+# pre-promotion tree — so it needs no force, no -m, and no assumption about what the range held.
+# The tag stays as the identifier only.
 #
 # Exit codes
 #   0  dry-run completed, or --push completed
@@ -276,9 +280,14 @@ fi
 
 # -------------------------------------------------------- gate 6: report, then maybe act
 utc_human="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-tag="promote-${repo_name}-$(date -u +%Y%m%dT%H%M%SZ)"
+tag_base="promote-${repo_name}-$(date -u +%Y%m%dT%H%M%SZ)"
+tag="$tag_base"
+tag_n=1
+while git -C "$root" rev-parse --verify --quiet "refs/tags/${tag}^{commit}" >/dev/null 2>&1; do
+  tag_n=$((tag_n + 1)); tag="${tag_base}-${tag_n}"
+done
 ledger="docs/PROMOTIONS.md"
-rollback_cmd="git revert --no-commit ${target_sha}..${source_sha} && git commit -m \"revert ${tag}\""
+rollback_cmd="git -C ${root} restore --source=${target_sha} --staged --worktree -- :/ && git commit -m \"rollback prod to ${target_sha}\""
 actor="$(git -C "$root" config user.email || echo '<unset>')"
 
 note "repo:    $repo_name ($root)"
@@ -294,7 +303,7 @@ git -C "$root" log --oneline "${target_sha}..${source_sha}" | sed 's/^/  /' || t
 note "diff:"
 git -C "$root" diff --stat "${target_sha}..${source_sha}" | sed 's/^/  /' || true
 note "rollback: $rollback_cmd"
-note "          (a fast-forward promotion creates no merge commit; 'git revert -m 1 $tag' would undo only the tip commit of $count)"
+note "          (restores the whole tree in one commit; revert-to-tag would undo 1 of $count, and a range revert fails if $count contains a merge)"
 
 if [ "$do_push" -eq 0 ]; then
   note ""

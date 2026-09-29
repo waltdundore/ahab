@@ -22,3 +22,4 @@ UTC | repo | source-ref source-sha → prod-sha | actor-email (whoami) | tag | r
   aborts outright when the range contains a merge commit — auditor A-21, 2026-09-28, on ahab's real
   `41edb51..c03adb6`. The tag names the promotion; it is not the rollback mechanism. Revert-to-tag
   remains correct for tag-deployed releases (law 9).
+2026-09-29T21:47:36Z | ahab | dev 2e85c0c → 2e85c0c | walt@dundore.org (wdundore) | promote-ahab-20260929T214736Z | rollback: git -C /home/wdundore/git/ahab restore --source=41edb51f4b1e1947b7d96f45061fdf00c186bf96 --staged --worktree -- :/ && git commit -m "rollback prod to 41edb51f4b1e1947b7d96f45061fdf00c186bf96"

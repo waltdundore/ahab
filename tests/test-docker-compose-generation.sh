@@ -124,7 +124,7 @@ if python3 -c "import yaml" 2>/dev/null; then
 else
     print_fail "PyYAML not installed"
     echo "Installing PyYAML..."
-    if pip3 install pyyaml --quiet; then
+    if pip3 install --only-binary :all: pyyaml --quiet; then
         print_pass "PyYAML installed successfully"
     else
         print_fail "Failed to install PyYAML"

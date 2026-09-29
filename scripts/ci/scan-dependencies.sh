@@ -36,7 +36,9 @@ if [ -f "$CHECK_PATH/requirements.txt" ]; then
     # Install pip-audit if not available
     if ! command -v pip-audit >/dev/null 2>&1; then
         print_info "Installing pip-audit..."
-        pip3 install pip-audit --break-system-packages 2>/dev/null || pip3 install pip-audit
+        # --only-binary :all: avoids executing an sdist's setup.py at install time.
+        pip3 install --only-binary :all: pip-audit --break-system-packages 2>/dev/null \
+            || pip3 install --only-binary :all: pip-audit
     fi
     
     # Run pip-audit
@@ -86,9 +88,17 @@ while IFS= read -r -d '' dockerfile; do
         print_info "Installing trivy..."
         if command -v apt-get >/dev/null 2>&1; then
             sudo apt-get update
-            sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-            echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+            sudo apt-get install -y wget gnupg lsb-release
+            # apt-key is deprecated: it injects the key into the global trusted
+            # keyring. Install to a per-repo keyring and pin it with signed-by,
+            # and bound redirects on the key download (CodeQL: unbounded redirect).
+            if [ ! -f /usr/share/keyrings/trivy.gpg ]; then
+                wget --max-redirect=1 -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
+                    | gpg --dearmor \
+                    | sudo tee /usr/share/keyrings/trivy.gpg >/dev/null
+            fi
+            echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" \
+                | sudo tee /etc/apt/sources.list.d/trivy.list
             sudo apt-get update
             sudo apt-get install -y trivy
         else

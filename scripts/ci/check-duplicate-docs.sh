@@ -49,8 +49,9 @@ while IFS= read -r -d '' mdfile; do
             continue
         fi
         
-        # Calculate hash of section content
-        hash=$(echo "$line" | md5sum | awk '{print $1}')
+        # Calculate hash of section content (dedup key only, no security
+        # property; sha256 keeps static-analysis weak-hash alerts out of this signal)
+        hash=$(echo "$line" | sha256sum | awk '{print $1}')
         
         if [ -n "${section_hashes[$hash]:-}" ]; then
             # Duplicate found

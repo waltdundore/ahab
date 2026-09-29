@@ -22,7 +22,9 @@ jobs:
         sudo apt-get install -y shellcheck python3-pip
         # Pin ansible-lint to the version the tree is validated green against
         # so the lint gate is deterministic across CI runs.
-        pip3 install "ansible-core" "ansible-lint==25.12.2" --break-system-packages
+        # --only-binary :all: forbids arbitrary code execution at install time
+        # (setup.py of a sdist); wheels only.
+        pip3 install --only-binary :all: "ansible-core" "ansible-lint==25.12.2" --break-system-packages
         ansible-galaxy collection install ansible.posix community.general community.docker
 
     - name: Ansible syntax check (all playbooks)

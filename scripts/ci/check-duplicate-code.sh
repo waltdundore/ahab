@@ -67,8 +67,9 @@ for func_file in "$TMP_DIR"/*.functions; do
         continue
     fi
     
-    # Calculate hash of function content
-    hash=$(md5sum "$func_file" | awk '{print $1}')
+    # Calculate hash of function content (dedup key only, no security property;
+    # sha256 keeps static-analysis weak-hash alerts out of this signal)
+    hash=$(sha256sum "$func_file" | awk '{print $1}')
     
     if [ -n "${code_hashes[$hash]:-}" ]; then
         # Duplicate found

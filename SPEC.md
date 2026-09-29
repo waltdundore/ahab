@@ -249,3 +249,25 @@ backed by that vault — never in shell history (D-20).
 
 Building the aitora.org app (catalog/swarm/web), NetBox data migration itself,
 geekend.org domain until the lab graduates, GUI (`ahab-gui`) integration.
+
+## 9. Static-analysis backlog, disposition (2026-09-29, PM bookkeeping)
+
+The operator supplied ahab's open analyzer alerts on 2026-09-29. GitHub's code-scanning API returns
+`403 Code scanning is not enabled for this repository`, so the alerts come from a third-party analyzer
+and suppressions must be filed in that UI, not from the CLI. Full verdict table:
+`docs/audits/2026-09-29-static-analysis-triage.md`.
+
+| Alert | Sites | Disposition |
+|---|---|---|
+| weak hash, `md5sum` in the duplicate detectors | `scripts/ci/check-duplicate-code.sh:71`, `check-duplicate-docs.sh:53` | **Substantively false positive** — a dedup key, no security property. Switched to `sha256sum` only because it is zero-risk and silences the class; contingent on nothing persisting a 32-hex digest |
+| "hashing data is safe here" | `scripts/docs/components/lib/git_analyzer.py:588` | **False positive, left alone deliberately.** `hashlib.md5(repo_url)` builds a *filename slug*; changing the digest renames generated doc artifacts. Behaviour change nobody asked for |
+| path traversal via LLM-supplied CLI args | `requirements_parser.py:77`, `generate-docker-compose.py` | **False positive class** — build-time CLIs whose argument *is* a path; no privilege boundary. Conditional on the caller grep in the audit doc; a real untrusted-input path there is escalated, not self-fixed |
+| pip without `--only-binary :all:` / unlocked | `.github/workflows/test.yml:25`, `scripts/validators/Dockerfile:22`, `scripts/ci/scan-dependencies.sh:39`, `tests/test-docker-compose-generation.sh` | **Real.** `--only-binary :all:` added; pinned only where a pin already existed in-repo (`ansible-lint==25.12.2` was already pinned at test.yml:25). Missing pins are the operator's to supply, not invented here |
+| redirects not disabled | `scripts/ci/scan-dependencies.sh:90` | **Real.** Trivy key download was `wget \| sudo apt-key add -` — deprecated mechanism, unbounded redirects. Moved to `signed-by=/usr/share/keyrings/trivy.gpg` + `--max-redirect=1` |
+| "granting access to others" | 10 sites, all `mode: "0644"`/`"0755"` | **False positive.** Correct POSIX defaults for files and directories. No change |
+
+**Separate and more important than any of the above:** ahab's CI does execute (`test.yml` on
+`ubuntu-latest`, 1-2 min) but the last 4 runs are `failure`, last green 2026-09-28T14:58Z. The failure tail
+in the log is post-job cleanup plus `No files were found with the provided path: .test-status` — that is
+not the root cause, and the root cause is still unestablished. A gate that runs and stays red is a gate
+nobody reads; it is tracked ahead of the alert cleanup, not after it.

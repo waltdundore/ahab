@@ -239,7 +239,7 @@ backed by that vault — never in shell history (D-20).
 | Phase | Deliverable | Status |
 |---|---|---|
 | P1 | d701/sager inventory + DNS flip | ✅ DONE (pushed, live; flip pair audited PASS, scoped 2026-09-11 — homelab `docs/audits/2026-09-11-queue12.md`; history `docs/state/PROBED-2026-09.md`) |
-| P2 | This SPEC.md accepted + license decision (B-011) | draft below |
+| P2 | This SPEC.md accepted + license decision (B-011 — **DECIDED** Apache-2.0, operator ruling 2026-10-09) | SPEC draft below; license leg closed |
 | P3 | `waltdundore/aitora` pushed | ✅ DONE (origin `prod` @ `ecf02e6`, live-probed 2026-09-11) |
 | P4 | Directory modules + unified bootstrap extraction (Vagrant evidence) | pending SPEC |
 | P5 | Submodule wiring (`sites/`, dns), `enable: true` NetBox inventory | pending SPEC |

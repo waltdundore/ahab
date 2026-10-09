@@ -238,4 +238,4 @@ chmod -R 755 audit/
 
 ## License
 
-Same as parent project (CC BY-NC-SA 4.0)
+Same as parent project (Apache-2.0)

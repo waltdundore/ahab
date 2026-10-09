@@ -86,9 +86,9 @@ as a rumor — including anything a README once claimed. As of this writing:
 - **Milestone M0** — the self-watching monitoring lattice — is **mid-build**.
   The clean-slate vagrant gate that certifies it hasn't gone green on the
   current host yet (**D-25 / B-017**).
-- **The license is not open source yet** — CC BY-NC-SA 4.0, and relicensing
-  (Apache-2.0 recommended) is a prerequisite of M1 (**B-011**). This is flagged
-  the moment you open the repo, not buried.
+- **The license is open source** — **Apache-2.0**, with the patent grant that
+  made it the M1 prerequisite (**B-011**, resolved by operator decision
+  2026-10-09). This is flagged the moment you open the repo, not buried.
 
 We would rather tell you a thing isn't ready than let you find out at 2 a.m.
 

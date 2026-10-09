@@ -224,10 +224,11 @@ backed by that vault — never in shell history (D-20).
   untestable end-to-end.
 - `dundore-homelab/.gitmodules` declares an uninitialized `dns` submodule while `dns/`
   is a symlink — reconcile in P5.
-- ahab is CC BY-NC-SA 4.0 today — non-commercial, therefore *not* OSI open source,
-  which violates this program's own dogfood/open-source-only law. Relicensing to an
-  OSI license (Apache-2.0 recommended for the patent grant) is a **prerequisite of
-  M1, not an open question** — tracked as **B-011** in BLUEPRINT.
+- **RESOLVED 2026-10-09 (operator decision)**: ahab is **Apache-2.0** — OSI open
+  source with an explicit patent grant, which satisfies this program's
+  dogfood/open-source-only law. Relicensing off the earlier non-commercial license
+  was **a prerequisite of M1, not an open question**, and is now satisfied —
+  **B-011** is closed in BLUEPRINT.
 - NetBox is **not yet deployed** (M3). Desired placement per D-50: DEV box first,
   promoted to prod — the hub is orchestrator-only, never a service host. Ahab then
   consumes the prod NetBox for inventory (M3 flip); `token_path` must move from

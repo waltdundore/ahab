@@ -799,10 +799,10 @@ Every command example teaches the right way. We show the tested, maintained inte
 
 ## License
 
-Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+Apache License 2.0 (Apache-2.0)
 
 - **Free for schools, non-profits, and educational institutions**
-- **For-profit entities**: Contact us to negotiate commercial terms
+- **For-profit entities**: free to use, modify, and distribute under the Apache-2.0 terms
 - See [LICENSE](LICENSE) file for full details
 
 ---

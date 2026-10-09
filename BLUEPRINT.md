@@ -300,8 +300,9 @@ Jenkins posts confirmation back to the dev AND registers a kuma monitor for
 whatever it deployed (law: a service without a monitor does not exist).
 
 **Consequence of law 0 (license):** "fully open-sourced" requires an OSI-approved
-license. ahab is CC BY-NC-SA 4.0 (non-commercial ⇒ NOT open source). Relicensing
-to MIT/Apache-2.0 is now a **prerequisite of M1**, not an open question. (B-011)
+license. ahab is **Apache-2.0** (OSI open source, explicit patent grant) — operator
+decision **2026-10-09**. Relicensing off the earlier non-commercial license was a
+**prerequisite of M1**, not an open question, and is now **satisfied**. (B-011 — resolved)
 
 ## Promotion Model — branches, OS map, gates
 
@@ -571,8 +572,9 @@ spark-audit → close here. No manual fixes, no exceptions, even to "save time."
 |  |  |  | **FILED 2026-09-14 (operator directive)** — remediation units: aitora Vagrantfile + homelab lab surface, vagrant-gated; estate sweep = audit queue 18; aitora receipts `aitora/audit.md` (A4/A5/A11); NFS sub-cause (export-vs-firewall-vs-kernel) deliberately unmeasured per operator hold. **SWEEP RUN 2026-09-14 (queue 18, spark-auditor 6/6 PASS): class confirmed in homelab/aitora/geekend/dnscontrol; |
 |  |  |  | ahab S1-clean (pattern source); template clean. Remediation units per repo in verdict file** |
 
-Open-source-only law: everything we ship is OSS — reinforces B-011 (ahab must
-relicense off CC BY-NC-SA to an OSI license; Apache-2.0 recommended).
+Open-source-only law: everything we ship is OSS — satisfied for ahab by B-011
+(ahab relicensed to an OSI license; Apache-2.0 chosen for the patent grant,
+operator decision 2026-10-09).
 
 ## Documentation Hierarchy — one authority per layer (TCP/IP style)
 
@@ -650,7 +652,7 @@ out of this file to [docs/state/PROBED-2026-09.md](docs/state/PROBED-2026-09.md)
 | B-007 | pi fleet **ping-REACHABLE 2026-09-11** (arm1/arm2/armdev/rpi5-01/rpi5-02 all UP from sager); identity/health/voter-role still unverified | voter node for lattice unknown | ssh+hostname probe per fleet-key pass (B-002 recipe) |
 | B-008 | 9 stashes LOCATED 2026-09-10 — all on the **laptop** (dated 2026-08-11→2026-09-01, mostly `WIP on test` commits, one real: "local drift: opencode.json.j2"); d701's student-safety stash preserved to origin (`shelve/student-safety-law-20260819`); sager swept CLEAN (0 stashes) | hidden drift vs branches | PM decision per stash: the eight `test`-base WIPs are likely discardable; "opencode.json.j2 drift" + 2026-09-01 trio need review before drop |
 | B-009 | d701 /etc/hosts stale (aliases + non-canonical name) | naming law violation; LE/cname scheme depends on it | base-role hostname enforcement after DNS push |
-| B-011 | ahab license CC BY-NC-SA conflicts with dogfood law's "fully open source" | blocks M1 + any public adoption | relicense MIT/Apache-2.0 (PM recommends Apache-2.0 for patent grant) before M1 merge work |
+| B-011 | ~~ahab's non-commercial license conflicts with dogfood law's "fully open source"~~ **RESOLVED / DECIDED (operator 2026-10-09): ahab is Apache-2.0** — the `LICENSE` file on disk is verbatim Apache-2.0 and is the source of truth; README, START_HERE, SPEC, ABOUT, BLUEPRINT corrected the same day | was: blocked M1 + any public adoption | **PM rationale adopted as the reason**: PM recommends Apache-2.0 for the patent grant (over MIT) — operator ratified; no further unlock needed |
 | B-013 | ~~undecided~~ **DECIDED (PM 2026-09-11): canonical = `ahab-config`/`ahab-inventory`** (matches fleet naming law); all wiring (AWX Projects, `repo-git`, submodule URLs) targets `ahab-*` only | was: cannot point AWX Projects / `repo-git` / submodule URLs anywhere until "the one repo" is fixed | twins → lossless GitHub archive + README redirect once gh auth exists on this node (absent on sager); residual work tracked in D-16 |
 | B-014 | **premise flipped 2026-09-11: endpoint IS LIVE** at `https://10.200.10.20:8043` (ping 200) — but uncodified (D-20), `awx.dundore.net` still NXDOMAIN, no ingress, no kuma monitor, tokens unverified (shell-history ones stay burned) | webhook legs now BUILDABLE, not yet wired; controller without monitor/kuma does not exist (law 2) | codified bring-up (D-20): pin version, traefik+dnscontrol record, fresh vault-stored token, kuma monitor; M6 "blocked" framing can relax to "endpoint live, wiring pending" |
 | B-015 | no trunk protection enforced on any repo; direct pushes to `prod` are possible and HAVE happened (conflict markers on homelab `prod`, `6b15085`) | law 7 Tier A is advisory until a forge refuses bad merges | GitHub branch protection on `prod`/`dev` estate-wide (needs gh auth on sager, or do from laptop); Gitea inherits at init |

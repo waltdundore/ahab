@@ -33,10 +33,11 @@ is not true. This README is a thin entrance that links and never copies
 
 ## License — read before adopting any code
 
-[LICENSE](LICENSE) is **CC BY-NC-SA 4.0**: non-commercial, therefore *not*
-open source by OSI definition. That contradicts this project's own dogfood
-law; relicensing (Apache-2.0 recommended) is a prerequisite of milestone M1 —
-tracked as blocker **B-011** in [BLUEPRINT.md](BLUEPRINT.md).
+[LICENSE](LICENSE) is **Apache-2.0**: OSI open source, commercial use permitted,
+with an explicit patent grant — exactly what this project's own dogfood law
+requires. The earlier non-commercial license contradicted that law; relicensing
+closed blocker **B-011** in [BLUEPRINT.md](BLUEPRINT.md) by operator decision
+**2026-10-09**.
 
 ## What actually runs
 

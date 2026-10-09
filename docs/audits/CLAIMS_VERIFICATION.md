@@ -186,16 +186,16 @@
 ## License Claims
 
 ### "Free for schools and non-profits"
-- **Claim**: CC BY-NC-SA 4.0 license
-- **Status**: ✅ VERIFIED - LICENSE file exists
-- **Evidence**: LICENSE file in repo
-- **Last Verified**: 2025-12-07
+- **Claim**: Non-commercial license (free for schools and non-profits)
+- **Status**: ⚠️ SUPERSEDED 2026-10-09 — the repo is **Apache-2.0**; being free for schools and non-profits is still true, but no longer because of a non-commercial license
+- **Evidence**: LICENSE file in repo (verbatim Apache-2.0)
+- **Last Verified**: 2026-10-09
 
 ### "For-profit entities need to negotiate"
 - **Claim**: Commercial licensing available
-- **Status**: ✅ ACCURATE - This is how CC BY-NC works
-- **Evidence**: License terms
-- **Last Verified**: 2025-12-07
+- **Status**: ❌ NO LONGER TRUE — relicensed **Apache-2.0** (operator decision 2026-10-09); for-profit use needs no negotiation
+- **Evidence**: LICENSE file (Apache-2.0)
+- **Last Verified**: 2026-10-09
 
 ---
 

@@ -180,7 +180,7 @@ BLUEPTR diff; this file's §3 replaced by the verified table.
 |---|---|---|---|
 | R-1 | Post-opencode auditor definition | Documented-run-with-evidence (tool-agnostic) — recommended | AUDITED ladder, B-010 |
 | R-2 | Current tool of record for agent workflows | Name it (harness + MCP posture) so docs can be true | P2-10 |
-| R-3 | ahab license (B-011) | Apache-2.0 (recommended, patent grant) / MIT / keep CC BY-NC-SA (contradicts dogfood law) | **M1 merge work** |
+| R-3 | ahab license (B-011) | **DECIDED 2026-10-09 (operator): Apache-2.0** — patent grant; MIT was the alternative, the non-commercial option was rejected as contradicting dogfood law | **M1 merge work — RESOLVED** |
 | R-4 | LLM fleet purpose post-opencode | vLLM/Qwen still serves X (name the client) → keep DGX roles / retire | P2-8, README §7 |
 | R-5 | `todo.md` | Resurrect as work-item store / retire + strip refs (BLUEPTR demotes to generated view) | P1-3 |
 | R-6 | `state/` data (events.jsonl, git-status.json) | Keep for flame pane-of-glass / retire with state_watch | P2-6 |

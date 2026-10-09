@@ -12,6 +12,25 @@
 
 .PHONY: help install clean status ssh test test-security test-security-standards test-integration-simple test-refs test-nasa audit bootstrap check-prerequisites install-prerequisites network-switches network-switches-version network-switches-test milestone-1 milestone-2 milestone-3 milestone-4 milestone-5 milestone-6 milestone-7 milestone-8 milestone-status milestone-reset
 
+# `make help` reads its target inventory from this file; it does not hand-list
+# it (README: "every real target, read from the Makefile itself").
+# TARGETS_IN_MAKEFILE is every target defined in this Makefile.
+# HELP_SHOWN_BELOW names what the curated sections in the `help` recipe
+# describe. A target missing from HELP_SHOWN_BELOW is NOT hidden — `help`
+# prints it under "Other Targets" — so forgetting to update this list degrades
+# to an ungrouped line, never to a silent omission (2026-10-09 consensus: the
+# old hand-echo list had dropped test-security, test-security-standards,
+# test-integration-simple, test-refs, test-nasa, test-on-workstation).
+TARGETS_IN_MAKEFILE = $(sort $(shell grep -hoE '^[A-Za-z][A-Za-z0-9_.-]*:' $(firstword $(MAKEFILE_LIST)) | cut -d: -f1))
+HELP_SHOWN_BELOW = all help \
+	check-prerequisites install-prerequisites bootstrap \
+	network-switches network-switches-version network-switches-test \
+	install status ssh clean \
+	test test-nasa test-security test-security-standards \
+	test-integration-simple test-refs test-workstation test-on-workstation audit \
+	setup-secrets check-secrets-access test-security-real test-security-sanitized \
+	milestone-1 $(addprefix milestone-,2 3 4 5 6 7 8) milestone-status milestone-reset
+
 # Default target
 all: help
 
@@ -34,9 +53,15 @@ help:
 	@echo "  make clean                - Destroy workstation VM"
 	@echo ""
 	@echo "Development Commands:"
-	@echo "  make test                 - Run all tests"
-	@echo "  make test-workstation     - Test workstation VM environment (⚠️ Run before physical deployment)"
-	@echo "  make audit                - Run accountability audit"
+	@echo "  make test                    - Run all tests (nasa, security, integration, refs)"
+	@echo "  make test-nasa               - Validate NASA Power of 10 standards"
+	@echo "  make test-security           - Validate security patterns without false positives"
+	@echo "  make test-security-standards - Validate security and code quality standards"
+	@echo "  make test-integration-simple - Run simple integration tests (no VM required)"
+	@echo "  make test-refs               - Fail if the Makefile or playbooks reference missing files or targets"
+	@echo "  make test-workstation        - Test workstation VM environment (⚠️ Run before physical deployment)"
+	@echo "  make test-on-workstation     - Run the test suite inside the workstation VM"
+	@echo "  make audit                   - Run accountability audit"
 	@echo ""
 	@echo "Secrets Management Commands:"
 	@echo "  make setup-secrets        - Set up private secrets repository integration"
@@ -53,6 +78,13 @@ help:
 	@echo "Examples:"
 	@echo "  make install              # Just the workstation"
 	@echo "  make test                 # Run all tests"
+	@UNGROUPED="$(filter-out $(HELP_SHOWN_BELOW),$(TARGETS_IN_MAKEFILE))"; \
+	if [ -n "$$UNGROUPED" ]; then \
+		echo ""; \
+		echo "Other Targets (defined in the Makefile, not described above):"; \
+		for t in $$UNGROUPED; do echo "  make $$t"; done; \
+		echo "  (group them above, or add them to HELP_SHOWN_BELOW, in the Makefile)"; \
+	fi
 	$(call HELP_FOOTER)
 
 # Extract module arguments (everything after 'install' or 'generate-compose')

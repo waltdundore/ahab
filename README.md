@@ -83,14 +83,18 @@ Look these up in the BLUEPRINT D-register instead of tripping over them:
   pass (one root Makefile remains — `evidence/2026-09-11-estate-hygiene.md`);
   nested variants under `config/`, `inventory/`, `docs/development/` plus
   dangling includes remain — **D-18**
-- [MODULE_REGISTRY.yml](MODULE_REGISTRY.yml) names 8 module repos that do not
-  exist — **D-17**; the decided design keeps directory modules inside ahab
-  (`modules/<name>/module.yml`), and `modules/` is empty today
-- 12 top-level `.md` files of mixed vintage; BLUEPRINT's doc-hierarchy table
-  is the filter
-- byte-identical twin repos `ansible-config`/`ansible-inventory` ≡
-  `ahab-config`/`ahab-inventory`; canonical name **decided**: `ahab-*`
-  (**B-013**); lossless archiving of the twins awaits `gh` auth — **D-16**
+- [MODULE_REGISTRY.yml](MODULE_REGISTRY.yml) is **version 2.0**: each entry is
+  a directory inside ahab (`path: modules/<name>`) carrying `status: planned`
+  until its `module.yml` exists on disk; the per-module repo URLs are gone
+  (the 8 of 9 `ahab-module-*` repos the pre-v2.0 registry named never existed
+  — **D-17**), and `modules/` is empty today
+- Top-level `.md` files of mixed vintage — count them, don't copy the number:
+  `ls *.md | wc -l`, list with `ls *.md`; BLUEPRINT's doc-hierarchy table is
+  the filter
+- The `ansible-*` twins of **B-013**/**D-16** are no longer beside this repo:
+  only `ahab-config` remained (`ls ..` from the repo root lists what sits next
+  to ahab today — this README does not keep an estate inventory). Canonical
+  name **decided**: `ahab-*`; the archiving record stays in **D-16**
 
 ## History note
 

@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **README/Makefile truth drift (consensus 2026-10-09)**: `make help` now reads its target inventory from the Makefile itself, so a new target can no longer be silently omitted (the hand-written list was missing `test-security`, `test-security-standards`, `test-integration-simple`, `test-refs`, `test-nasa`, `test-on-workstation`; unknown targets still exit 2). README: the top-level `.md` count is replaced by the command that produces it, the MODULE_REGISTRY.yml description matches the v2.0 directory-module shape (`path: modules/<name>`, `status: planned`, no per-module repo URLs), and the retired `ansible-*` sibling repos are replaced by a listing command
 - **DRY Violation - Code**: Removed HTML duplication from playbooks
 - Apache role now downloads index.html from waltdundore.github.io (single source of truth)
 - PHP role now uses minimal test HTML (not duplicating production HTML)

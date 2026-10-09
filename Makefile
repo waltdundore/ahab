@@ -14,14 +14,16 @@
 
 # `make help` reads its target inventory from this file; it does not hand-list
 # it (README: "every real target, read from the Makefile itself").
-# TARGETS_IN_MAKEFILE is every target defined in this Makefile.
+# TARGETS_IN_MAKEFILE is every target defined in this Makefile or in a makefile
+# it includes (see the -include above); `$(MAKEFILE_LIST)`, not just the first
+# element, is what keeps the inventory complete.
 # HELP_SHOWN_BELOW names what the curated sections in the `help` recipe
 # describe. A target missing from HELP_SHOWN_BELOW is NOT hidden — `help`
 # prints it under "Other Targets" — so forgetting to update this list degrades
 # to an ungrouped line, never to a silent omission (2026-10-09 consensus: the
 # old hand-echo list had dropped test-security, test-security-standards,
 # test-integration-simple, test-refs, test-nasa, test-on-workstation).
-TARGETS_IN_MAKEFILE = $(sort $(shell grep -hoE '^[A-Za-z][A-Za-z0-9_.-]*:' $(firstword $(MAKEFILE_LIST)) | cut -d: -f1))
+TARGETS_IN_MAKEFILE = $(sort $(shell grep -hoE '^[A-Za-z][A-Za-z0-9_.-]*:' $(MAKEFILE_LIST) | cut -d: -f1))
 HELP_SHOWN_BELOW = all help \
 	check-prerequisites install-prerequisites bootstrap \
 	network-switches network-switches-version network-switches-test \

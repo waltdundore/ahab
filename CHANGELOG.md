@@ -68,7 +68,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - **Licensing decision codified (B-011 resolved)**: ahab is **Apache-2.0** per operator decision 2026-10-09, adopting the PM rationale (patent grant). The `LICENSE` file on disk — already verbatim Apache-2.0 — is the source of truth and was left untouched
-- Corrected the stale non-commercial license claims in `README.md`, `START_HERE.md`, `BLUEPRINT.md`, `SPEC.md`, `ABOUT.md`, `AUDIT_PLAN.md`, `audit/README.md`, and `docs/audits/CLAIMS_VERIFICATION.md`
+- Corrected the stale non-commercial license claims in `README.md`, `START_HERE.md`, `BLUEPRINT.md`, `SPEC.md`, `ABOUT.md`, `AUDIT_PLAN.md`, `audit/README.md`, `docs/audits/CLAIMS_VERIFICATION.md`, and `.kiro/data/components/license-compatibility.yml`
 
 ## [0.1.1] - 2025-12-08
 

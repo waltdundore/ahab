@@ -3,8 +3,8 @@
 # This file helps validate that all component licenses are compatible with each other
 # and with Ahab's overall licensing approach
 
-# Ahab's primary license (for documentation and educational materials)
-ahab_license: "CC BY-NC-SA 4.0"
+# Ahab's primary license (code and documentation)
+ahab_license: "Apache-2.0"
 
 # Licenses that are generally compatible with most other open-source licenses
 compatible_licenses:

@@ -10,7 +10,7 @@
 # Include safety system (optional - for advanced safety checks)
 -include docs/development/Makefile.safety
 
-.PHONY: help install clean status ssh test test-security test-security-standards test-integration-simple test-refs test-nasa audit bootstrap check-prerequisites install-prerequisites network-switches network-switches-version network-switches-test milestone-1 milestone-2 milestone-3 milestone-4 milestone-5 milestone-6 milestone-7 milestone-8 milestone-status milestone-reset
+.PHONY: help install clean status ssh test test-security test-security-standards test-integration-simple test-refs test-nasa audit bootstrap check-prerequisites install-prerequisites network-switches network-switches-version network-switches-test milestone-1 milestone-2 milestone-3 milestone-4 milestone-5 milestone-6 milestone-7 milestone-8 milestone-status milestone-reset ctx-audit ctx-audit-check
 
 # Default target
 all: help
@@ -237,6 +237,28 @@ test-refs:
 		bash scripts/ci/check-file-refs.sh; \
 	else \
 		echo "❌ Reference check script not found"; \
+		exit 1; \
+	fi
+
+ctx-audit:
+	$(call SHOW_SECTION,Context Consumption Audit)
+	@echo "→ Running: node scripts/ctx-audit.mjs summary --sessions 10"
+	@echo "   Purpose: Report where recent pi session context is being spent"
+	@if [ -f "scripts/ctx-audit.mjs" ]; then \
+		node scripts/ctx-audit.mjs summary --sessions 10; \
+	else \
+		echo "❌ Context audit script not found"; \
+		exit 1; \
+	fi
+
+ctx-audit-check:
+	$(call SHOW_SECTION,Context Budget Check)
+	@echo "→ Running: node scripts/ctx-audit.mjs summary --sessions 10 --fail-over 150000"
+	@echo "   Purpose: Fail if any recent session peaks above 150k context tokens"
+	@if [ -f "scripts/ctx-audit.mjs" ]; then \
+		node scripts/ctx-audit.mjs summary --sessions 10 --fail-over 150000; \
+	else \
+		echo "❌ Context audit script not found"; \
 		exit 1; \
 	fi
 

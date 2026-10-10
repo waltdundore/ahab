@@ -28,6 +28,9 @@ import os from 'node:os';
 
 const CACHE_BUST_INPUT = 20000;
 const BIG_PREFILL_INPUT = 60000;
+// A turn is counted in the per-session `turns>120k` column when its ctx exceeds
+// this threshold (120k tokens of context carried by a single model call).
+const CTX_LARGE = 120000;
 const PREVIEW_CHARS = 110;
 
 const STOP_DEAD = new Set(['error', 'aborted']);
@@ -96,6 +99,19 @@ const pct = (sorted, q) => (sorted.length ? sorted[Math.min(sorted.length - 1, M
 /** Encoded session directory -> readable cwd-ish label. */
 const dirLabel = (p) => path.basename(path.dirname(p)).replace(/^-+|-+$/g, '');
 
+/** Readable working directory for a session. Prefer the top-level `session`
+ *  record's `cwd`; else decode the `--encoded--` parent dir (leading/trailing
+ *  dash runs are boundaries; internal dash runs become `/`); else '-'. */
+const cwdLabel = (sess, p) => {
+  if (sess && sess.cwd) return sess.cwd;
+  const enc = path.basename(path.dirname(p));
+  if (/^-.*-$/.test(enc)) {
+    const inner = enc.replace(/^-+/, '').replace(/-+$/, '');
+    if (inner) return '/' + inner.replace(/-+/g, '/');
+  }
+  return '-';
+};
+
 const matchesCwd = (p, substr) => {
   const dir = path.dirname(p);
   const encoded = dirLabel(dir);
@@ -105,12 +121,14 @@ const matchesCwd = (p, substr) => {
 /** Per-session metrics from one pass over the entries (script 3 semantics). */
 const analyzeSession = (entries) => {
   const s = {
+    cwd: '',
     modelTurns: 0, peak: 0, sumInput: 0, sumCacheRead: 0, sumOutput: 0,
     firstCtx: 0, lastCtx: 0, compactions: 0, dead: 0, deadByStop: 0, deadNoUsage: 0,
     cacheBust: 0, bigPrefill: 0, thinkingBlocks: 0, thinkingBytes: 0, textBytes: 0,
     intercomMsgs: 0, intercomBytes: 0, perCall: [], outputs: [],
   };
   for (const e of entries) {
+    if (e.type === 'session' && e.cwd && !s.cwd) s.cwd = e.cwd;
     if (e.type === 'compaction' || e.customType === 'compaction') s.compactions++;
     if (e.type === 'custom_message' && /intercom/.test(e.customType || '')) {
       s.intercomMsgs++;
@@ -203,9 +221,13 @@ const cmdSummary = ({ sessions }, log) => {
     tot.intercomMsgs += s.intercomMsgs; tot.intercomBytes += s.intercomBytes;
     tot.outputs.push(...s.outputs);
     tot.peak = Math.max(tot.peak, s.peak);
-    log([s.mtime, s.file.slice(0, 16), s.dir.slice(-22).padStart(22), `${s.sizeMB}MB`,
+    const sc = s.perCall.slice().sort((a, b) => a - b);
+    const over120k = sc.reduce((a, c) => a + (c > CTX_LARGE ? 1 : 0), 0);
+    log([s.mtime, s.file.slice(0, 16), cwdLabel(s, s.path), `${s.sizeMB}MB`,
       'turns=' + s.modelTurns, 'peakCtx=' + W(s.peak), 'in=' + W(s.sumInput),
-      'cache=' + W(s.sumCacheRead), 'out=' + W(s.sumOutput), 'cmpct=' + s.compactions].join('  '));
+      'cache=' + W(s.sumCacheRead), 'out=' + W(s.sumOutput), 'cmpct=' + s.compactions,
+      'p50=' + W(pct(sc, 0.5)), 'p90=' + W(pct(sc, 0.9)),
+      'turns>120k=' + over120k, 'dead=' + s.dead, 'cache_bust=' + s.cacheBust].join('  '));
   }
   const sorted = allCtx.slice().sort((a, b) => a - b);
   const sortedFirst = firstCtx.slice().sort((a, b) => a - b);
